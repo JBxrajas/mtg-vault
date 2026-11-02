@@ -14,5 +14,5 @@ A single developer needs a lightweight way to version and release the app, with 
 ## Consequences
 - Releases need no manual versioning or tagging.
 - PR titles must be well formed, since they drive the version and changelog.
-- The repository needs the "Allow GitHub Actions to create pull requests" setting enabled.
-- Branch protection on `main` is a follow-up.
+- The repository needs the "Allow GitHub Actions to create pull requests" setting enabled (done).
+- `main` is protected: PR required and the `conventional-title` check must pass; admins are not enforced.

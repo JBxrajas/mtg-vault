@@ -8,7 +8,7 @@ Status: ☐ pending · ◐ in progress · ☑ done
 - ☐ `apps/web` with Vite + React + TanStack Router/Query
 - ☐ Vercel projects (web and API) and Neon database
 - ☑ Branch, commit and release process (release-please, Conventional Commits) — see [releases.md](releases.md)
-- ☐ Enable the GitHub settings listed in [releases.md](releases.md) and protect `main`
+- ☑ GitHub settings and `main` protection — see [releases.md](releases.md)
 - ☐ Basic CI (typecheck) on GitHub Actions — needs `pnpm-lock.yaml`, so after Node and pnpm are installed
 
 ## Phase 2 — Catalog ☐

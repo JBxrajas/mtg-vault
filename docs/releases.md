@@ -29,10 +29,12 @@ Only `feat`, `fix`, `perf` and breaking changes trigger a release; `docs`, `chor
 
 The root `package.json` holds the single project version; workspace packages are private and not versioned separately.
 
-## One-time GitHub settings
+## GitHub settings (already applied)
 
-These are repository settings and are not stored in the code:
+These are repository settings and are not stored in the code. They were applied on 2026-11-01:
 
-- **Settings → Actions → General → Workflow permissions:** enable "Allow GitHub Actions to create and approve pull requests", otherwise release-please cannot open its PR.
-- **Settings → General → Pull Requests:** allow squash merging, and set the default commit message to "Pull request title".
-- **Branch protection on `main`** (require a PR and the `pr-title` check) is planned but not enabled yet.
+- **Actions → Workflow permissions:** "Allow GitHub Actions to create and approve pull requests" is enabled, so release-please can open its PR.
+- **Merging:** only squash merge is allowed (merge commits and rebase are disabled). The squash commit title is the PR title and the body is blank. Merged branches are deleted automatically.
+- **Branch protection on `main`:** changes must come through a pull request and the `conventional-title` check must pass. Force pushes and branch deletion are blocked. Admins are not enforced, so the owner can still bypass the rules in an emergency. No approving review is required (single developer).
+
+If the settings are lost or the repository is recreated, reapply them with `gh api` or from Settings → Branches / General.
