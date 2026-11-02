@@ -13,10 +13,10 @@ Status: ☐ pending · ◐ in progress · ☑ done
 - ☑ Basic CI on GitHub Actions: typecheck and web build (`.github/workflows/ci.yml`), with `pnpm-lock.yaml` committed
 - ☐ Add the `typecheck` job as a required check on `main`, once it has run on a PR
 
-## Phase 2 — Catalog ☐
-- Drizzle schema: `set`, `card` (oracle), `printing`
-- GitHub Actions job: import Scryfall bulk data into Neon
-- Name search endpoint (`pg_trgm`) and basic filters
+## Phase 2 — Catalog ◐
+- ☑ Drizzle schema: `sets`, `cards` (oracle), `printings`, `price_snapshots` and first migration (`packages/db`) — not yet applied to a real database
+- ☐ GitHub Actions job: import Scryfall bulk data into Neon
+- ☐ Name search endpoint (`pg_trgm`) and basic filters
 
 ## Phase 3 — Collection and users ☐
 - Auth with email and password (Better Auth)
@@ -24,7 +24,7 @@ Status: ☐ pending · ◐ in progress · ☑ done
 - CSV import and export (Moxfield, Deckbox, Manabox)
 
 ## Phase 4 — Prices ☐
-- Daily job: price snapshots in the `price_snapshot` table
+- Daily job: price snapshots in the `price_snapshots` table
 - Price history charts and total collection value
 - Price rise and drop alerts
 
