@@ -40,5 +40,7 @@ pnpm dev:api
 - [docs/stack.md](docs/stack.md) — stack and deployment
 - [docs/apis.md](docs/apis.md) — external APIs (Scryfall, MTGJSON, …)
 - [docs/glossary.md](docs/glossary.md) — MTG and data model glossary
+- [docs/releases.md](docs/releases.md) — branches, versioning and releases
+- [CONTRIBUTING.md](CONTRIBUTING.md) — workflow and rules
 
 All documentation, code, comments and UI text are written in English.
