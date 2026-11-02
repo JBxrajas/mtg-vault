@@ -7,7 +7,9 @@ Status: ☐ pending · ◐ in progress · ☑ done
 - ☑ Knowledge base and ADRs
 - ☐ `apps/web` with Vite + React + TanStack Router/Query
 - ☐ Vercel projects (web and API) and Neon database
-- ☐ Basic CI (typecheck) on GitHub Actions
+- ☑ Branch, commit and release process (release-please, Conventional Commits) — see [releases.md](releases.md)
+- ☐ Enable the GitHub settings listed in [releases.md](releases.md) and protect `main`
+- ☐ Basic CI (typecheck) on GitHub Actions — needs `pnpm-lock.yaml`, so after Node and pnpm are installed
 
 ## Phase 2 — Catalog ☐
 - Drizzle schema: `set`, `card` (oracle), `printing`
