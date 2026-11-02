@@ -6,6 +6,16 @@
 2. **English only:** code, comments, docs, commit messages, PR text and UI text.
 3. **`main` is always stable.** Work happens on a branch and enters `main` through a pull request, squash-merged.
 
+### Docs hook (Claude Code)
+
+The project ships a Claude Code `PreToolUse` hook (`.claude/settings.json` and `.claude/hooks/docs-check.sh`) that runs before any `git commit` issued by Claude:
+
+- It always reminds Claude to review `docs/`, the READMEs and the ADRs and update what the change affects.
+- It **blocks** the commit when code or config changed (`apps/`, `packages/`, `.github/`, `.claude/`, root config files) but no documentation file did.
+- If no docs are really affected, the commit can be retried with `NO_DOCS_NEEDED=1` as a prefix (for example `NO_DOCS_NEEDED=1 git commit ...`).
+
+The hook only applies to commits made through Claude Code; the PR template checklist covers everyone else. See [ADR 0006](docs/adr/0006-docs-check-commit-hook.md).
+
 ## Branches
 
 | Prefix | Use |

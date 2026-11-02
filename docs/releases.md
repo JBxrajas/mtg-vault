@@ -29,6 +29,8 @@ Only `feat`, `fix`, `perf` and breaking changes trigger a release; `docs`, `chor
 
 The root `package.json` holds the single project version; workspace packages are private and not versioned separately.
 
+Before each commit made through Claude Code, a hook checks that documentation was updated alongside code changes (see [CONTRIBUTING.md](../CONTRIBUTING.md) and [ADR 0006](adr/0006-docs-check-commit-hook.md)).
+
 ## GitHub settings (already applied)
 
 These are repository settings and are not stored in the code. They were applied on 2026-11-01:
