@@ -5,11 +5,12 @@ Status: ☐ pending · ◐ in progress · ☑ done
 ## Phase 1 — Skeleton and knowledge base ◐
 - ☑ pnpm monorepo (`apps/api`, `apps/web`, `apps/desktop`, `packages/shared`)
 - ☑ Knowledge base and ADRs
-- ☐ `apps/web` with Vite + React + TanStack Router/Query
+- ☑ `apps/web` with Vite + React + TanStack Router/Query (placeholder home page)
 - ☐ Vercel projects (web and API) and Neon database
 - ☑ Branch, commit and release process (release-please, Conventional Commits) — see [releases.md](releases.md)
 - ☑ GitHub settings and `main` protection — see [releases.md](releases.md)
-- ☐ Basic CI (typecheck) on GitHub Actions — needs `pnpm-lock.yaml`, so after Node and pnpm are installed
+- ☑ Basic CI on GitHub Actions: typecheck and web build (`.github/workflows/ci.yml`), with `pnpm-lock.yaml` committed
+- ☐ Add the `typecheck` job as a required check on `main`, once it has run on a PR
 
 ## Phase 2 — Catalog ☐
 - Drizzle schema: `set`, `card` (oracle), `printing`

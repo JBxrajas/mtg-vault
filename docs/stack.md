@@ -29,6 +29,13 @@ packages/shared Zod, types, utilities
 - **Scryfall import and price snapshots:** GitHub Actions with cron, writing directly to Neon. Vercel functions have time limits and the Scryfall bulk file is hundreds of MB.
 - **Vercel Cron:** lightweight tasks only (for example, price alerts).
 
+## Tooling and versions
+
+- Node.js 22 LTS and pnpm 9 (pinned in the root `package.json` via `packageManager`).
+- Web: React 19, Vite, TanStack Router (hash history) and Query.
+- API: Hono served locally with `@hono/node-server` and `tsx`.
+- CI (`.github/workflows/ci.yml`): `pnpm install --frozen-lockfile`, `pnpm typecheck` and the web build on every PR and push to `main`.
+
 ## Electron
 
 - The web app must remain an SPA without SSR.
