@@ -8,6 +8,7 @@ Status: ☐ pending · ◐ in progress · ☑ done
 - ☑ `apps/web` with Vite + React + TanStack Router/Query (placeholder home page)
 - ☐ Vercel projects (web and API) and Neon database
 - ☑ Branch, commit and release process (release-please, Conventional Commits) — see [releases.md](releases.md)
+- ☑ Docs check hook before every commit made through Claude Code — see [ADR 0006](adr/0006-docs-check-commit-hook.md)
 - ☑ GitHub settings and `main` protection — see [releases.md](releases.md)
 - ☑ Basic CI on GitHub Actions: typecheck and web build (`.github/workflows/ci.yml`), with `pnpm-lock.yaml` committed
 - ☐ Add the `typecheck` job as a required check on `main`, once it has run on a PR
