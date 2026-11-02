@@ -1,36 +1,36 @@
 # Stack
 
-| Capa | Elección | Motivo |
+| Layer | Choice | Reason |
 |---|---|---|
-| Lenguaje | TypeScript | Tipos compartidos entre API, web y desktop |
-| Web | Vite + React + TanStack Router y Query | SPA pura, reutilizable en Electron |
-| API | Hono | Corre en Vercel Functions y en Node normal |
-| DB | PostgreSQL en Neon | Serverless, plan gratuito, integración con Vercel; `pg_trgm` para búsqueda por nombre y JSONB para el dato crudo de Scryfall |
-| ORM | Drizzle | Ligero, migraciones claras |
-| Validación | Zod (`packages/shared`) | Mismos esquemas en todas las capas |
-| Auth | Better Auth (email y contraseña) | Vive en nuestra DB, sin servicio externo |
-| Jobs | GitHub Actions (cron) | Sin límite de timeout; gratis |
-| Desktop | Electron (fase posterior) | Reutiliza el build de la web |
+| Language | TypeScript | Types shared across API, web and desktop |
+| Web | Vite + React + TanStack Router and Query | Pure SPA, reusable in Electron |
+| API | Hono | Runs on Vercel Functions and on plain Node |
+| DB | PostgreSQL on Neon | Serverless, free tier, Vercel integration; `pg_trgm` for name search and JSONB for raw Scryfall data |
+| ORM | Drizzle | Lightweight, clear migrations |
+| Validation | Zod (`packages/shared`) | Same schemas in every layer |
+| Auth | Better Auth (email and password) | Lives in our own DB, no external service |
+| Jobs | GitHub Actions (cron) | No timeout limit; free |
+| Desktop | Electron (later phase) | Reuses the web build |
 | Monorepo | pnpm workspaces | Simple |
 
-## Estructura
+## Structure
 
 ```
 apps/api        Hono
 apps/web        Vite + React
 apps/desktop    Electron
-packages/shared Zod, tipos, utilidades
+packages/shared Zod, types, utilities
 ```
 
-## Despliegue
+## Deployment
 
-- **Web y API:** Vercel (dos proyectos o uno con rutas; se decide en la fase 1).
-- **DB:** Neon (integración nativa de Vercel).
-- **Importación de Scryfall y snapshots de precios:** GitHub Actions con cron, escribiendo directo a Neon. Las funciones de Vercel tienen límite de tiempo y el bulk de Scryfall pesa cientos de MB.
-- **Vercel Cron:** solo tareas ligeras (por ejemplo, alertas de precio).
+- **Web and API:** Vercel (two projects or one with routes; decided in phase 1).
+- **DB:** Neon (native Vercel integration).
+- **Scryfall import and price snapshots:** GitHub Actions with cron, writing directly to Neon. Vercel functions have time limits and the Scryfall bulk file is hundreds of MB.
+- **Vercel Cron:** lightweight tasks only (for example, price alerts).
 
 ## Electron
 
-- La web debe seguir siendo una SPA sin SSR.
-- La auth debe funcionar con cookies y con token Bearer, para que web y Electron compartan API.
-- Modo offline (SQLite local) queda fuera del alcance inicial.
+- The web app must remain an SPA without SSR.
+- Auth must work with both cookies and Bearer tokens so web and Electron can share the API.
+- Offline mode (local SQLite) is out of scope initially.

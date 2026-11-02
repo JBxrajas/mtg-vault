@@ -1,33 +1,33 @@
-# Plan por fases
+# Phased plan
 
-Estado: ☐ pendiente · ◐ en curso · ☑ hecho
+Status: ☐ pending · ◐ in progress · ☑ done
 
-## Fase 1 — Esqueleto y base de conocimiento ◐
-- ☑ Monorepo pnpm (`apps/api`, `apps/web`, `apps/desktop`, `packages/shared`)
-- ☑ Base de conocimiento y ADRs
-- ☐ `apps/web` con Vite + React + TanStack Router/Query
-- ☐ Proyecto en Vercel (web y API) y base de datos Neon
-- ☐ CI básico (typecheck) en GitHub Actions
+## Phase 1 — Skeleton and knowledge base ◐
+- ☑ pnpm monorepo (`apps/api`, `apps/web`, `apps/desktop`, `packages/shared`)
+- ☑ Knowledge base and ADRs
+- ☐ `apps/web` with Vite + React + TanStack Router/Query
+- ☐ Vercel projects (web and API) and Neon database
+- ☐ Basic CI (typecheck) on GitHub Actions
 
-## Fase 2 — Catálogo ☐
-- Esquema Drizzle: `set`, `card` (oracle), `printing`
-- Job de GitHub Actions: importar bulk data de Scryfall a Neon
-- Endpoint de búsqueda por nombre (`pg_trgm`) y filtros básicos
+## Phase 2 — Catalog ☐
+- Drizzle schema: `set`, `card` (oracle), `printing`
+- GitHub Actions job: import Scryfall bulk data into Neon
+- Name search endpoint (`pg_trgm`) and basic filters
 
-## Fase 3 — Colección y usuarios ☐
-- Auth con email y contraseña (Better Auth)
-- Colecciones y mazos; altas, bajas y edición de entradas (cantidad, foil, condición, idioma, precio de compra)
-- Importar y exportar CSV (Moxfield, Deckbox, Manabox)
+## Phase 3 — Collection and users ☐
+- Auth with email and password (Better Auth)
+- Collections and decks; add, remove and edit entries (quantity, foil, condition, language, purchase price)
+- CSV import and export (Moxfield, Deckbox, Manabox)
 
-## Fase 4 — Precios ☐
-- Job diario: snapshot de precios en tabla `price_snapshot`
-- Gráficos de evolución y valor total de la colección
-- Alertas de subidas y bajadas
+## Phase 4 — Prices ☐
+- Daily job: price snapshots in the `price_snapshot` table
+- Price history charts and total collection value
+- Price rise and drop alerts
 
-## Fase 5 — Escaneo ☐
-- Subida de foto con OCR (nombre y número de colección) y búsqueda difusa en Scryfall
-- Cámara en vivo y hash perceptual (pHash) contra imágenes de Scryfall para distinguir ediciones
+## Phase 5 — Scanning ☐
+- Photo upload with OCR (name and collector number) and fuzzy lookup on Scryfall
+- Live camera and perceptual hashing (pHash) against Scryfall images to tell printings apart
 
-## Fase 6 — Electron y extras ☐
-- `apps/desktop` con Electron cargando el build de `apps/web`
-- Constructor de mazos con validación por formato, estadísticas, wishlist, listas públicas
+## Phase 6 — Electron and extras ☐
+- `apps/desktop` with Electron loading the `apps/web` build
+- Deck builder with per-format validation, statistics, wishlist, public lists

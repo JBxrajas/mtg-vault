@@ -8,5 +8,5 @@ dist/
 .DS_Store
 coverage/
 .turbo/
-# Bulk data descargada de Scryfall / MTGJSON
+# Bulk data downloaded from Scryfall / MTGJSON
 /data/

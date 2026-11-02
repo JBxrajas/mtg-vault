@@ -1,29 +1,29 @@
 # mtg-vault
 
-Plataforma para registrar y gestionar colecciones de Magic: The Gathering (estilo Moxfield): altas, bajas, precios con histórico y, más adelante, escaneo de cartas con cámara.
+A platform to track and manage Magic: The Gathering collections (Moxfield-style): add and remove cards, price history and, later, card scanning with a camera.
 
-## Estado
+## Status
 
-Fase 1 — esqueleto del monorepo y base de conocimiento. Ver [docs/plan.md](docs/plan.md).
+Phase 1 — monorepo skeleton and knowledge base. See [docs/plan.md](docs/plan.md).
 
 ## Stack
 
-TypeScript en todo · Vite + React (web) · Hono (API) · Postgres en Neon · Drizzle · Zod · Better Auth · Vercel · GitHub Actions para jobs · Electron (fase posterior).
+TypeScript everywhere · Vite + React (web) · Hono (API) · Postgres on Neon · Drizzle · Zod · Better Auth · Vercel · GitHub Actions for jobs · Electron (later phase).
 
-Detalle y justificación en [docs/stack.md](docs/stack.md) y [docs/adr/](docs/adr/).
+Details and rationale in [docs/stack.md](docs/stack.md) and [docs/adr/](docs/adr/).
 
-## Estructura
+## Structure
 
 ```
-apps/api        API Hono (Vercel Functions)
-apps/web        SPA Vite + React (Vercel)
-apps/desktop    Electron (fase posterior)
-packages/shared Esquemas Zod y tipos compartidos
-docs/           Base de conocimiento, ADRs y plan
-.github/        CI y jobs programados (importación y precios)
+apps/api        Hono API (Vercel Functions)
+apps/web        Vite + React SPA (Vercel)
+apps/desktop    Electron (later phase)
+packages/shared Shared Zod schemas and types
+docs/           Knowledge base, ADRs and plan
+.github/        CI and scheduled jobs (import and prices)
 ```
 
-## Requisitos
+## Requirements
 
 - Node.js 22 LTS
 - pnpm 9+
@@ -33,10 +33,12 @@ pnpm install
 pnpm dev:api
 ```
 
-## Documentación
+## Documentation
 
-- [docs/README.md](docs/README.md) — índice de la base de conocimiento
-- [docs/plan.md](docs/plan.md) — plan por fases
-- [docs/stack.md](docs/stack.md) — stack y despliegue
-- [docs/apis.md](docs/apis.md) — APIs externas (Scryfall, MTGJSON, …)
-- [docs/glossary.md](docs/glossary.md) — glosario de MTG y del modelo de datos
+- [docs/README.md](docs/README.md) — knowledge base index
+- [docs/plan.md](docs/plan.md) — phased plan
+- [docs/stack.md](docs/stack.md) — stack and deployment
+- [docs/apis.md](docs/apis.md) — external APIs (Scryfall, MTGJSON, …)
+- [docs/glossary.md](docs/glossary.md) — MTG and data model glossary
+
+All documentation, code, comments and UI text are written in English.

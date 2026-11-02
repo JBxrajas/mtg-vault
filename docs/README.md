@@ -1,11 +1,13 @@
-# Base de conocimiento
+# Knowledge base
 
-| Documento | Contenido |
+| Document | Contents |
 |---|---|
-| [plan.md](plan.md) | Plan por fases y estado |
-| [stack.md](stack.md) | Stack, estructura y despliegue |
-| [apis.md](apis.md) | APIs y fuentes de datos externas |
-| [glossary.md](glossary.md) | Glosario de MTG y modelo de datos |
-| [adr/](adr/) | Decisiones de arquitectura (una por archivo, numeradas) |
+| [plan.md](plan.md) | Phased plan and status |
+| [stack.md](stack.md) | Stack, structure and deployment |
+| [apis.md](apis.md) | External APIs and data sources |
+| [glossary.md](glossary.md) | MTG glossary and data model |
+| [adr/](adr/) | Architecture decision records (one per file, numbered) |
 
-Convención: cada decisión relevante se registra como ADR (`adr/NNNN-titulo.md`) con contexto, decisión y consecuencias. Si una decisión cambia, se añade un ADR nuevo que reemplaza al anterior en lugar de editarlo.
+Convention: every relevant decision is recorded as an ADR (`adr/NNNN-title.md`) with context, decision and consequences. If a decision changes, add a new ADR that supersedes the old one instead of editing it.
+
+Language: everything in this repository (docs, code, comments, commit messages, UI text) is written in English.

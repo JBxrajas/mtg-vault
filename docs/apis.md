@@ -1,28 +1,28 @@
-# APIs y fuentes de datos externas
+# External APIs and data sources
 
-## Scryfall (fuente principal)
+## Scryfall (main source)
 - Docs: https://scryfall.com/docs/api
-- Gratuita. Exige cabeceras `User-Agent` y `Accept` en cada petición.
-- Límite de cortesía: 50–100 ms entre peticiones (unas 10 por segundo como máximo).
-- **Bulk data** (`/bulk-data`): archivos JSON con todo el catálogo, se actualizan periódicamente. Usar `default_cards` (una entrada por impresión) o `oracle_cards` (una por carta). Importar el bulk en vez de consultar carta por carta.
-- Precios (`prices.usd`, `usd_foil`, `eur`, `eur_foil`, `tix`): solo el valor actual, **sin histórico**. Los datos de precio se actualizan una vez al día, así que el snapshot diario basta.
-- Búsqueda difusa por nombre: `/cards/named?fuzzy=` (útil para el resultado del OCR).
-- Imágenes: campo `image_uris` (hay versiones `small`, `normal`, `large`, `png`, `art_crop`).
+- Free. Requires `User-Agent` and `Accept` headers on every request.
+- Courtesy rate limit: 50–100 ms between requests (roughly 10 per second at most).
+- **Bulk data** (`/bulk-data`): JSON files with the whole catalog, refreshed periodically. Use `default_cards` (one entry per printing) or `oracle_cards` (one per card). Import the bulk file instead of querying card by card.
+- Prices (`prices.usd`, `usd_foil`, `eur`, `eur_foil`, `tix`): current value only, **no history**. Price data refreshes once a day, so a daily snapshot is enough.
+- Fuzzy name lookup: `/cards/named?fuzzy=` (useful for OCR output).
+- Images: `image_uris` field (`small`, `normal`, `large`, `png`, `art_crop`).
 
 ## MTGJSON
 - https://mtgjson.com
-- Gratuita. Incluye precios históricos de varios proveedores (Cardmarket, TCGplayer, …). Complemento para rellenar histórico.
+- Free. Includes historical prices from several providers (Cardmarket, TCGplayer, …). A complement to backfill history.
 
-## Precios de mercado
-- **TCGplayer:** ya no concede acceso nuevo a su API.
-- **Cardmarket:** requiere solicitar acceso.
-- Empezamos con los precios de Scryfall y MTGJSON.
+## Market prices
+- **TCGplayer:** no longer grants new API access.
+- **Cardmarket:** access must be requested.
+- We start with Scryfall and MTGJSON prices.
 
-## Escaneo de cartas
-No existe una API que lo resuelva. Se construye en el cliente combinando:
-1. OCR (Tesseract.js) del nombre y del número de colección, y búsqueda difusa en Scryfall.
-2. Hash perceptual (pHash) de la imagen contra las imágenes de Scryfall, para distinguir ediciones.
-OpenCV.js para el recorte y la corrección de perspectiva.
+## Card scanning
+No API solves this. It is built on the client by combining:
+1. OCR (Tesseract.js) of the name and collector number, then fuzzy lookup on Scryfall.
+2. Perceptual hash (pHash) of the image against Scryfall images, to tell printings apart.
+OpenCV.js handles cropping and perspective correction.
 
 ## Moxfield
-API no oficial; no depender de ella. Soportar solo el formato de importación y exportación CSV.
+Unofficial API; do not depend on it. Only support its CSV import and export format.
