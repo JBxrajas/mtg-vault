@@ -28,9 +28,20 @@ docs/           Knowledge base, ADRs and plan
 - Node.js 22 LTS
 - pnpm 9+
 
+Recommended setup on Linux/macOS: install [fnm](https://github.com/Schniz/fnm), then:
+
+```bash
+fnm install 22
+corepack enable   # activates the pnpm version pinned in package.json
+```
+
+Run the project:
+
 ```bash
 pnpm install
-pnpm dev:api
+pnpm dev:api                          # API on http://localhost:3001 (GET /health)
+pnpm --filter @mtg-vault/web dev      # web on http://localhost:5173
+pnpm typecheck                        # typecheck every package
 ```
 
 ## Documentation
