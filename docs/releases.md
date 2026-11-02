@@ -9,6 +9,10 @@
 
 Branch naming and commit types are in [CONTRIBUTING.md](../CONTRIBUTING.md).
 
+## First release
+
+With no previous tag, release-please proposes `1.0.0` regardless of the `0.0.0` in the manifest. To start at `0.1.0`, `release-please-config.json` carries `"release-as": "0.1.0"`. **Remove that line right after the `v0.1.0` release is published**, otherwise every following release would try to stay on `0.1.0`.
+
 ## How a release happens
 
 1. A PR is merged into `main`.
@@ -37,6 +41,10 @@ These are repository settings and are not stored in the code. They were applied 
 
 - **Actions → Workflow permissions:** "Allow GitHub Actions to create and approve pull requests" is enabled, so release-please can open its PR.
 - **Merging:** only squash merge is allowed (merge commits and rebase are disabled). The squash commit title is the PR title and the body is blank. Merged branches are deleted automatically.
-- **Branch protection on `main`:** changes must come through a pull request and the `conventional-title` check must pass. Force pushes and branch deletion are blocked. Admins are not enforced, so the owner can still bypass the rules in an emergency. No approving review is required (single developer).
+- **Branch protection on `main`:** changes must come through a pull request and the `conventional-title` and `typecheck` checks must pass. Force pushes and branch deletion are blocked. Admins are not enforced, so the owner can still bypass the rules in an emergency. No approving review is required (single developer).
 
 If the settings are lost or the repository is recreated, reapply them with `gh api` or from Settings → Branches / General.
+
+## Known limitation: release PRs and required checks
+
+Pull requests opened by release-please with the default `GITHUB_TOKEN` do not trigger other workflows, so the required checks never report on them. The owner can merge the release PR because administrators are not enforced by the branch protection. A cleaner fix (a personal access token or GitHub App for release-please) is not set up yet.

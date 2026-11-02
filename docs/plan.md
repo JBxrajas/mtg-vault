@@ -11,7 +11,8 @@ Status: ☐ pending · ◐ in progress · ☑ done
 - ☑ Docs check hook before every commit made through Claude Code — see [ADR 0006](adr/0006-docs-check-commit-hook.md)
 - ☑ GitHub settings and `main` protection — see [releases.md](releases.md)
 - ☑ Basic CI on GitHub Actions: typecheck and web build (`.github/workflows/ci.yml`), with `pnpm-lock.yaml` committed
-- ☐ Add the `typecheck` job as a required check on `main`, once it has run on a PR
+- ☑ `typecheck` is a required check on `main`
+- ☐ First release pinned to `0.1.0` (`release-as`); remove that line after `v0.1.0` is published
 
 ## Phase 2 — Catalog ☐
 - Drizzle schema: `set`, `card` (oracle), `printing`
