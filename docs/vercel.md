@@ -29,6 +29,6 @@ The Vercel CLI, the Vercel plugin for Claude Code and the Vercel MCP server (`ht
 
 ## Not done yet
 
-- **First deployment:** none has been triggered from the CLI; Vercel deploys on pushes now that Git is connected. Check the first build before relying on it.
+- **Deployment protection:** the first two production deployments built and are `Ready` (about 15 s each), but the default Vercel Authentication redirects visitors to a Vercel sign-in (HTTP 302), so the site is not public yet. Turn it off in the project settings (Deployment Protection) when the site should be open.
 - **API project:** created later, when the API has something to serve.
 - **Environment variables:** the web app needs none yet. The API will need `DATABASE_URL` (see [neon.md](neon.md)).

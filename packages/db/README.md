@@ -28,4 +28,4 @@ Migrations in `migrations/` are committed. `0000_init.sql` was edited by hand to
 
 ## Status
 
-The schema and the first migration are written and typechecked. They have **not been applied to a real database yet** (the Neon database now exists, see [docs/neon.md](../../docs/neon.md); applying it is the next step).
+Migration `0000_init` was applied to the Neon `production` branch on 2026-11-03 using `DATABASE_URL_UNPOOLED` (see [docs/neon.md](../../docs/neon.md)). Verified afterwards: tables `sets`, `cards`, `printings` and `price_snapshots` exist, the `pg_trgm` extension is enabled and the `cards_name_trgm_idx` index is present. The tables are empty until the Scryfall import job exists.
