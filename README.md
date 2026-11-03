@@ -19,6 +19,7 @@ apps/api        Hono API (Vercel Functions)
 apps/web        Vite + React SPA (Vercel)
 apps/desktop    Electron (later phase)
 packages/shared Shared Zod schemas and types
+packages/db     Drizzle schema and migrations
 docs/           Knowledge base, ADRs and plan
 .github/        CI and scheduled jobs (import and prices)
 ```

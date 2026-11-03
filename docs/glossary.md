@@ -9,10 +9,12 @@
 - **Condition:** physical state: NM (near mint), LP, MP, HP, DMG.
 - **Format:** deck-building rules (Standard, Modern, Commander, …).
 
-## Data model (draft)
-- `set` — a set.
-- `card` — an oracle card.
-- `printing` — a printing; belongs to a `card` and a `set`.
+## Data model
+Implemented in `packages/db` (see its README): `sets`, `cards`, `printings` and `price_snapshots`. Planned for phase 3: collections and decks.
+
+- `sets` — a set.
+- `cards` — an oracle card.
+- `printings` — a printing; belongs to a `card` and a `set`.
 - `collection_entry` — one entry in a user's collection: `printing`, quantity, foil, condition, language, purchase price.
 - `deck` and `deck_entry` — decks.
-- `price_snapshot` — the price of a `printing` on a given date.
+- `price_snapshots` — the price of a `printing` on a given date.

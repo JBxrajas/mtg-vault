@@ -5,7 +5,7 @@
 | Language | TypeScript | Types shared across API, web and desktop |
 | Web | Vite + React + TanStack Router and Query | Pure SPA, reusable in Electron |
 | API | Hono | Runs on Vercel Functions and on plain Node |
-| DB | PostgreSQL on Neon | Serverless, free tier, Vercel integration; `pg_trgm` for name search and JSONB for raw Scryfall data |
+| DB | PostgreSQL on Neon ([setup](neon.md)) | Serverless, free tier, Vercel integration; `pg_trgm` for name search and JSONB for raw Scryfall data |
 | ORM | Drizzle | Lightweight, clear migrations |
 | Validation | Zod (`packages/shared`) | Same schemas in every layer |
 | Auth | Better Auth (email and password) | Lives in our own DB, no external service |
@@ -20,6 +20,7 @@ apps/api        Hono
 apps/web        Vite + React
 apps/desktop    Electron
 packages/shared Zod, types, utilities
+packages/db     Drizzle schema and migrations (postgres.js driver)
 ```
 
 ## Deployment
