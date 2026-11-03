@@ -4,6 +4,7 @@
 |---|---|
 | [plan.md](plan.md) | Phased plan and status |
 | [stack.md](stack.md) | Stack, structure and deployment |
+| [neon.md](neon.md) | Neon setup, environment variables and branches |
 | [apis.md](apis.md) | External APIs and data sources |
 | [glossary.md](glossary.md) | MTG glossary and data model |
 | [releases.md](releases.md) | Branches, versioning and release process |

@@ -28,4 +28,4 @@ Migrations in `migrations/` are committed. `0000_init.sql` was edited by hand to
 
 ## Status
 
-The schema and the first migration are written and typechecked. They have **not been applied to a real database yet** (waiting for the Neon database).
+The schema and the first migration are written and typechecked. They have **not been applied to a real database yet** (the Neon database now exists, see [docs/neon.md](../../docs/neon.md); applying it is the next step).

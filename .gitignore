@@ -10,3 +10,4 @@ coverage/
 .turbo/
 # Bulk data downloaded from Scryfall / MTGJSON
 /data/
+.neon
