@@ -25,7 +25,7 @@ packages/db     Drizzle schema and migrations (postgres.js driver)
 
 ## Deployment
 
-- **Web and API:** Vercel (two projects or one with routes; decided in phase 1).
+- **Web and API:** Vercel ([setup](vercel.md)); the web project exists, the API project comes later.
 - **DB:** Neon (native Vercel integration).
 - **Scryfall import and price snapshots:** GitHub Actions with cron, writing directly to Neon. Vercel functions have time limits and the Scryfall bulk file is hundreds of MB.
 - **Vercel Cron:** lightweight tasks only (for example, price alerts).
