@@ -42,7 +42,7 @@ For GitHub Actions jobs, store `DATABASE_URL` as a repository secret: `gh secret
 
 ## Auth
 
-**Decision:** self-managed Better Auth in our own API, as in [ADR 0004](adr/0004-hono-api-and-better-auth.md). It keeps full plugin freedom (OAuth providers, API keys, Bearer tokens for Electron) and does not tie login to Neon's managed plugin set. Better Auth stores its tables in the same Neon Postgres, through Drizzle.
+**Decision:** self-managed Better Auth in our own API, as in [ADR 0004](adr/0004-hono-api-and-better-auth.md). It keeps full plugin freedom (OAuth providers, API keys, Bearer tokens for Electron) and does not tie login to Neon's managed plugin set. Better Auth stores its tables in the same Neon Postgres, through Drizzle, with username and password sign-in ([ADR 0008](adr/0008-users-collection-binders-decks.md)).
 
 Neon also offers Managed Better Auth (`auth: true` in `neon.ts`, tables in the `neon_auth` schema). It was provisioned during setup but is **not used** and no code depends on it. We can remove `auth: true` from `neon.ts` and run `neon deploy` to deprovision it; that is not done yet, so check with `neon neon-auth status` before relying on a clean state.
 

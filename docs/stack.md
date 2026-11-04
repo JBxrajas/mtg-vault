@@ -8,7 +8,7 @@
 | DB | PostgreSQL on Neon ([setup](neon.md)) | Serverless, free tier, Vercel integration; `pg_trgm` for name search and JSONB for raw Scryfall data |
 | ORM | Drizzle | Lightweight, clear migrations |
 | Validation | Zod (`packages/shared`) | Same schemas in every layer |
-| Auth | Better Auth (email and password) | Lives in our own DB, no external service |
+| Auth | Better Auth (username and password, [ADR 0008](adr/0008-users-collection-binders-decks.md)) | Lives in our own DB, no external service |
 | Jobs | GitHub Actions (cron) | No timeout limit; free |
 | Desktop | Electron (later phase) | Reuses the web build |
 | Monorepo | pnpm workspaces | Simple |

@@ -10,11 +10,25 @@
 - **Format:** deck-building rules (Standard, Modern, Commander, …).
 
 ## Data model
-Implemented in `packages/db` (see its README): `sets`, `cards`, `printings` and `price_snapshots`. Planned for phase 3: collections and decks.
+Implemented in `packages/db` (see its README); the decisions are in [ADR 0008](adr/0008-users-collection-binders-decks.md).
 
+**Catalog** (imported from Scryfall)
 - `sets` — a set.
 - `cards` — an oracle card.
 - `printings` — a printing; belongs to a `card` and a `set`.
-- `collection_entry` — one entry in a user's collection: `printing`, quantity, foil, condition, language, purchase price.
-- `deck` and `deck_entry` — decks.
 - `price_snapshots` — the price of a `printing` on a given date.
+
+**Users** (Better Auth, username and password)
+- `user`, `session`, `account`, `verification`.
+
+**Collection**
+- `collections` — a user's one collection.
+- `collection_items` — inventory: a stack of identical cards (printing, finish, condition, language) with quantity and purchase data.
+- `binders` — named sub-collections of the collection.
+- `binder_items` — how many copies of a stack sit in a binder.
+
+**Decks**
+- `decks` — a user's deck with a format and visibility.
+- `deck_cards` — oracle cards in a deck, per board (main, sideboard, maybeboard, commander). Type groups (creature, instant, …) are derived from the type line.
+
+Terms: a **stack** is owned copies that share printing, finish, condition and language; a **binder** is a sub-collection; a **board** is the part of a deck a card sits in.

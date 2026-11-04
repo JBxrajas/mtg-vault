@@ -3,10 +3,15 @@ import { z } from "zod";
 export const conditionSchema = z.enum(["NM", "LP", "MP", "HP", "DMG"]);
 export type Condition = z.infer<typeof conditionSchema>;
 
+/** Physical finish of an owned card. Matches the `finishes` Scryfall lists per printing. */
+export const finishSchema = z.enum(["nonfoil", "foil", "etched"]);
+export type Finish = z.infer<typeof finishSchema>;
+
+/** One stack of identical cards in a collection: same printing, finish, condition and language. */
 export const collectionEntrySchema = z.object({
   printingId: z.string().uuid(),
   quantity: z.number().int().positive(),
-  foil: z.boolean().default(false),
+  finish: finishSchema.default("nonfoil"),
   condition: conditionSchema.default("NM"),
   language: z.string().default("en"),
   purchasePrice: z.number().nonnegative().optional(),
@@ -38,3 +43,5 @@ export interface CardSearchResult {
   /** Trigram similarity to the query, 0 to 1. */
   similarity: number;
 }
+
+export * from "./decks.js";
