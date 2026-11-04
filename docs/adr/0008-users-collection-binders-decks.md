@@ -38,4 +38,4 @@ Better Auth's core `user` table requires a unique `email`. Username-only sign-up
 - Deleting a user cascades to their sessions, accounts, collection (items, binders), and decks.
 - The database enforces: one collection per user, no duplicate stacks, positive quantities, no duplicate card per deck board. The binder quantity rule and format rules live in the API.
 - Without a real email there is no password recovery; this is accepted for the basic first version.
-- Migration `0002` creates all of this. It was verified on a throwaway Neon branch (constraints and cascades), not yet applied to `production`.
+- Migration `0002` creates all of this. It was verified on a throwaway Neon branch (constraints and cascades) and then applied to `production` on 2026-11-04.

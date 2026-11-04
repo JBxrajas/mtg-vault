@@ -40,6 +40,8 @@ Migrations in `migrations/` are committed. `0000_init.sql` was edited by hand to
 
 ## Status
 
-Migrations `0000_init` and `0001` (widens `cards.cmc` to `numeric(10,1)`) are applied to the Neon `production` branch, and the catalog tables were filled by the Scryfall import ([apps/jobs](../../apps/jobs/README.md)).
+Migrations `0000_init`, `0001` (widens `cards.cmc` to `numeric(10,1)`) and `0002` (users, collection, binders, decks) are applied to the Neon `production` branch (2026-11-04), and the catalog tables were filled by the Scryfall import ([apps/jobs](../../apps/jobs/README.md)).
 
-Migration `0002` (users, collection, binders, decks) is written and was verified on a throwaway Neon branch, since deleted: unique and check constraints reject duplicates, a second collection and zero quantities, and deleting a user cascades. It has **not** been applied to `production` yet; run `pnpm --filter @mtg-vault/db migrate` with `DATABASE_URL_UNPOOLED` to apply it.
+Before `0002` reached production it was verified on a throwaway Neon branch, since deleted: unique and check constraints reject duplicates, a second collection and zero quantities, and deleting a user cascades. The new tables are empty until the API writes to them.
+
+Apply future migrations with `DATABASE_URL=<unpooled url> pnpm --filter @mtg-vault/db migrate`; `drizzle-kit` reads `DATABASE_URL`, so pass the unpooled value there.
