@@ -48,4 +48,4 @@ Neon also offers Managed Better Auth (`auth: true` in `neon.ts`, tables in the `
 
 ## Status
 
-Neon is connected and the services are provisioned. Drizzle migration `0000_init` is applied to the `production` branch (use `DATABASE_URL_UNPOOLED` for `pnpm --filter @mtg-vault/db migrate`). The tables are empty until the Scryfall import job exists.
+Neon is connected and the services are provisioned. Drizzle migrations `0000_init`, `0001` and `0002` (users, collection, binders, decks) are applied to the `production` branch. Run future ones with `DATABASE_URL=<DATABASE_URL_UNPOOLED value> pnpm --filter @mtg-vault/db migrate`. The Scryfall import has filled the catalog (see [apps/jobs](../apps/jobs/README.md)); the user tables are empty until the API writes to them.
