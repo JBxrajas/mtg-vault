@@ -19,6 +19,7 @@
 apps/api        Hono
 apps/web        Vite + React
 apps/desktop    Electron
+apps/jobs       Batch jobs run by GitHub Actions (Scryfall import)
 packages/shared Zod, types, utilities
 packages/db     Drizzle schema and migrations (postgres.js driver)
 ```

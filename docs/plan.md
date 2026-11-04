@@ -16,7 +16,7 @@ Status: ☐ pending · ◐ in progress · ☑ done
 
 ## Phase 2 — Catalog ◐
 - ☑ Drizzle schema: `sets`, `cards` (oracle), `printings`, `price_snapshots` and first migration (`packages/db`) — not yet applied to a real database
-- ☐ GitHub Actions job: import Scryfall bulk data into Neon
+- ◐ GitHub Actions job: import Scryfall bulk data into Neon ([apps/jobs](../apps/jobs/README.md); verified locally on a sample, needs the `DATABASE_URL_UNPOOLED` secret and a first full run)
 - ☐ Name search endpoint (`pg_trgm`) and basic filters
 
 ## Phase 3 — Collection and users ☐

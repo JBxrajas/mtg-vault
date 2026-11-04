@@ -34,6 +34,22 @@ importers:
         specifier: ^4.19.0
         version: 4.23.15
 
+  apps/jobs:
+    dependencies:
+      '@mtg-vault/db':
+        specifier: workspace:*
+        version: link:../../packages/db
+      drizzle-orm:
+        specifier: ^0.45.4
+        version: 0.45.4(postgres@4.0.0)
+    devDependencies:
+      '@types/node':
+        specifier: ^26.6.6
+        version: 26.6.6
+      tsx:
+        specifier: ^4.19.0
+        version: 4.23.15
+
   apps/web:
     dependencies:
       '@mtg-vault/shared':
