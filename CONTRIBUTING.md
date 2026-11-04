@@ -18,6 +18,10 @@ The project ships a Claude Code `PreToolUse` hook (`.claude/settings.json` and `
 
 The hook only applies to commits made through Claude Code; the PR template checklist covers everyone else. See [ADR 0006](docs/adr/0006-docs-check-commit-hook.md).
 
+### Vercel deploy guard (Claude Code)
+
+A second `PreToolUse` hook (`.claude/hooks/vercel-deploy-guard.sh`) runs before any `vercel deploy`, `vercel redeploy` or `vercel --prod` issued by Claude. The Hobby plan allows 100 deployments per 24 hours, cancelled ones included, so the hook counts the last 24 hours with the Vercel API and **blocks** the deploy at 99 or more, saying when the next slot opens; below that it only reports the count. It allows the deploy when it cannot count, and it can only be turned off with `VERCEL_DEPLOY_GUARD=off` in the environment Claude Code runs in, not from the command. It does not cover merges made on GitHub: merging in batches does. See [ADR 0011](docs/adr/0011-vercel-deploy-guard-hook.md).
+
 ## Branches
 
 | Prefix | Use |

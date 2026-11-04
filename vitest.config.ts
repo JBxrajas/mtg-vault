@@ -4,7 +4,7 @@ import { defineConfig } from "vitest/config";
 // everything else runs in plain Node.
 export default defineConfig({
   test: {
-    include: ["apps/*/src/**/*.test.{ts,tsx}", "packages/*/src/**/*.test.ts"],
+    include: ["apps/*/src/**/*.test.{ts,tsx}", "packages/*/src/**/*.test.ts", ".claude/hooks/*.test.ts"],
     setupFiles: ["apps/web/src/test-setup.ts"],
   },
 });
