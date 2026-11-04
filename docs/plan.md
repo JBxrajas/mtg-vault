@@ -6,7 +6,7 @@ Status: ☐ pending · ◐ in progress · ☑ done
 - ☑ pnpm monorepo (`apps/api`, `apps/web`, `apps/desktop`, `packages/shared`)
 - ☑ Knowledge base and ADRs
 - ☑ `apps/web` with Vite + React + TanStack Router/Query (placeholder home page)
-- ◐ Vercel projects (web and API) and Neon database (Neon: [neon.md](neon.md); web and API projects on Vercel: [vercel.md](vercel.md))
+- ☑ Vercel projects (web and API) and Neon database (Neon: [neon.md](neon.md); web and API live on Vercel: [vercel.md](vercel.md))
 - ☑ Branch, commit and release process (release-please, Conventional Commits) — see [releases.md](releases.md)
 - ☑ Docs check hook before every commit made through Claude Code — see [ADR 0006](adr/0006-docs-check-commit-hook.md)
 - ☑ GitHub settings and `main` protection — see [releases.md](releases.md)

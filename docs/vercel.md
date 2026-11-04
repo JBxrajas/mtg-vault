@@ -36,7 +36,7 @@ It was created with `vercel link --yes --project mtg-vault-api` run **inside `ap
 
 The API is bundled before deploy (`apps/api/vercel.json` → `pnpm build`, tsup) because the workspace packages export TypeScript; see [apps/api/README.md](../apps/api/README.md#deployment).
 
-Environment variables (Production), to be set by the repository owner because storing secrets from the agent session is blocked:
+Environment variables (Production). They were set by the repository owner, because storing secrets from the agent session is blocked:
 
 ```bash
 cd apps/api
@@ -48,7 +48,9 @@ echo https://mtg-vault-web.vercel.app | vercel env add CORS_ORIGINS production
 
 The Vercel CLI, the Vercel plugin for Claude Code and the Vercel MCP server (`https://mcp.vercel.com`, user scope) were set up following https://vercel.com/get-started.md. The MCP server needs a one-time OAuth sign-in from `/mcp`.
 
-## Not done yet
+## Status (2026-11-04)
 
-- **Deployment protection:** the first two production deployments built and are `Ready` (about 15 s each), but the default Vercel Authentication redirects visitors to a Vercel sign-in (HTTP 302), so the site is not public yet. Turn it off in the project settings (Deployment Protection) when the site should be open.
-- **Environment variables:** the web app needs none yet; it will need the API URL as a build variable once it calls the API. The API needs `DATABASE_URL` and `CORS_ORIGINS` (see above) before `/cards/search` works in production.
+- **Web:** https://mtg-vault-web.vercel.app is public (HTTP 200). Only the per-deployment URLs (`*-jbxrajas-projects.vercel.app`) sit behind Vercel Authentication and redirect to a Vercel sign-in (HTTP 302); that is expected.
+- **API:** https://mtg-vault-api.vercel.app is live. Checked in production: `/health` returns 200, `/cards/search?q=lightnin bolt` returns Lightning Bolt first, and a request with `Origin: https://mtg-vault-web.vercel.app` gets the matching `Access-Control-Allow-Origin`. `DATABASE_URL` and `CORS_ORIGINS` are set (as Vercel secrets, so they are hidden in the dashboard).
+- **Web to API:** the web app does not call the API yet; it will need the API URL as a build variable.
+- Redeploy after changing a variable: `vercel redeploy <deployment-url>` from `apps/api`.
