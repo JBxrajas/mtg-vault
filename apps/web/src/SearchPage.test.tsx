@@ -38,9 +38,10 @@ describe("SearchPage", () => {
     await userEvent.type(await screen.findByLabelText("Card name"), "bolt");
 
     expect(await screen.findByText("Lightning Bolt")).toBeInTheDocument();
-    expect(screen.getByText("{R}")).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "{R}" })).toBeInTheDocument();
     expect(screen.getByText("Instant")).toBeInTheDocument();
-    const img = document.querySelector("img.thumb, .thumb img") as HTMLImageElement;
+    // Decorative image (the button carries the name), so it has no accessible role.
+    const img = screen.getByRole("button", { name: "Show Lightning Bolt" }).querySelector("img")!;
     expect(img).toHaveAttribute("src", "https://img.example/small.jpg");
     expect(img).toHaveAttribute("loading", "lazy");
 

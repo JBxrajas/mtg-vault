@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { screen, within } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -21,6 +21,8 @@ beforeEach(() => {
 });
 
 const rows = () => screen.getAllByRole("listitem");
+/** The number shown in the stat card with this label. */
+const stat = (label: string) => screen.getByText(label).previousElementSibling;
 
 describe("CollectionPage", () => {
   it("asks to sign in and does not load anything without a session", async () => {
@@ -34,7 +36,8 @@ describe("CollectionPage", () => {
     fetchCollection.mockResolvedValue([]);
     renderPage(<CollectionPage />, { path: "/collection" });
     expect(await screen.findByText(/Nothing here yet/)).toBeInTheDocument();
-    expect(screen.getByText(/0 cards in 0 stacks/)).toBeInTheDocument();
+    expect(stat("cards")).toHaveTextContent("0");
+    expect(stat("stacks")).toHaveTextContent("0");
   });
 
   it("lists stacks with set, finish, condition and prices, and totals the market value", async () => {
@@ -44,9 +47,11 @@ describe("CollectionPage", () => {
     ]);
     renderPage(<CollectionPage />, { path: "/collection" });
 
-    expect(await screen.findByText(/5 cards in 2 stacks/)).toBeInTheDocument();
-    expect(screen.getByText(/market value \$20\.00/)).toBeInTheDocument();
-    expect(screen.getByText(/3 without a price/)).toBeInTheDocument();
+    await screen.findByText("Counterspell");
+    expect(stat("cards")).toHaveTextContent("5");
+    expect(stat("stacks")).toHaveTextContent("2");
+    expect(stat("market value")).toHaveTextContent("$20.00");
+    expect(screen.getByText(/3 copies without a price/)).toBeInTheDocument();
 
     const [bolt, counter] = rows();
     expect(within(bolt!).getByText("Lightning Bolt")).toBeInTheDocument();
@@ -74,9 +79,10 @@ describe("CollectionPage", () => {
     fetchCollection.mockResolvedValueOnce([aStack({ quantity: 2 })]).mockResolvedValue([aStack({ quantity: 3 })]);
     updateCollectionItem.mockResolvedValue(aStack({ quantity: 3 }));
     renderPage(<CollectionPage />, { path: "/collection" });
-    await screen.findByText(/2 cards in 1 stack/);
+    await screen.findByText("Lightning Bolt");
+    expect(stat("cards")).toHaveTextContent("2");
     await userEvent.click(screen.getByRole("button", { name: "One more" }));
-    expect(await screen.findByText(/3 cards in 1 stack/)).toBeInTheDocument();
+    await waitFor(() => expect(stat("cards")).toHaveTextContent("3"));
   });
 
   it("removes a stack", async () => {
