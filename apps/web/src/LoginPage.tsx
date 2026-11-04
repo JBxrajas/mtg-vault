@@ -63,7 +63,11 @@ export function LoginPage() {
         {mode === "register" && (
           <p className="hint">3–30 characters: letters, digits, underscore or dot. Password: at least 8 characters.</p>
         )}
-        {error && <p className="error">{error}</p>}
+        {error && (
+          <p className="error" role="alert">
+            {error}
+          </p>
+        )}
         <button type="submit" disabled={busy}>
           {busy ? "Please wait…" : mode === "login" ? "Sign in" : "Create account"}
         </button>
