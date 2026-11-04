@@ -2,6 +2,11 @@ import { zValidator } from "@hono/zod-validator";
 import {
   cardSearchQuerySchema,
   collectionEntrySchema,
+  deckCardSchema,
+  deckCardSetSchema,
+  deckIdParamSchema,
+  deckInputSchema,
+  deckUpdateSchema,
   itemIdParamSchema,
   oracleIdParamSchema,
   registerSchema,
@@ -14,6 +19,7 @@ import { cors } from "hono/cors";
 import { createMiddleware } from "hono/factory";
 import { getAuth } from "./auth.js";
 import { listPrintings, searchCards } from "./cards.js";
+import { addDeckCard, createDeck, deleteDeck, getDeck, listDecks, setDeckCard, updateDeck } from "./decks.js";
 import { HttpError, addItem, getCollectionId, listItems, removeItem, updateItem } from "./collection.js";
 import { allowedOrigins } from "./origins.js";
 
@@ -124,4 +130,42 @@ app.delete("/collection/items/:id", zValidator("param", itemIdParamSchema), asyn
   const collectionId = await getCollectionId(c.get("userId"));
   if (!(await removeItem(collectionId, c.req.valid("param").id))) return c.json({ error: "Item not found" }, 404);
   return c.body(null, 204);
+});
+
+// Decks: many per user, owned by the signed-in user. Other users' decks answer 404.
+app.use("/decks/*", requireUser);
+
+app.get("/decks", async (c) => c.json({ decks: await listDecks(c.get("userId")) }));
+
+app.post("/decks", zValidator("json", deckInputSchema), async (c) =>
+  c.json({ deck: await createDeck(c.get("userId"), c.req.valid("json")) }, 201),
+);
+
+app.get("/decks/:id", zValidator("param", deckIdParamSchema), async (c) => {
+  const detail = await getDeck(c.get("userId"), c.req.valid("param").id);
+  if (!detail) return c.json({ error: "Deck not found" }, 404);
+  return c.json(detail);
+});
+
+app.patch("/decks/:id", zValidator("param", deckIdParamSchema), zValidator("json", deckUpdateSchema), async (c) => {
+  const deck = await updateDeck(c.get("userId"), c.req.valid("param").id, c.req.valid("json"));
+  if (!deck) return c.json({ error: "Deck not found" }, 404);
+  return c.json({ deck });
+});
+
+app.delete("/decks/:id", zValidator("param", deckIdParamSchema), async (c) => {
+  if (!(await deleteDeck(c.get("userId"), c.req.valid("param").id))) return c.json({ error: "Deck not found" }, 404);
+  return c.body(null, 204);
+});
+
+/** Adds copies of a card to a board of the deck. */
+app.post("/decks/:id/cards", zValidator("param", deckIdParamSchema), zValidator("json", deckCardSchema), async (c) => {
+  await addDeckCard(c.get("userId"), c.req.valid("param").id, c.req.valid("json"));
+  return c.json((await getDeck(c.get("userId"), c.req.valid("param").id))!, 201);
+});
+
+/** Sets the copies of a card on a board; 0 removes it. */
+app.put("/decks/:id/cards", zValidator("param", deckIdParamSchema), zValidator("json", deckCardSetSchema), async (c) => {
+  await setDeckCard(c.get("userId"), c.req.valid("param").id, c.req.valid("json"));
+  return c.json((await getDeck(c.get("userId"), c.req.valid("param").id))!);
 });

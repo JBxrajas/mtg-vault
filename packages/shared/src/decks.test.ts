@@ -1,5 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { cardCategory, deckInputSchema, groupByCategory } from "./decks.js";
+import {
+  cardCategory,
+  deckBoards,
+  deckCardSetSchema,
+  deckCount,
+  deckInputSchema,
+  deckTargetSize,
+  deckUpdateSchema,
+  groupByCategory,
+} from "./decks.js";
 
 describe("cardCategory", () => {
   it.each([
@@ -76,5 +85,47 @@ describe("deckInputSchema", () => {
   it("rejects an unknown format and an empty name", () => {
     expect(deckInputSchema.safeParse({ name: "x", format: "pauperish" }).success).toBe(false);
     expect(deckInputSchema.safeParse({ name: "  " }).success).toBe(false);
+  });
+});
+
+describe("deck size and boards", () => {
+  it("has a target size per format", () => {
+    expect(deckTargetSize("commander")).toBe(100);
+    expect(deckTargetSize("modern")).toBe(60);
+    expect(deckTargetSize("brawl")).toBe(60);
+    expect(deckTargetSize("casual")).toBeNull();
+  });
+
+  it("offers a commander board only to commander-style formats", () => {
+    expect(deckBoards("commander")).toEqual(["main", "commander", "sideboard", "maybeboard"]);
+    expect(deckBoards("oathbreaker")).toContain("commander");
+    expect(deckBoards("modern")).toEqual(["main", "sideboard", "maybeboard"]);
+  });
+
+  it("counts the main and commander boards only", () => {
+    expect(
+      deckCount([
+        { quantity: 60, board: "main" },
+        { quantity: 1, board: "commander" },
+        { quantity: 15, board: "sideboard" },
+        { quantity: 3, board: "maybeboard" },
+      ]),
+    ).toBe(61);
+    expect(deckCount([])).toBe(0);
+  });
+});
+
+describe("deckUpdateSchema / deckCardSetSchema", () => {
+  it("needs at least one valid field", () => {
+    expect(deckUpdateSchema.safeParse({}).success).toBe(false);
+    expect(deckUpdateSchema.safeParse({ description: null, isPublic: true }).success).toBe(true);
+    expect(deckUpdateSchema.safeParse({ format: "nope" }).success).toBe(false);
+  });
+
+  it("allows 0 (remove) up to 999 copies and defaults the board to main", () => {
+    const oracleId = "4457ed35-7c10-48c8-9776-456485fdf070";
+    expect(deckCardSetSchema.parse({ oracleId, quantity: 0 })).toEqual({ oracleId, quantity: 0, board: "main" });
+    expect(deckCardSetSchema.safeParse({ oracleId, quantity: 1000 }).success).toBe(false);
+    expect(deckCardSetSchema.safeParse({ oracleId, quantity: -1 }).success).toBe(false);
   });
 });

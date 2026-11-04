@@ -8,6 +8,17 @@ vi.mock("./cards.js", async (original) => ({
   listPrintings,
 }));
 
+const deckFns = {
+  listDecks: vi.fn(),
+  createDeck: vi.fn(),
+  getDeck: vi.fn(),
+  updateDeck: vi.fn(),
+  deleteDeck: vi.fn(),
+  addDeckCard: vi.fn(),
+  setDeckCard: vi.fn(),
+};
+vi.mock("./decks.js", () => deckFns);
+
 const addItem = vi.fn();
 const updateItem = vi.fn();
 const removeItem = vi.fn();
@@ -36,7 +47,7 @@ beforeEach(() => {
   getSession.mockReset();
   signUpEmail.mockReset();
   handler.mockReset();
-  for (const f of [addItem, updateItem, removeItem, listItems, getCollectionId]) f.mockReset();
+  for (const f of [addItem, updateItem, removeItem, listItems, getCollectionId, ...Object.values(deckFns)]) f.mockReset();
   getCollectionId.mockResolvedValue("col-1");
 });
 
@@ -311,5 +322,127 @@ describe("/collection/items", () => {
     expect((await send("DELETE", `/collection/items/${itemId}`)).status).toBe(204);
     removeItem.mockResolvedValueOnce(false);
     expect((await send("DELETE", `/collection/items/${itemId}`)).status).toBe(404);
+  });
+});
+
+describe("/decks", () => {
+  const deckId = "2b93787d-47ea-4b8b-912d-ffc5d5440171";
+  const oracleId = "4457ed35-7c10-48c8-9776-456485fdf070";
+  const asUser = () => getSession.mockResolvedValue({ user: { id: "u1" } });
+  const send = (method: string, path: string, body?: unknown) =>
+    app.request(path, {
+      method,
+      headers: { "Content-Type": "application/json", Authorization: "Bearer tok" },
+      body: body === undefined ? undefined : JSON.stringify(body),
+    });
+
+  it.each([
+    ["GET", "/decks"],
+    ["POST", "/decks"],
+    ["GET", `/decks/${deckId}`],
+    ["PATCH", `/decks/${deckId}`],
+    ["DELETE", `/decks/${deckId}`],
+    ["POST", `/decks/${deckId}/cards`],
+    ["PUT", `/decks/${deckId}/cards`],
+  ])("%s %s requires a session", async (method, path) => {
+    getSession.mockResolvedValue(null);
+    const res = await app.request(path, { method });
+    expect(res.status).toBe(401);
+    for (const f of Object.values(deckFns)) expect(f).not.toHaveBeenCalled();
+  });
+
+  it("lists the user's decks", async () => {
+    asUser();
+    deckFns.listDecks.mockResolvedValue([{ id: deckId }]);
+    const res = await send("GET", "/decks");
+    expect(await res.json()).toEqual({ decks: [{ id: deckId }] });
+    expect(deckFns.listDecks).toHaveBeenCalledWith("u1");
+  });
+
+  it("creates a deck with defaults (private, casual) and answers 201", async () => {
+    asUser();
+    deckFns.createDeck.mockResolvedValue({ id: deckId });
+    const res = await send("POST", "/decks", { name: " Elves " });
+    expect(res.status).toBe(201);
+    expect(deckFns.createDeck).toHaveBeenCalledWith("u1", { name: "Elves", format: "casual", isPublic: false });
+  });
+
+  it.each([{}, { name: "" }, { name: "x", format: "pauperish" }, { name: "x".repeat(101) }])(
+    "rejects an invalid deck %j",
+    async (body) => {
+      asUser();
+      expect((await send("POST", "/decks", body)).status).toBe(400);
+      expect(deckFns.createDeck).not.toHaveBeenCalled();
+    },
+  );
+
+  it("returns a deck, and 404 when it is not the user's", async () => {
+    asUser();
+    deckFns.getDeck.mockResolvedValueOnce({ deck: { id: deckId }, cards: [] });
+    expect((await send("GET", `/decks/${deckId}`)).status).toBe(200);
+    expect(deckFns.getDeck).toHaveBeenCalledWith("u1", deckId);
+    deckFns.getDeck.mockResolvedValueOnce(null);
+    expect((await send("GET", `/decks/${deckId}`)).status).toBe(404);
+  });
+
+  it("rejects ids that are not UUIDs", async () => {
+    asUser();
+    expect((await send("GET", "/decks/42")).status).toBe(400);
+    expect((await send("DELETE", "/decks/42")).status).toBe(400);
+  });
+
+  it("updates a deck, rejects empty or invalid updates, and answers 404 for another user's deck", async () => {
+    asUser();
+    deckFns.updateDeck.mockResolvedValueOnce({ id: deckId, format: "commander" });
+    expect((await send("PATCH", `/decks/${deckId}`, { format: "commander" })).status).toBe(200);
+    expect(deckFns.updateDeck).toHaveBeenCalledWith("u1", deckId, { format: "commander" });
+    expect((await send("PATCH", `/decks/${deckId}`, {})).status).toBe(400);
+    expect((await send("PATCH", `/decks/${deckId}`, { format: "nope" })).status).toBe(400);
+    deckFns.updateDeck.mockResolvedValueOnce(null);
+    expect((await send("PATCH", `/decks/${deckId}`, { name: "x" })).status).toBe(404);
+  });
+
+  it("deletes with 204 and 404 when nothing was deleted", async () => {
+    asUser();
+    deckFns.deleteDeck.mockResolvedValueOnce(true);
+    expect((await send("DELETE", `/decks/${deckId}`)).status).toBe(204);
+    deckFns.deleteDeck.mockResolvedValueOnce(false);
+    expect((await send("DELETE", `/decks/${deckId}`)).status).toBe(404);
+  });
+
+  it("adds cards to the main board by default and returns the updated deck", async () => {
+    asUser();
+    deckFns.addDeckCard.mockResolvedValue(undefined);
+    deckFns.getDeck.mockResolvedValue({ deck: { id: deckId }, cards: [{ oracleId }] });
+    const res = await send("POST", `/decks/${deckId}/cards`, { oracleId, quantity: 4 });
+    expect(res.status).toBe(201);
+    expect(deckFns.addDeckCard).toHaveBeenCalledWith("u1", deckId, { oracleId, quantity: 4, board: "main" });
+    expect(await res.json()).toEqual({ deck: { id: deckId }, cards: [{ oracleId }] });
+  });
+
+  it.each([
+    { oracleId, quantity: 0 },
+    { oracleId: "nope", quantity: 1 },
+    { oracleId, quantity: 1, board: "graveyard" },
+  ])("rejects an invalid card to add %j", async (body) => {
+    asUser();
+    expect((await send("POST", `/decks/${deckId}/cards`, body)).status).toBe(400);
+    expect(deckFns.addDeckCard).not.toHaveBeenCalled();
+  });
+
+  it("maps service errors on adding (unknown card, copy cap)", async () => {
+    asUser();
+    deckFns.addDeckCard.mockRejectedValue(new HttpError(404, "Card not found"));
+    expect((await send("POST", `/decks/${deckId}/cards`, { oracleId, quantity: 1 })).status).toBe(404);
+  });
+
+  it("sets a quantity (0 allowed, to remove) and rejects negatives and huge values", async () => {
+    asUser();
+    deckFns.setDeckCard.mockResolvedValue(undefined);
+    deckFns.getDeck.mockResolvedValue({ deck: { id: deckId }, cards: [] });
+    expect((await send("PUT", `/decks/${deckId}/cards`, { oracleId, board: "sideboard", quantity: 0 })).status).toBe(200);
+    expect(deckFns.setDeckCard).toHaveBeenCalledWith("u1", deckId, { oracleId, board: "sideboard", quantity: 0 });
+    expect((await send("PUT", `/decks/${deckId}/cards`, { oracleId, quantity: -1 })).status).toBe(400);
+    expect((await send("PUT", `/decks/${deckId}/cards`, { oracleId, quantity: 1000 })).status).toBe(400);
   });
 });

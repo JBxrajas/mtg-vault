@@ -4,6 +4,7 @@ import { AuthBar } from "./AuthBar";
 const NAV = [
   { to: "/", label: "Search" },
   { to: "/collection", label: "Collection" },
+  { to: "/decks", label: "Decks" },
 ] as const;
 
 /** App frame: brand and account on top, navigation at the bottom on phones and on top on wide screens. */

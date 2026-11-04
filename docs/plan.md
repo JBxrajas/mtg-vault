@@ -26,7 +26,7 @@ Status: ☐ pending · ◐ in progress · ☑ done
 - ☑ Auth with username and password: register, sign in and out, `GET /me`, sign-in screen in the web app ([ADR 0009](adr/0009-username-login-with-bearer-tokens.md)); live in production, verified end to end (see [vercel.md](vercel.md))
 - ☑ Inventory: API (`/collection/items`) and screens to add, change and remove stacks, with market value ([apps/api](../apps/api/README.md), [apps/web](../apps/web/README.md))
 - ☐ Binders: API and screens to place copies of a stack in binders (the tables and the quantity rule exist)
-- ☐ Decks: API and screens to build decks with formats and type groups
+- ☑ Decks: API and screens to build decks with formats, boards, type groups, deck size and an owned/missing badge from the collection ([apps/api](../apps/api/README.md), [apps/web](../apps/web/README.md)). Format rules (size limits, copy limits, legality) are not enforced yet
 - CSV import and export (Moxfield, Deckbox, Manabox)
 
 ## Phase 4 — Prices ◐
