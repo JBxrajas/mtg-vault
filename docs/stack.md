@@ -37,7 +37,7 @@ packages/db     Drizzle schema and migrations (postgres.js driver)
 - Web: React 19, Vite, TanStack Router (hash history) and Query.
 - API: Hono served locally with `@hono/node-server` and `tsx`.
 - Tests: Vitest, run from the root with `pnpm test`. Unit tests live next to the code as `*.test.ts` and must not need a database or network: mock `./cards.js` or other I/O modules (see `apps/api/src/app.test.ts`).
-- CI (`.github/workflows/ci.yml`): `pnpm install --frozen-lockfile`, `pnpm typecheck`, `pnpm test` and the web build on every PR and push to `main`.
+- CI (`.github/workflows/ci.yml`): `pnpm install --frozen-lockfile`, `pnpm typecheck` and the web build in the `typecheck` job, and `pnpm test` in a separate `test` job, on every PR and push to `main`.
 
 ## Electron
 
