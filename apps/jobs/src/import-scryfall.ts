@@ -234,6 +234,11 @@ try {
   await importSets();
   if (!process.env.SKIP_DOWNLOAD) await downloadBulk(file);
   await importCards(file);
+} catch (e) {
+  // Drizzle wraps the driver error; print the Postgres message and detail.
+  const cause = (e as { cause?: unknown }).cause ?? e;
+  console.error("import failed:", cause);
+  process.exitCode = 1;
 } finally {
   await client.end();
 }
