@@ -107,6 +107,8 @@ export const aDeckCard = (over: Partial<import("@mtg-vault/shared").DeckCardEntr
   manaCost: "{R}",
   typeLine: "Instant",
   cmc: 1,
+  oracleText: null,
+  colorIdentity: [] as import("@mtg-vault/shared").Color[],
   board: "main" as const,
   quantity: 4,
   printingId: null,

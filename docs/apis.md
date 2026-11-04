@@ -40,5 +40,8 @@ No API solves this. It is built on the client by combining:
 2. Perceptual hash (pHash) of the image against Scryfall images, to tell printings apart.
 OpenCV.js handles cropping and perspective correction.
 
+## EDHREC
+No official API, and not a data source for us. Its terms allow personal, non-commercial use only and forbid scripts that make automated requests, copying its content and building a competing site; its pages also refuse to be framed (`X-Frame-Options: SAMEORIGIN`). The app only links to a commander's EDHREC page, in a new tab or in a side window the user's browser opens. Nothing is fetched, cached or copied, and rankings derived from EDHREC (such as Scryfall's `edhrec_rank`) are not used either. See [ADR 0013](adr/0013-commander-knowledge-and-analysis.md).
+
 ## Moxfield
 Unofficial API; do not depend on it. Only support its CSV import and export format.

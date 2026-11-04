@@ -1214,3 +1214,109 @@ button.art-tile.on {
   margin: 0.5rem 0 0;
   font-size: 0.95rem;
 }
+
+/* Commander analysis */
+.analysis {
+  margin: 1rem 0;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.analysis .group-title {
+  margin-top: 0;
+}
+.analysis-commander {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1rem;
+  align-items: center;
+  margin: 0.4rem 0;
+  font-weight: 600;
+}
+.analysis-commander .identity {
+  display: inline-flex;
+  gap: 0.4rem;
+  align-items: center;
+  font-weight: 400;
+}
+.analysis-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1rem;
+  align-items: center;
+  margin: 0.4rem 0 0.8rem;
+}
+.analysis-link {
+  display: inline-flex;
+  gap: 0.6rem;
+  align-items: center;
+}
+.analysis-stats {
+  grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr));
+}
+.analysis-sub {
+  margin: 1rem 0 0.4rem;
+  font-size: 1rem;
+}
+.curve {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: 0.35rem;
+  align-items: end;
+  height: 9rem;
+  padding: 0;
+  margin: 0.4rem 0 0.8rem;
+  list-style: none;
+}
+.curve li {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  height: 100%;
+  min-width: 0;
+}
+.curve-bar {
+  display: block;
+  width: 100%;
+  min-height: 2px;
+  border-radius: 4px 4px 0 0;
+  background: var(--primary);
+}
+.curve-count,
+.curve-mv {
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+.warning-group h4 {
+  margin: 0.5rem 0 0.2rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+.warnings {
+  margin: 0;
+  padding-left: 1.2rem;
+}
+.warnings li {
+  margin: 0.2rem 0;
+  overflow-wrap: anywhere;
+}
+.analysis-more {
+  margin-top: 0.8rem;
+}
+.analysis-more summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+.brackets,
+.sources {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0;
+  margin: 0.5rem 0;
+  list-style: none;
+}
+.sources .badge {
+  display: inline-block;
+}

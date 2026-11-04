@@ -63,7 +63,7 @@ A user has many decks ([ADR 0008](../../docs/adr/0008-users-collection-binders-d
 |---|---|---|
 | `GET /decks` | none | `{ decks: DeckSummary[] }`, most recently changed first; `cardCount` is the main plus commander boards |
 | `POST /decks` | `{ name, format?, description?, isPublic? }` | `201 { deck }`. Defaults: `casual`, private |
-| `GET /decks/:id` | none | `{ deck, cards }`; each card has name, mana cost, type line, cmc, `board`, `quantity`, image and `owned` |
+| `GET /decks/:id` | none | `{ deck, cards }`; each card has name, mana cost, type line, cmc, `oracleText`, `colorIdentity`, `board`, `quantity`, image and `owned` (the web app's Commander analysis reads the text and the colors) |
 | `PATCH /decks/:id` | any of `{ name, format, description, isPublic }` | `200 { deck }` |
 | `DELETE /decks/:id` | none | `204`; its cards go with it |
 | `POST /decks/:id/cards` | `{ oracleId, quantity, board? }` | `201` with the updated `{ deck, cards }`. **Adds** to an existing entry; `board` defaults to `main`; `400` above 999 copies, `404` for an unknown card |

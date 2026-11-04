@@ -8,6 +8,7 @@
 | [vercel.md](vercel.md) | Vercel projects and deployment settings |
 | [apis.md](apis.md) | External APIs and data sources |
 | [glossary.md](glossary.md) | MTG glossary and data model |
+| [knowledge/commander.md](knowledge/commander.md) | Commander deckbuilding knowledge behind the deck analysis: figures, sources, confidence |
 | [releases.md](releases.md) | Branches, versioning and release process |
 | [adr/](adr/) | Architecture decision records (one per file, numbered) |
 

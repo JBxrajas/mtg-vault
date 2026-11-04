@@ -42,6 +42,8 @@ describe("toDeckCardEntry", () => {
     mana_cost: "{R}",
     type_line: "Instant",
     cmc: "1.0",
+    oracle_text: "Lightning Bolt deals 3 damage to any target.",
+    color_identity: ["R"],
     image_uris: { small: "s", normal: "n", art_crop: "a" },
     owned: "2",
   };
@@ -53,6 +55,8 @@ describe("toDeckCardEntry", () => {
       manaCost: "{R}",
       typeLine: "Instant",
       cmc: 1,
+      oracleText: "Lightning Bolt deals 3 damage to any target.",
+      colorIdentity: ["R"],
       board: "main",
       quantity: 4,
       printingId: null,
@@ -62,11 +66,13 @@ describe("toDeckCardEntry", () => {
   });
 
   it("copes with no image, no mana cost and nothing owned", () => {
-    const e = toDeckCardEntry({ ...row, image_uris: null, mana_cost: null, owned: null, type_line: null });
+    const e = toDeckCardEntry({ ...row, image_uris: null, mana_cost: null, owned: null, type_line: null, oracle_text: null, color_identity: null });
     expect(e.image).toBeNull();
     expect(e.manaCost).toBeNull();
     expect(e.owned).toBe(0);
     expect(e.typeLine).toBe("");
+    expect(e.oracleText).toBeNull();
+    expect(e.colorIdentity).toEqual([]);
   });
 });
 

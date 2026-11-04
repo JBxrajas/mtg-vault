@@ -32,7 +32,7 @@ Status: ☐ pending · ◐ in progress · ☑ done
 - ☑ Collection CSV export and deck list import and export ([docs/apis.md](apis.md#deck-lists-text-import-and-export)); a CSV export of decks is not done
 - ☑ Interface in English and Spanish, with a language button ([ADR 0010](adr/0010-interface-languages.md)); server error messages are still English
 - ☑ Appearance: light or dark mode, background color or card art with a choice of printing, saved on the device ([apps/web](../apps/web/README.md))
-- ☐ Deck analysis: mana curve, guides per format and what the curve means; format rules (size, copy limits, legality) shown as warnings
+- ◐ Deck analysis: done for Commander decks (lands against Karsten's formula, mana curve and what it means, ramp / card draw / removal / wipes, format rules as non-blocking warnings, brackets guide, link and side window to EDHREC; [ADR 0013](adr/0013-commander-knowledge-and-analysis.md), [knowledge](knowledge/commander.md)). Pending: other formats, colored sources per spell, Game Changers check, archetype guides, cards from your collection that fit a commander
 - ☐ Filters in the collection, the deck and the search (type, color, rarity, set, mana value, legality)
 
 ## Phase 4 — Prices ◐

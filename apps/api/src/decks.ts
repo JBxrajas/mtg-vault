@@ -41,6 +41,8 @@ export function toDeckCardEntry(r: Row): DeckCardEntry {
     manaCost: (r.mana_cost as string | null) ?? null,
     typeLine: (r.type_line as string) ?? "",
     cmc: Number(r.cmc ?? 0),
+    oracleText: (r.oracle_text as string | null) ?? null,
+    colorIdentity: ((r.color_identity as string[] | null) ?? []) as DeckCardEntry["colorIdentity"],
     board: r.board as DeckCardEntry["board"],
     quantity: Number(r.quantity),
     printingId: (r.printing_id as string | null) ?? null,
@@ -83,7 +85,7 @@ export async function getDeck(userId: string, id: string): Promise<DeckDetail | 
   if (!deck) return null;
   const rows = await exec(sql`
     select dc.oracle_id, dc.board, dc.quantity, dc.printing_id,
-           c.name, c.mana_cost, c.type_line, c.cmc,
+           c.name, c.mana_cost, c.type_line, c.cmc, c.oracle_text, c.color_identity,
            img.image_uris,
            coalesce((
              select sum(ci.quantity)

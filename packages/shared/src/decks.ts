@@ -164,6 +164,9 @@ export interface DeckCardEntry extends DeckListEntry {
   name: string;
   manaCost: string | null;
   cmc: number;
+  /** Rules text of the card (null when the data has none); the deck analysis reads it. */
+  oracleText: string | null;
+  colorIdentity: import("./index.js").Color[];
   printingId: string | null;
   image: import("./index.js").CardImage | null;
   /** Copies of this card (any printing) in the signed-in user's collection. */
