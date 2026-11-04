@@ -12,7 +12,7 @@ Status: ☐ pending · ◐ in progress · ☑ done
 - ☑ GitHub settings and `main` protection — see [releases.md](releases.md)
 - ☑ Basic CI on GitHub Actions: typecheck and web build (`.github/workflows/ci.yml`), with `pnpm-lock.yaml` committed
 - ☑ `typecheck` is a required check on `main`
-- ☐ First release pinned to `0.1.0` (`release-as`); remove that line after `v0.1.0` is published
+- ☑ First release `v0.1.0` published; `release-as` removed
 
 ## Phase 2 — Catalog ◐
 - ☑ Drizzle schema: `sets`, `cards` (oracle), `printings`, `price_snapshots` and first migration (`packages/db`) — not yet applied to a real database

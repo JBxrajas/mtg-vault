@@ -11,7 +11,7 @@ Branch naming and commit types are in [CONTRIBUTING.md](../CONTRIBUTING.md).
 
 ## First release
 
-With no previous tag, release-please proposes `1.0.0` regardless of the `0.0.0` in the manifest. To start at `0.1.0`, `release-please-config.json` carries `"release-as": "0.1.0"`. **Remove that line right after the `v0.1.0` release is published**, otherwise every following release would try to stay on `0.1.0`.
+With no previous tag, release-please proposes `1.0.0` regardless of the `0.0.0` in the manifest. To start at `0.1.0`, the config temporarily carried `"release-as": "0.1.0"`. `v0.1.0` was published on 2026-11-04 and the line was removed afterwards; do not add it back, or every release would stay on `0.1.0`.
 
 ## How a release happens
 
