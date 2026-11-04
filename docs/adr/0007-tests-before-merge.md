@@ -15,3 +15,6 @@
 - A failing test blocks the merge, like a type error does.
 - Data-layer code (for example the SQL in `searchCards`) is not covered by unit tests. Database-backed tests need their own decision (a throwaway Neon branch or a local Postgres) and are out of scope for now.
 - Like the docs hook, the reminder only applies to commits made through Claude Code.
+
+## Update (2026-11-04)
+Component tests now exist for the web app: `*.test.tsx` files run in jsdom with Testing Library, and `renderPage` in `apps/web/src/test-utils.tsx` provides the router and query client. The first round of them found a real bug (the quantity field could not be cleared and retyped). Layout and styling are still not covered, and neither is the SQL in the API; the earlier note about database-backed tests stands.

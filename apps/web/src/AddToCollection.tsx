@@ -12,7 +12,9 @@ export function AddToCollection({ printing }: { printing: PrintingSummary }) {
   const { data: me } = useQuery({ queryKey: ["me"], queryFn: ({ signal }) => fetchMe(signal), staleTime: 60_000 });
   const [finish, setFinish] = useState(printing.finishes[0] ?? "nonfoil");
   const [condition, setCondition] = useState("NM");
-  const [quantity, setQuantity] = useState(1);
+  // Kept as text so the field can be emptied and retyped; clamped when used and on blur.
+  const [quantityText, setQuantityText] = useState("1");
+  const quantity = Math.max(1, Math.min(9999, Math.trunc(Number(quantityText)) || 1));
 
   // The selected printing changed: its finishes may differ.
   const finishes = printing.finishes.length ? printing.finishes : ["nonfoil"];
@@ -69,8 +71,9 @@ export function AddToCollection({ printing }: { printing: PrintingSummary }) {
             type="number"
             min={1}
             max={9999}
-            value={quantity}
-            onChange={(e) => setQuantity(Math.max(1, Math.min(9999, Number(e.target.value) || 1)))}
+            value={quantityText}
+            onChange={(e) => setQuantityText(e.target.value)}
+            onBlur={() => setQuantityText(String(quantity))}
           />
         </label>
         <button type="submit" disabled={add.isPending}>

@@ -46,4 +46,4 @@ See [docs/releases.md](docs/releases.md). In short: merging to `main` makes rele
 
 ## Tests
 
-Run `pnpm test` (Vitest) before opening a PR. CI runs it as the separate `test` job on every PR, and it must pass before merging. Add unit tests next to the code you change, in `*.test.ts` files. Unit tests must not touch a real database or the network; mock those modules. Test code that needs a database is not set up yet.
+Run `pnpm test` (Vitest) before opening a PR. CI runs it as the separate `test` job on every PR, and it must pass before merging. Add unit tests next to the code you change, in `*.test.ts` files, and component tests for screens in `*.test.tsx` files (jsdom and Testing Library; see [apps/web/README.md](apps/web/README.md#tests)). A new screen or a change in what a screen does comes with a component test. Unit tests must not touch a real database or the network; mock those modules. Test code that needs a database is not set up yet.
