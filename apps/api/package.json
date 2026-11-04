@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "build": "tsup",
     "dev": "tsx --env-file-if-exists=../../.env.local watch src/dev.ts",
     "typecheck": "tsc --noEmit"
   },
@@ -14,10 +15,12 @@
     "@mtg-vault/shared": "workspace:*",
     "drizzle-orm": "^0.45.4",
     "hono": "^4.6.0",
+    "postgres": "^4.0.0",
     "zod": "^3.23.0"
   },
   "devDependencies": {
     "@types/node": "^26.6.6",
+    "tsup": "^9.0.0",
     "tsx": "^4.19.0"
   }
 }

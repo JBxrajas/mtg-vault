@@ -11,3 +11,6 @@ coverage/
 # Bulk data downloaded from Scryfall / MTGJSON
 /data/
 .neon
+
+# Bundled API entry point built by `pnpm --filter @mtg-vault/api build` (used by Vercel)
+/apps/api/index.js
