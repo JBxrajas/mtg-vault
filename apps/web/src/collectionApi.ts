@@ -1,18 +1,7 @@
 import type { CollectionEntry, CollectionItem, UpdateCollectionItem } from "@mtg-vault/shared";
-import { API_URL } from "./api";
-import { authHeaders, errorMessage, getToken } from "./auth";
+import { authedFetch } from "./authedFetch";
 
-async function request(method: string, path: string, body?: unknown): Promise<Response> {
-  const token = getToken();
-  if (!token) throw new Error("Sign in to use your collection");
-  const res = await fetch(new URL(path, API_URL), {
-    method,
-    headers: { ...(body === undefined ? {} : { "Content-Type": "application/json" }), ...authHeaders(token) },
-    body: body === undefined ? undefined : JSON.stringify(body),
-  });
-  if (!res.ok) throw new Error(await errorMessage(res));
-  return res;
-}
+const request = authedFetch;
 
 export async function fetchCollection(): Promise<CollectionItem[]> {
   return ((await (await request("GET", "/collection/items")).json()) as { items: CollectionItem[] }).items;

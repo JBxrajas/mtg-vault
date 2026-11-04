@@ -599,3 +599,198 @@ button.link {
     max-width: 30rem;
   }
 }
+
+/* Decks */
+.new-deck {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin: 1rem 0;
+}
+.new-deck input {
+  flex: 1 1 14rem;
+}
+.deck-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+  gap: 0.75rem;
+  padding: 0;
+  margin: 1rem 0 0;
+  list-style: none;
+}
+.deck-card {
+  display: grid;
+  gap: 0.35rem;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  color: var(--text);
+  text-decoration: none;
+}
+.deck-card:hover {
+  border-color: var(--primary);
+}
+.deck-name {
+  font-size: 1.1rem;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+.deck-count,
+.count {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+.count.over {
+  color: var(--danger);
+  font-weight: 600;
+}
+.badge {
+  justify-self: start;
+  padding: 0.1rem 0.6rem;
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--primary);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+.deck-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  align-items: center;
+  margin: 0.25rem 0 0.75rem;
+}
+.settings {
+  margin: 0.5rem 0 1rem;
+  padding: 0.6rem 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.settings summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+.settings-form {
+  display: grid;
+  gap: 0.7rem;
+  margin-top: 0.8rem;
+}
+.settings-form label {
+  display: grid;
+  gap: 0.2rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+.settings-form .check {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.settings-actions {
+  display: flex;
+  gap: 0.6rem;
+  justify-content: space-between;
+}
+button.danger {
+  color: var(--danger);
+  border-color: var(--danger);
+}
+.add-cards {
+  margin: 0.5rem 0 1rem;
+}
+.add-cards-bar {
+  display: flex;
+  gap: 0.6rem;
+}
+.add-cards-bar input {
+  flex: 1;
+  min-width: 0; /* inputs have an intrinsic width; without this the row overflows a phone screen */
+}
+.add-cards-bar select {
+  flex: none;
+}
+.tabs {
+  display: flex;
+  gap: 0.4rem;
+  margin: 1rem 0 0.5rem;
+  overflow-x: auto;
+}
+.tab {
+  white-space: nowrap;
+  border-radius: 999px;
+}
+.tab.on {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: var(--on-primary);
+  font-weight: 600;
+}
+.group-title {
+  margin: 1.2rem 0 0.4rem;
+  font-size: 1rem;
+  color: var(--primary);
+}
+.deck-rows {
+  display: grid;
+  gap: 0.4rem;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+.deck-row {
+  display: grid;
+  grid-template-columns: 2.75rem 1fr;
+  gap: 0.2rem 0.7rem;
+  align-items: center;
+  padding: 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+}
+.deck-row img,
+.deck-row .thumb-ph {
+  width: 2.75rem;
+  aspect-ratio: 488 / 680;
+  border-radius: 4.5% / 3.3%;
+  object-fit: cover;
+  background: var(--surface-2);
+}
+.deck-row-info {
+  display: grid;
+  gap: 0.15rem;
+  min-width: 0;
+}
+.deck-row .qty {
+  margin: 0;
+  grid-column: 1 / -1;
+}
+.deck-row > button {
+  grid-column: 1 / -1;
+}
+.owned {
+  justify-self: start;
+  padding: 0.05rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+.owned.yes {
+  background: color-mix(in srgb, var(--ok) 18%, transparent);
+  color: var(--ok);
+}
+.owned.no {
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
+  color: var(--text);
+}
+@media (min-width: 720px) {
+  .deck-row {
+    grid-template-columns: 2.75rem 1fr auto;
+  }
+  .deck-row .qty,
+  .deck-row > button {
+    grid-column: auto;
+  }
+}

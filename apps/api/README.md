@@ -55,6 +55,22 @@ The signed-in user's single collection ([ADR 0008](../../docs/adr/0008-users-col
 
 Finish, condition and language identify a stack, so they cannot be patched: remove the stack and add a new one. Binder endpoints are not implemented yet; the database and the `409` rule already are.
 
+### Decks (requires `Authorization: Bearer <token>`, `401` otherwise)
+
+A user has many decks ([ADR 0008](../../docs/adr/0008-users-collection-binders-decks.md)). Only the owner can read or change a deck: another user's deck answers `404`. A deck lists **oracle cards**, not printings, so it is independent of what is owned; each card comes with `owned`, the copies of it (any printing) in the user's collection.
+
+| Endpoint | Body | Result |
+|---|---|---|
+| `GET /decks` | none | `{ decks: DeckSummary[] }`, most recently changed first; `cardCount` is the main plus commander boards |
+| `POST /decks` | `{ name, format?, description?, isPublic? }` | `201 { deck }`. Defaults: `casual`, private |
+| `GET /decks/:id` | none | `{ deck, cards }`; each card has name, mana cost, type line, cmc, `board`, `quantity`, image and `owned` |
+| `PATCH /decks/:id` | any of `{ name, format, description, isPublic }` | `200 { deck }` |
+| `DELETE /decks/:id` | none | `204`; its cards go with it |
+| `POST /decks/:id/cards` | `{ oracleId, quantity, board? }` | `201` with the updated `{ deck, cards }`. **Adds** to an existing entry; `board` defaults to `main`; `400` above 999 copies, `404` for an unknown card |
+| `PUT /decks/:id/cards` | `{ oracleId, board?, quantity }` | `200` with the updated deck. **Sets** the copies; `0` removes the card; `404` if the card is not on that board |
+
+Formats: standard, pioneer, modern, legacy, vintage, commander, oathbreaker, brawl, pauper, historic, casual. Boards: `main`, `sideboard`, `maybeboard` and `commander`. Dividing the deck by card type (creature, sorcery, instant, …) is done by the client with `groupByCategory` from `packages/shared`, from each card's type line. **Format rules are not enforced** (deck size, copy limits, legality): the deck size and the target of the format (`deckTargetSize`: 60, Commander 100, none for casual) are shown, not required.
+
 ### `GET /cards/search`
 
 Fuzzy search of oracle cards by name, backed by the `pg_trgm` index on `cards.name`.
@@ -93,4 +109,4 @@ Every printing of one oracle card (the `oracleId` from the search results), newe
 
 Invalid parameters return `400` with the Zod issues. The query schema lives in `packages/shared` (`cardSearchQuerySchema`) so web and desktop can reuse it.
 
-Verified manually against the Neon catalog (120k printings): a typo query, the `type` and `colors` filters, and the `400` cases. The collection endpoints were run end to end on a throwaway Neon branch too (18 checks: add, merge into an existing stack, separate condition stack, finish not offered by the printing, unknown printing, 9999 cap, list with names and images, binder `409`, patch, isolation between two users, delete cascading to binder placements); that script is not part of the suite either. The account flow was also run end to end on a throwaway Neon branch (register, duplicate username, sign-in in any letter case, wrong password, `/me`, sign-out, hashed password, collection created); that script is not part of the test suite. Unit tests (`app.test.ts`, `cards.test.ts`) cover validation, status codes, the response mapping and LIKE escaping with the data layer mocked; the SQL itself is not covered by automated tests.
+Verified manually against the Neon catalog (120k printings): a typo query, the `type` and `colors` filters, and the `400` cases. The deck endpoints were run end to end on a throwaway Neon branch as well (create, add and grow an entry, boards kept apart, the 999 cap, unknown card, set and remove, `owned` from the collection, update, list counts, isolation between two users, delete cascading to its cards). The collection endpoints were run end to end on a throwaway Neon branch too (18 checks: add, merge into an existing stack, separate condition stack, finish not offered by the printing, unknown printing, 9999 cap, list with names and images, binder `409`, patch, isolation between two users, delete cascading to binder placements); that script is not part of the suite either. The account flow was also run end to end on a throwaway Neon branch (register, duplicate username, sign-in in any letter case, wrong password, `/me`, sign-out, hashed password, collection created); that script is not part of the test suite. Unit tests (`app.test.ts`, `cards.test.ts`) cover validation, status codes, the response mapping and LIKE escaping with the data layer mocked; the SQL itself is not covered by automated tests.

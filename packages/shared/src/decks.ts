@@ -97,3 +97,80 @@ export function groupByCategory<T extends DeckListEntry>(entries: T[]) {
     return { category, count: items.reduce((n, e) => n + e.quantity, 0), items };
   });
 }
+
+/** Changes to a deck's own data. At least one field. */
+export const deckUpdateSchema = z
+  .object({
+    name: z.string().trim().min(1).max(100),
+    format: deckFormatSchema,
+    description: z.string().max(2000).nullable(),
+    isPublic: z.boolean(),
+  })
+  .partial()
+  .refine((v) => Object.keys(v).length > 0, "Send at least one field to change");
+export type DeckUpdate = z.infer<typeof deckUpdateSchema>;
+
+export const deckIdParamSchema = z.object({ id: z.string().uuid() });
+
+/** Sets the copies of one card on one board; 0 removes it. */
+export const deckCardSetSchema = z.object({
+  oracleId: z.string().uuid(),
+  board: deckBoardSchema.default("main"),
+  quantity: z.number().int().min(0).max(999),
+});
+export type DeckCardSet = z.infer<typeof deckCardSetSchema>;
+
+/** Largest number of copies of one card in a deck. */
+export const MAX_COPIES = 999;
+
+/** Number of cards a deck of this format aims for (main board plus commander), or null for none. */
+export function deckTargetSize(format: DeckFormat): number | null {
+  switch (format) {
+    case "commander":
+      return 100;
+    case "casual":
+      return null;
+    default:
+      return 60;
+  }
+}
+
+/** Boards a format uses besides main. Commander-style formats have a commander board. */
+export function deckBoards(format: DeckFormat): DeckBoard[] {
+  const commanderStyle = format === "commander" || format === "brawl" || format === "oathbreaker";
+  return commanderStyle ? ["main", "commander", "sideboard", "maybeboard"] : ["main", "sideboard", "maybeboard"];
+}
+
+/** Copies counted towards the deck size: the main and commander boards. */
+export function deckCount(cards: Pick<DeckListEntry, "quantity" | "board">[]): number {
+  return cards.reduce((n, c) => (c.board === "main" || c.board === "commander" ? n + c.quantity : n), 0);
+}
+
+export interface DeckSummary {
+  id: string;
+  name: string;
+  format: DeckFormat;
+  description: string | null;
+  isPublic: boolean;
+  /** Copies on the main and commander boards. */
+  cardCount: number;
+  /** ISO timestamp of the last change. */
+  updatedAt: string;
+}
+
+/** A card in a deck with what the lists need to show it. */
+export interface DeckCardEntry extends DeckListEntry {
+  oracleId: string;
+  name: string;
+  manaCost: string | null;
+  cmc: number;
+  printingId: string | null;
+  image: import("./index.js").CardImage | null;
+  /** Copies of this card (any printing) in the signed-in user's collection. */
+  owned: number;
+}
+
+export interface DeckDetail {
+  deck: DeckSummary;
+  cards: DeckCardEntry[];
+}

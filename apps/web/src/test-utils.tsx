@@ -10,21 +10,23 @@ import {
 import { render } from "@testing-library/react";
 import type { ReactElement } from "react";
 
-const PATHS = ["/", "/login", "/collection"];
+const PATHS = ["/", "/login", "/collection", "/decks", "/decks/$deckId"];
 
 /**
  * Renders a page the way the app does (query client + router) with an in-memory history.
- * The page sits at `path`; the other known routes render a marker `route: <path>` so tests can
+ * The page sits at `path` (matching `route` if given); the other known routes render a marker `route: <path>` so tests can
  * check where a navigation went.
  */
-export function renderPage(ui: ReactElement, { path = "/" }: { path?: string } = {}) {
+export function renderPage(ui: ReactElement, { path = "/", route }: { path?: string; route?: string } = {}) {
+  // `route` is the route pattern when it differs from the URL, for example "/decks/$deckId".
+  const pattern = route ?? path;
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   const rootRoute = createRootRoute({ component: Outlet });
   const routes = PATHS.map((p) =>
     createRoute({
       getParentRoute: () => rootRoute,
       path: p,
-      component: p === path ? () => ui : () => <div>route: {p}</div>,
+      component: p === pattern ? () => ui : () => <div>route: {p}</div>,
     }),
   );
   const router = createRouter({
@@ -87,3 +89,28 @@ export const aStack = (over: Partial<import("@mtg-vault/shared").CollectionItem>
 });
 
 export const aUser = { id: "u1", username: "alice", displayUsername: "Alice" };
+
+export const aDeck = (over: Partial<import("@mtg-vault/shared").DeckSummary> = {}) => ({
+  id: "d1",
+  name: "Mono red",
+  format: "modern" as const,
+  description: null,
+  isPublic: false,
+  cardCount: 0,
+  updatedAt: "2026-11-04T10:00:00.000Z",
+  ...over,
+});
+
+export const aDeckCard = (over: Partial<import("@mtg-vault/shared").DeckCardEntry> = {}) => ({
+  oracleId: "o-bolt",
+  name: "Lightning Bolt",
+  manaCost: "{R}",
+  typeLine: "Instant",
+  cmc: 1,
+  board: "main" as const,
+  quantity: 4,
+  printingId: null,
+  image: { small: "https://img.example/s.jpg", normal: "https://img.example/n.jpg", artCrop: "https://img.example/a.jpg" },
+  owned: 0,
+  ...over,
+});
