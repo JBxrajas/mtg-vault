@@ -5,7 +5,7 @@ Status: ☐ pending · ◐ in progress · ☑ done
 ## Phase 1 — Skeleton and knowledge base ◐
 - ☑ pnpm monorepo (`apps/api`, `apps/web`, `apps/desktop`, `packages/shared`)
 - ☑ Knowledge base and ADRs
-- ☑ `apps/web` with Vite + React + TanStack Router/Query (placeholder home page)
+- ☑ `apps/web` with Vite + React + TanStack Router/Query (home page is now the card search)
 - ☑ Vercel projects (web and API) and Neon database (Neon: [neon.md](neon.md); web and API live on Vercel: [vercel.md](vercel.md))
 - ☑ Branch, commit and release process (release-please, Conventional Commits) — see [releases.md](releases.md)
 - ☑ Docs check hook before every commit made through Claude Code — see [ADR 0006](adr/0006-docs-check-commit-hook.md)
@@ -15,10 +15,11 @@ Status: ☐ pending · ◐ in progress · ☑ done
 - ☑ `test` is a required check on `main` (applied 2026-11-04, see [ADR 0007](adr/0007-tests-before-merge.md))
 - ☑ First release `v0.1.0` published; `release-as` removed
 
-## Phase 2 — Catalog ◐
-- ☑ Drizzle schema: `sets`, `cards` (oracle), `printings`, `price_snapshots` and first migration (`packages/db`) — not yet applied to a real database
+## Phase 2 — Catalog ☑
+- ☑ Drizzle schema: `sets`, `cards` (oracle), `printings`, `price_snapshots` and migrations (`packages/db`), applied to Neon
 - ☑ GitHub Actions job: import Scryfall bulk data into Neon ([apps/jobs](../apps/jobs/README.md); verified end to end in Actions)
 - ☑ Name search endpoint (`pg_trgm`) and basic filters ([apps/api](../apps/api/README.md))
+- ☑ Card search page in the web app ([apps/web](../apps/web/README.md))
 
 ## Phase 3 — Collection and users ☐
 - Auth with email and password (Better Auth)

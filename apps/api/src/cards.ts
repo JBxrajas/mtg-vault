@@ -1,14 +1,6 @@
-import type { CardSearchQuery } from "@mtg-vault/shared";
+import type { CardSearchQuery, CardSearchResult } from "@mtg-vault/shared";
 import { sql } from "drizzle-orm";
 import { getDb } from "./db.js";
-
-export interface CardSearchResult {
-  oracleId: string;
-  name: string;
-  manaCost: string | null;
-  typeLine: string;
-  similarity: number;
-}
 
 /** Escape LIKE wildcards so user input is matched literally. */
 export const likeEscape = (s: string) => s.replace(/[\\%_]/g, "\\$&");
