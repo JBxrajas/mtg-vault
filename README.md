@@ -4,7 +4,16 @@ A platform to track and manage Magic: The Gathering collections (Moxfield-style)
 
 ## Status
 
-Phase 1 — monorepo skeleton and knowledge base. See [docs/plan.md](docs/plan.md).
+Phases 1 and 2 are done: the monorepo, CI, the catalog imported from Scryfall into Neon, and a card search (API and web) deployed on Vercel. Phase 3, users, collection and decks, has its data model defined and documented ([ADR 0008](docs/adr/0008-users-collection-binders-decks.md)); the API and screens for it are next. See [docs/plan.md](docs/plan.md).
+
+## What it will do
+
+- **Accounts** with a username and a password.
+- **One collection per user**, as an inventory that tells printings apart (set, collector number), finish (nonfoil, foil, etched), condition and language, with purchase price and notes.
+- **Binders**: named sub-collections of the collection (a physical binder, a box, a trade list).
+- **Decks**, many per user, each with a format (Standard, Modern, Commander, …) and its cards divided by type: creature, sorcery, instant, enchantment, artifact, and so on.
+- **Card search** over the whole Scryfall catalog, tolerant of typos (works today).
+- Later: price history, CSV import and export, camera scanning and a desktop app.
 
 ## Stack
 
@@ -17,8 +26,9 @@ Details and rationale in [docs/stack.md](docs/stack.md) and [docs/adr/](docs/adr
 ```
 apps/api        Hono API (Vercel Functions)
 apps/web        Vite + React SPA (Vercel)
+apps/jobs       Scryfall import (GitHub Actions)
 apps/desktop    Electron (later phase)
-packages/shared Shared Zod schemas and types
+packages/shared Shared Zod schemas, types and deck helpers
 packages/db     Drizzle schema and migrations
 docs/           Knowledge base, ADRs and plan
 .github/        CI and scheduled jobs (import and prices)
@@ -40,9 +50,10 @@ Run the project:
 
 ```bash
 pnpm install
-pnpm dev:api                          # API on http://localhost:3001 (GET /health)
+pnpm dev:api                          # API on http://localhost:3001 (/health, /cards/search)
 pnpm --filter @mtg-vault/web dev      # web on http://localhost:5173
 pnpm typecheck                        # typecheck every package
+pnpm test                             # unit tests (Vitest)
 ```
 
 ## Documentation

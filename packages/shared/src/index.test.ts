@@ -32,7 +32,7 @@ describe("collectionEntrySchema", () => {
 
   it("fills defaults", () => {
     expect(collectionEntrySchema.parse({ printingId, quantity: 2 })).toMatchObject({
-      foil: false,
+      finish: "nonfoil",
       condition: "NM",
       language: "en",
     });

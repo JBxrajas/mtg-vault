@@ -21,9 +21,10 @@ Status: ☐ pending · ◐ in progress · ☑ done
 - ☑ Name search endpoint (`pg_trgm`) and basic filters ([apps/api](../apps/api/README.md))
 - ☑ Card search page in the web app ([apps/web](../apps/web/README.md))
 
-## Phase 3 — Collection and users ☐
-- Auth with email and password (Better Auth)
-- Collections and decks; add, remove and edit entries (quantity, foil, condition, language, purchase price)
+## Phase 3 — Collection and users ◐
+- ☑ Data model: users, one collection per user (inventory with printings, finish, condition, language), binders, decks with formats and type groups ([ADR 0008](adr/0008-users-collection-binders-decks.md)); migration `0002` not applied to production yet
+- ☐ Auth with username and password (Better Auth username plugin; tables exist, API not wired)
+- ☐ API and screens to add, remove and edit inventory stacks, assign copies to binders, and build decks
 - CSV import and export (Moxfield, Deckbox, Manabox)
 
 ## Phase 4 — Prices ☐
