@@ -11,6 +11,8 @@ export type Background = (typeof BACKGROUNDS)[number];
 export interface Art {
   url: string;
   name: string;
+  /** The card, so its other printings (each with its own art) can be offered later. */
+  oracleId?: string;
 }
 
 export interface Appearance {
@@ -29,6 +31,7 @@ const KEY = "mtg-vault.appearance";
 
 /** Card art comes from Scryfall; anything else is refused, because the URL ends up inside CSS. */
 const ART_URL = /^https:\/\/cards\.scryfall\.io\/[A-Za-z0-9/._-]+(\?[A-Za-z0-9=&._-]*)?$/;
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export const isArtUrl = (url: unknown): url is string => typeof url === "string" && ART_URL.test(url);
 
 /** Reads whatever was stored and keeps only valid parts: storage can be old, edited or from another version. */
@@ -40,7 +43,13 @@ export function parseAppearance(raw: unknown): Appearance {
     mode: o.mode === "light" || o.mode === "dark" ? o.mode : "system",
     background: BACKGROUNDS.includes(o.background as Background) ? (o.background as Background) : "default",
     art:
-      art && isArtUrl(art.url) && typeof art.name === "string" ? { url: art.url, name: art.name.slice(0, 200) } : null,
+      art && isArtUrl(art.url) && typeof art.name === "string"
+        ? {
+            url: art.url,
+            name: art.name.slice(0, 200),
+            ...(typeof art.oracleId === "string" && UUID.test(art.oracleId) ? { oracleId: art.oracleId } : {}),
+          }
+        : null,
     dimming: Math.min(DIMMING_MAX, Math.max(DIMMING_MIN, Math.round(dimming))),
   };
 }

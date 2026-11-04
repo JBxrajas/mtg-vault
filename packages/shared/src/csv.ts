@@ -50,3 +50,11 @@ export function parseCsv(text: string): string[][] {
   if (field !== "" || row.length > 0) endRow();
   return rows;
 }
+
+/** Quotes a field when it holds a comma, a quote or a line break. */
+const csvField = (v: string) => (/[",\r\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v);
+
+/** Writes rows as RFC 4180 CSV (CRLF line breaks, no trailing break). The reverse of `parseCsv`. */
+export function toCsv(rows: string[][]): string {
+  return rows.map((r) => r.map(csvField).join(",")).join("\r\n");
+}

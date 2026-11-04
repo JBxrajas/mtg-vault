@@ -37,6 +37,14 @@ describe("parseAppearance", () => {
     );
   });
 
+  it("keeps the card id of the art only when it is a UUID", () => {
+    const base = { url: ART, name: "Black Lotus" };
+    const id = "5089ec1a-f881-4d55-af14-5d996171203b";
+    expect(parseAppearance({ art: { ...base, oracleId: id } }).art).toEqual({ ...base, oracleId: id });
+    expect(parseAppearance({ art: { ...base, oracleId: "x'); drop table" } }).art).toEqual(base);
+    expect(parseAppearance({ art: { ...base, oracleId: 7 } }).art).toEqual(base);
+  });
+
   it("keeps valid parts and clamps the dimming", () => {
     const a = parseAppearance({ mode: "dark", background: "blue", art: { url: ART, name: "Black Lotus" }, dimming: 5 });
     expect(a).toEqual({ mode: "dark", background: "blue", art: { url: ART, name: "Black Lotus" }, dimming: 50 });

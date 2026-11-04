@@ -1,8 +1,9 @@
-import { collectionTotals, type CollectionItem } from "@mtg-vault/shared";
+import { collectionToCsv, collectionTotals, type CollectionItem } from "@mtg-vault/shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { fetchMe } from "./auth";
 import { fetchCollection, removeFromCollection, updateCollectionItem } from "./collectionApi";
+import { downloadText } from "./download";
 import { formatUsd } from "./format";
 import { useI18n } from "./i18n";
 import { ImportCollection } from "./ImportCollection";
@@ -69,6 +70,21 @@ export function CollectionPage() {
       {actionError && <p className="error">{actionError.message}</p>}
 
       {me && <ImportCollection />}
+
+      {items && items.length > 0 && (
+        <div className="row-actions">
+          <button
+            type="button"
+            onClick={() =>
+              // The byte-order mark makes Excel read accents and other characters as UTF-8.
+              downloadText(`mtg-vault-collection-${new Date().toISOString().slice(0, 10)}.csv`, `\ufeff${collectionToCsv(items)}\r\n`, "text/csv")
+            }
+          >
+            {t("collection.export")}
+          </button>
+          <Tip label={t("collection.export.tip.label")}>{t("collection.export.tip.text")}</Tip>
+        </div>
+      )}
 
       {items && (
         <>

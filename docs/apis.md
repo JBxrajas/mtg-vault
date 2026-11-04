@@ -15,6 +15,16 @@ The collection import reads the CSV that Moxfield exports. Its layout, as the im
 
 **What was and was not tested:** the reader and the import were tested with CSV files written in this layout from real cards, not with a real Moxfield export, and not with ManaBox or Deckbox files. If a real file shows something unexpected, the preview lists the columns it did not use and the lines it could not read.
 
+### Collection export
+
+The export writes the same layout back: `Count, Name, Edition, Condition, Language, Foil, Collector Number, Scryfall ID, Purchase Price` (the Scryfall id identifies the printing exactly), with the condition and language spelled out. A test reads an exported file back with the import parser and gets the same stacks. Notes and acquisition dates are not exported.
+
+## Deck lists (text import and export)
+
+A deck list is one card per line: `4 Lightning Bolt`, `4x Lightning Bolt`, `4 Lightning Bolt (M10) 146` or a bare name for one copy. Sections start with a line `Commander`, `Deck` (or `Main`), `Sideboard` or `Maybeboard` (a trailing colon is fine; `Companion` goes to the sideboard); `SB: 2 Pyroblast` is also read as sideboard. Without any section line, the first blank line after the cards starts the sideboard (MTGO style). `//` and `#` lines are comments. The set, number and `*F*` foil marker are dropped. Export writes `Commander`, `Deck`, `Sideboard` and `Maybeboard` sections (no headers when only the main board is used), which `parseDeckList` reads back (tested).
+
+**What was and was not tested:** the reader was tested with lists written in the styles above, not with real exports from Moxfield, Arena, MTGO or Archidekt. Section names are English only. Archidekt-style group headings such as `Creatures (12)` are not understood and would be reported as cards that were not found.
+
 ## MTGJSON
 - https://mtgjson.com
 - Free. Includes historical prices from several providers (Cardmarket, TCGplayer, …). A complement to backfill history.

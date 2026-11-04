@@ -5,6 +5,7 @@ import { useState, type FormEvent } from "react";
 import { fetchMe } from "./auth";
 import { createDeck, fetchDecks } from "./decksApi";
 import { useI18n } from "./i18n";
+import { ImportDeck } from "./ImportDeck";
 import { Tip } from "./Tip";
 
 export const formatLabel = (f: DeckFormat) => f.charAt(0).toUpperCase() + f.slice(1);
@@ -73,6 +74,7 @@ export function DecksPage() {
           </button>
         </form>
       )}
+      {me && <ImportDeck />}
       {create.error && <p className="error">{create.error.message}</p>}
       {me && isLoading && <p className="hint">{t("common.loading")}</p>}
       {me && error && <p className="error">{error.message}</p>}

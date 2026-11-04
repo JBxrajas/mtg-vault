@@ -3,6 +3,7 @@ import {
   cardSearchQuerySchema,
   collectionEntrySchema,
   deckCardSchema,
+  deckImportRequestSchema,
   deckCardSetSchema,
   deckIdParamSchema,
   deckInputSchema,
@@ -20,7 +21,7 @@ import { cors } from "hono/cors";
 import { createMiddleware } from "hono/factory";
 import { getAuth } from "./auth.js";
 import { listPrintings, searchCards } from "./cards.js";
-import { addDeckCard, createDeck, deleteDeck, getDeck, listDecks, setDeckCard, updateDeck } from "./decks.js";
+import { addDeckCard, createDeck, deleteDeck, getDeck, importDeckRows, listDecks, setDeckCard, updateDeck } from "./decks.js";
 import { HttpError, addItem, getCollectionId, listItems, removeItem, updateItem } from "./collection.js";
 import { importRows } from "./import.js";
 import { allowedOrigins } from "./origins.js";
@@ -171,6 +172,11 @@ app.delete("/decks/:id", zValidator("param", deckIdParamSchema), async (c) => {
 });
 
 /** Adds copies of a card to a board of the deck. */
+/** Imports a deck list (parsed by the client). The count sets the copies, so importing twice changes nothing. */
+app.post("/decks/:id/import", zValidator("param", deckIdParamSchema), zValidator("json", deckImportRequestSchema), async (c) =>
+  c.json(await importDeckRows(c.get("userId"), c.req.valid("param").id, c.req.valid("json").rows)),
+);
+
 app.post("/decks/:id/cards", zValidator("param", deckIdParamSchema), zValidator("json", deckCardSchema), async (c) => {
   await addDeckCard(c.get("userId"), c.req.valid("param").id, c.req.valid("json"));
   return c.json((await getDeck(c.get("userId"), c.req.valid("param").id))!, 201);

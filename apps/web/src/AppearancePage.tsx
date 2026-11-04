@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { searchCards } from "./api";
+import { fetchPrintings, searchCards } from "./api";
 import {
   BACKGROUNDS,
   DIMMING_MAX,
@@ -11,6 +11,7 @@ import {
   type Background,
   type Mode,
 } from "./appearance";
+import { printingLabel } from "./format";
 import { LOCALE_NAME, LOCALES, setLocale, useI18n } from "./i18n";
 import { Tip } from "./Tip";
 import { useDebouncedValue } from "./useDebouncedValue";
@@ -43,6 +44,18 @@ export function AppearancePage() {
     enabled: q.length >= 2,
   });
   const results = (data ?? []).filter((c) => isArtUrl(c.image?.artCrop));
+
+  // Every printing of the chosen card can have its own art; the list is the one the card dialog already loads.
+  const oracleId = appearance.art?.oracleId;
+  const printings = useQuery({
+    queryKey: ["cards", oracleId, "printings"],
+    queryFn: ({ signal }) => fetchPrintings(oracleId!, signal),
+    enabled: !!oracleId,
+  });
+  // Printings that share one picture are offered once, under the first of them.
+  const arts = (printings.data ?? []).filter(
+    (p, i, all) => isArtUrl(p.image?.artCrop) && all.findIndex((q) => q.image?.artCrop === p.image!.artCrop) === i,
+  );
 
   return (
     <main className="page">
@@ -127,7 +140,7 @@ export function AppearancePage() {
                 type="button"
                 className="art-tile"
                 aria-label={t("appearance.art.use", { name: c.name })}
-                onClick={() => setAppearance({ art: { url: c.image!.artCrop, name: c.name } })}
+                onClick={() => setAppearance({ art: { url: c.image!.artCrop, name: c.name, oracleId: c.oracleId } })}
               >
                 <img src={c.image!.artCrop} alt="" loading="lazy" />
                 <span>{c.name}</span>
@@ -142,6 +155,31 @@ export function AppearancePage() {
               {t("appearance.art.using")}
               <strong>{appearance.art.name}</strong>.
             </p>
+            {oracleId && (
+              <div className="printing-art">
+                <h3>{t("appearance.printing")}</h3>
+                <p className="hint">{t("appearance.printing.hint")}</p>
+                {printings.isLoading && <p className="hint">{t("detail.loading")}</p>}
+                {printings.error && <p className="error">{printings.error.message}</p>}
+                {printings.data && arts.length === 0 && <p className="hint">{t("appearance.art.none")}</p>}
+                <ul className="art-grid">
+                  {arts.map((p) => (
+                    <li key={p.id}>
+                      <button
+                        type="button"
+                        className={p.image!.artCrop === appearance.art!.url ? "art-tile on" : "art-tile"}
+                        aria-pressed={p.image!.artCrop === appearance.art!.url}
+                        aria-label={t("appearance.printing.use", { printing: printingLabel(p) })}
+                        onClick={() => setAppearance({ art: { url: p.image!.artCrop, name: appearance.art!.name, oracleId } })}
+                      >
+                        <img src={p.image!.artCrop} alt="" loading="lazy" />
+                        <span>{printingLabel(p)}</span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
             <div className="slider">
               <span>
                 {t("appearance.dimming")}

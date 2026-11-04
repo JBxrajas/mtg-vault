@@ -15,6 +15,7 @@ import { useState } from "react";
 import { searchCards } from "./api";
 import { fetchMe } from "./auth";
 import { addDeckCard, deleteDeck, fetchDeck, setDeckCard, updateDeck } from "./decksApi";
+import { DeckListTools } from "./DeckListTools";
 import { formatLabel } from "./DecksPage";
 import { useI18n } from "./i18n";
 import { ManaCost } from "./ManaCost";
@@ -112,6 +113,8 @@ export function DeckPage() {
       {mutationError && <p className="error">{mutationError.message}</p>}
 
       <DeckSettings deckId={deckId} deck={deck} onDelete={() => remove.mutate()} deleting={remove.isPending} />
+
+      <DeckListTools deckId={deckId} deckName={deck.name} cards={cards} />
 
       <AddCards
         formats={deckBoards(deck.format)}

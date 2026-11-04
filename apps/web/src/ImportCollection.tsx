@@ -16,7 +16,7 @@ export function readFileText(file: File): Promise<string> {
 
 const SHOWN = 25;
 
-function Problems({ title, items }: { title: string; items: ImportResult["problems"] }) {
+export function Problems({ title, items }: { title: string; items: ImportResult["problems"] }) {
   const { t } = useI18n();
   if (items.length === 0) return null;
   return (
