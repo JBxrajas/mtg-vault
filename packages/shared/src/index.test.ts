@@ -2,9 +2,12 @@ import { describe, expect, it } from "vitest";
 import {
   cardSearchQuerySchema,
   collectionEntrySchema,
+  collectionTotals,
   loginSchema,
   registerSchema,
   syntheticEmail,
+  unitPriceUsd,
+  updateCollectionItemSchema,
 } from "./index.js";
 
 describe("cardSearchQuerySchema", () => {
@@ -76,5 +79,41 @@ describe("loginSchema / syntheticEmail", () => {
 
   it("builds a lower-case address on the reserved .invalid domain", () => {
     expect(syntheticEmail(" Alice_1 ")).toBe("alice_1@users.invalid");
+  });
+});
+
+describe("collection helpers", () => {
+  const prices = { usd: 1, usdFoil: 3, usdEtched: null, eur: null, eurFoil: null, tix: null };
+
+  it("unitPriceUsd picks the price of the finish", () => {
+    expect(unitPriceUsd("nonfoil", prices)).toBe(1);
+    expect(unitPriceUsd("foil", prices)).toBe(3);
+    expect(unitPriceUsd("etched", prices)).toBeNull();
+    expect(unitPriceUsd("foil", null)).toBeNull();
+  });
+
+  it("collectionTotals sums value, counts copies and flags unpriced ones", () => {
+    expect(
+      collectionTotals([
+        { quantity: 2, unitPrice: 1.1 },
+        { quantity: 3, unitPrice: 0.1 },
+        { quantity: 4, unitPrice: null },
+      ]),
+    ).toEqual({ stacks: 3, copies: 9, unpriced: 4, valueUsd: 2.5 });
+    expect(collectionTotals([])).toEqual({ stacks: 0, copies: 0, unpriced: 0, valueUsd: 0 });
+  });
+
+  it("updateCollectionItemSchema needs at least one valid field", () => {
+    expect(updateCollectionItemSchema.safeParse({}).success).toBe(false);
+    expect(updateCollectionItemSchema.safeParse({ quantity: 2 }).success).toBe(true);
+    expect(updateCollectionItemSchema.safeParse({ notes: null, purchasePrice: null }).success).toBe(true);
+    expect(updateCollectionItemSchema.safeParse({ quantity: 0 }).success).toBe(false);
+  });
+
+  it("collectionEntrySchema validates the optional purchase data", () => {
+    const printingId = "4457ed35-7c10-48c8-9776-456485fdf070";
+    expect(collectionEntrySchema.safeParse({ printingId, quantity: 1, acquiredOn: "2026-11-04", purchasePrice: 2 }).success).toBe(true);
+    expect(collectionEntrySchema.safeParse({ printingId, quantity: 1, acquiredOn: "04/11/2026" }).success).toBe(false);
+    expect(collectionEntrySchema.safeParse({ printingId, quantity: 1, purchasePrice: -1 }).success).toBe(false);
   });
 });

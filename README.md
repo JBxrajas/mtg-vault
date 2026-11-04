@@ -9,7 +9,7 @@ Phases 1 and 2 are done: the monorepo, CI, the catalog imported from Scryfall in
 ## What it will do
 
 - **Accounts** with a username and a password (implemented; live in production once the API has its auth secrets, see docs/vercel.md).
-- **One collection per user**, as an inventory that tells printings apart (set, collector number), finish (nonfoil, foil, etched), condition and language, with purchase price and notes.
+- **One collection per user** (add, change and remove cards works today), as an inventory that tells printings apart (set, collector number), finish (nonfoil, foil, etched), condition and language, with purchase price and notes.
 - **Binders**: named sub-collections of the collection (a physical binder, a box, a trade list).
 - **Decks**, many per user, each with a format (Standard, Modern, Commander, …) and its cards divided by type: creature, sorcery, instant, enchantment, artifact, and so on.
 - **Card search** over the whole Scryfall catalog, tolerant of typos (works today).

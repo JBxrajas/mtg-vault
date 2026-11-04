@@ -42,6 +42,19 @@ Username and password, with Better Auth; sessions are Bearer tokens ([ADR 0009](
 
 `POST /api/auth/sign-up/email` is closed (`404`) so every account has a username. Send the token on later requests as `Authorization: Bearer <token>`. Other Better Auth routes under `/api/auth/*` are available but not used by the web app yet.
 
+### Collection (requires `Authorization: Bearer <token>`, `401` otherwise)
+
+The signed-in user's single collection ([ADR 0008](../../docs/adr/0008-users-collection-binders-decks.md)). A **stack** is copies that share printing, finish, condition and language. Users only ever see and change their own stacks (another user's id answers `404`).
+
+| Endpoint | Body | Result |
+|---|---|---|
+| `GET /collection/items` | none | `{ items: CollectionItem[] }`: each stack with card name, set, collector number, rarity, image, `unitPrice` (latest market price in USD for that finish, or `null`) and `pricesOn` |
+| `POST /collection/items` | `{ printingId, quantity, finish?, condition?, language?, purchasePrice?, acquiredOn?, notes? }` | `201 { item }`. Defaults: `nonfoil`, `NM`, `en`. Adding an existing stack **adds to its quantity** (a given purchase price, date or note replaces the stored one). `400` if the printing does not come in that finish or the stack would exceed 9999; `404` for an unknown printing |
+| `PATCH /collection/items/:id` | any of `{ quantity, purchasePrice, acquiredOn, notes }` (`null` clears the last three) | `200 { item }`; `404` if not yours; `409` if `quantity` is lower than the copies placed in binders |
+| `DELETE /collection/items/:id` | none | `204`; also removes the stack's binder placements; `404` if not yours |
+
+Finish, condition and language identify a stack, so they cannot be patched: remove the stack and add a new one. Binder endpoints are not implemented yet; the database and the `409` rule already are.
+
 ### `GET /cards/search`
 
 Fuzzy search of oracle cards by name, backed by the `pg_trgm` index on `cards.name`.
@@ -80,4 +93,4 @@ Every printing of one oracle card (the `oracleId` from the search results), newe
 
 Invalid parameters return `400` with the Zod issues. The query schema lives in `packages/shared` (`cardSearchQuerySchema`) so web and desktop can reuse it.
 
-Verified manually against the Neon catalog (120k printings): a typo query, the `type` and `colors` filters, and the `400` cases. The account flow was also run end to end on a throwaway Neon branch (register, duplicate username, sign-in in any letter case, wrong password, `/me`, sign-out, hashed password, collection created); that script is not part of the test suite. Unit tests (`app.test.ts`, `cards.test.ts`) cover validation, status codes, the response mapping and LIKE escaping with the data layer mocked; the SQL itself is not covered by automated tests.
+Verified manually against the Neon catalog (120k printings): a typo query, the `type` and `colors` filters, and the `400` cases. The collection endpoints were run end to end on a throwaway Neon branch too (18 checks: add, merge into an existing stack, separate condition stack, finish not offered by the printing, unknown printing, 9999 cap, list with names and images, binder `409`, patch, isolation between two users, delete cascading to binder placements); that script is not part of the suite either. The account flow was also run end to end on a throwaway Neon branch (register, duplicate username, sign-in in any letter case, wrong password, `/me`, sign-out, hashed password, collection created); that script is not part of the test suite. Unit tests (`app.test.ts`, `cards.test.ts`) cover validation, status codes, the response mapping and LIKE escaping with the data layer mocked; the SQL itself is not covered by automated tests.

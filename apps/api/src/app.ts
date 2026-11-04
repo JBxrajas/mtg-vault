@@ -1,18 +1,30 @@
 import { zValidator } from "@hono/zod-validator";
 import {
   cardSearchQuerySchema,
+  collectionEntrySchema,
+  itemIdParamSchema,
   oracleIdParamSchema,
   registerSchema,
   syntheticEmail,
+  updateCollectionItemSchema,
   type CurrentUser,
 } from "@mtg-vault/shared";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
+import { createMiddleware } from "hono/factory";
 import { getAuth } from "./auth.js";
 import { listPrintings, searchCards } from "./cards.js";
+import { HttpError, addItem, getCollectionId, listItems, removeItem, updateItem } from "./collection.js";
 import { allowedOrigins } from "./origins.js";
 
-export const app = new Hono();
+type Env = { Variables: { userId: string } };
+export const app = new Hono<Env>();
+
+app.onError((err, c) => {
+  if (err instanceof HttpError) return c.json({ error: err.message }, err.status);
+  console.error(err);
+  return c.json({ error: "Internal server error" }, 500);
+});
 
 app.use(
   "*",
@@ -73,4 +85,43 @@ app.get("/me", async (c) => {
     displayUsername: u.displayUsername ?? u.username ?? "",
   };
   return c.json({ user: me });
+});
+
+/** Requires a valid Bearer token and puts the user id on the context. */
+const requireUser = createMiddleware<Env>(async (c, next) => {
+  const session = await getAuth().api.getSession({ headers: c.req.raw.headers });
+  if (!session) return c.json({ error: "Not signed in" }, 401);
+  c.set("userId", session.user.id);
+  await next();
+});
+
+// The signed-in user's collection: stacks of identical cards (printing, finish, condition, language).
+app.use("/collection/*", requireUser);
+
+app.get("/collection/items", async (c) => {
+  const collectionId = await getCollectionId(c.get("userId"));
+  return c.json({ items: await listItems(collectionId) });
+});
+
+app.post("/collection/items", zValidator("json", collectionEntrySchema), async (c) => {
+  const collectionId = await getCollectionId(c.get("userId"));
+  return c.json({ item: await addItem(collectionId, c.req.valid("json")) }, 201);
+});
+
+app.patch(
+  "/collection/items/:id",
+  zValidator("param", itemIdParamSchema),
+  zValidator("json", updateCollectionItemSchema),
+  async (c) => {
+    const collectionId = await getCollectionId(c.get("userId"));
+    const item = await updateItem(collectionId, c.req.valid("param").id, c.req.valid("json"));
+    if (!item) return c.json({ error: "Item not found" }, 404);
+    return c.json({ item });
+  },
+);
+
+app.delete("/collection/items/:id", zValidator("param", itemIdParamSchema), async (c) => {
+  const collectionId = await getCollectionId(c.get("userId"));
+  if (!(await removeItem(collectionId, c.req.valid("param").id))) return c.json({ error: "Item not found" }, 404);
+  return c.body(null, 204);
 });

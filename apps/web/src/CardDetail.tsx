@@ -1,6 +1,7 @@
 import type { CardSearchResult } from "@mtg-vault/shared";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
+import { AddToCollection } from "./AddToCollection";
 import { fetchPrintings } from "./api";
 import { priceLine, printingLabel, releaseYear } from "./format";
 
@@ -29,6 +30,7 @@ export function CardDetail({ card, onClose }: { card: CardSearchResult; onClose:
           <div className="printings">
             {isLoading && <p className="hint">Loading printings…</p>}
             {error && <p className="error">{error.message}</p>}
+            {selected && <AddToCollection key={selected.id} printing={selected} />}
             {printings && <p className="hint">{printings.length} printings</p>}
             <ul>
               {printings?.map((p) => (

@@ -181,3 +181,42 @@ body {
   cursor: pointer;
   font: inherit;
 }
+.add-form {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0.75rem 0;
+  padding: 0.75rem;
+  border: 1px solid rgba(128, 128, 128, 0.4);
+  border-radius: 8px;
+}
+.add-fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: end;
+}
+.add-fields label {
+  display: grid;
+  gap: 0.15rem;
+  font-size: 0.8rem;
+}
+.add-fields input[type="number"] {
+  width: 4.5rem;
+}
+.ok {
+  color: #2e7d32;
+  margin: 0;
+}
+.totals {
+  font-weight: 600;
+}
+.thumb-img {
+  flex: none;
+  border-radius: 4px;
+}
+.qty {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+  flex: none;
+}
