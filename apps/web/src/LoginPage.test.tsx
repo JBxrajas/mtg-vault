@@ -43,6 +43,12 @@ describe("LoginPage", () => {
     expect(screen.getByRole("button", { name: "Sign in" })).toBeEnabled();
   });
 
+  it("opens on account creation when linked with ?mode=register", async () => {
+    renderPage(<LoginPage />, { path: "/login?mode=register" , route: "/login" });
+    expect(await screen.findByRole("heading", { name: "Create your account" })).toBeInTheDocument();
+    expect(screen.getByText(/No email needed/)).toBeInTheDocument();
+  });
+
   it("switches to account creation and validates before calling the API", async () => {
     renderPage(<LoginPage />, { path: "/login" });
     await userEvent.click(await screen.findByRole("button", { name: "No account? Create one" }));

@@ -2,9 +2,9 @@ import { Link, Outlet } from "@tanstack/react-router";
 import { AuthBar } from "./AuthBar";
 
 const NAV = [
-  { to: "/", label: "Search" },
-  { to: "/collection", label: "Collection" },
-  { to: "/decks", label: "Decks" },
+  { to: "/", label: "Search", hint: "Find any card and see its printings and prices" },
+  { to: "/collection", label: "Collection", hint: "The cards you own and what they are worth" },
+  { to: "/decks", label: "Decks", hint: "Build decks and see which cards you already own" },
 ] as const;
 
 /** App frame: brand and account on top, navigation at the bottom on phones and on top on wide screens. */
@@ -18,7 +18,7 @@ export function Layout() {
           </Link>
           <nav className="nav" aria-label="Main">
             {NAV.map((item) => (
-              <Link key={item.to} to={item.to} activeOptions={{ exact: true }}>
+              <Link key={item.to} to={item.to} title={item.hint} activeOptions={{ exact: true }}>
                 {item.label}
               </Link>
             ))}

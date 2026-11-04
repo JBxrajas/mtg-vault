@@ -22,6 +22,8 @@ const indexRoute = createRoute({
 const loginRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/login",
+  validateSearch: (search: Record<string, unknown>): { mode?: "register" } =>
+    search.mode === "register" ? { mode: "register" } : {},
   component: LoginPage,
 });
 

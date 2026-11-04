@@ -824,3 +824,89 @@ button.danger {
   padding-left: 1.1rem;
   font-size: 0.85rem;
 }
+
+/* Help bubbles and welcome banner */
+.tip {
+  position: relative;
+  display: inline-block;
+  margin-left: 0.35rem;
+  vertical-align: middle;
+}
+button.tip-btn {
+  width: 1.25rem;
+  height: 1.25rem;
+  min-height: 0;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 0.75rem;
+  line-height: 1;
+  font-weight: 700;
+  cursor: help;
+}
+button.tip-btn:hover:not(:disabled) {
+  background: var(--surface);
+  color: var(--primary);
+  border-color: var(--primary);
+}
+.tip-bubble {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 0.4rem);
+  left: 50%;
+  transform: translateX(calc(-50% + var(--shift, 0px)));
+  width: max-content;
+  max-width: min(18rem, 80vw);
+  padding: 0.55rem 0.7rem;
+  border-radius: var(--radius-sm);
+  background: var(--text);
+  color: var(--bg);
+  font-size: 0.8rem;
+  font-weight: 400;
+  line-height: 1.4;
+  text-align: left;
+  box-shadow: var(--shadow);
+}
+.welcome {
+  margin: 1rem 0;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--primary);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+.welcome h2 {
+  font-size: 1.15rem;
+}
+.welcome p {
+  margin: 0.25rem 0;
+}
+.welcome ul {
+  margin: 0.5rem 0;
+  padding-left: 1.2rem;
+}
+.welcome li {
+  margin: 0.2rem 0;
+}
+.welcome-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.9rem;
+  margin-top: 0.75rem;
+}
+a.button {
+  display: inline-block;
+  padding: 0.55rem 1rem;
+  border-radius: var(--radius-sm);
+  background: var(--primary);
+  color: var(--on-primary);
+  font-weight: 600;
+  text-decoration: none;
+}
+a.button:hover {
+  background: var(--primary-hover);
+}

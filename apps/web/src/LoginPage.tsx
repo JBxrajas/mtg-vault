@@ -1,11 +1,12 @@
 import { loginSchema, registerSchema } from "@mtg-vault/shared";
 import { useQueryClient } from "@tanstack/react-query";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
 import { login, register } from "./auth";
 
 export function LoginPage() {
-  const [mode, setMode] = useState<"login" | "register">("login");
+  const search = useSearch({ strict: false }) as { mode?: string };
+  const [mode, setMode] = useState<"login" | "register">(search.mode === "register" ? "register" : "login");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -39,6 +40,9 @@ export function LoginPage() {
     <main className="page">
       <div className="auth-card">
       <h1>{mode === "login" ? "Sign in" : "Create your account"}</h1>
+      {mode === "register" && (
+        <p className="hint">Free. No email needed: just pick a username and a password.</p>
+      )}
       <form className="auth-form" onSubmit={submit}>
         <label>
           Username

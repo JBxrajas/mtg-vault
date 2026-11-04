@@ -5,6 +5,7 @@ import { useState } from "react";
 import { fetchMe } from "./auth";
 import { addToCollection } from "./collectionApi";
 import { printingLabel } from "./format";
+import { Tip } from "./Tip";
 
 /** Form to add copies of the selected printing to the signed-in user's collection. */
 export function AddToCollection({ printing }: { printing: PrintingSummary }) {
@@ -47,7 +48,14 @@ export function AddToCollection({ printing }: { printing: PrintingSummary }) {
         add.mutate();
       }}
     >
-      <strong>Add {printingLabel(printing)}</strong>
+      <strong>
+        Add {printingLabel(printing)}
+        <Tip label="finish, condition and quantity">
+          Finish: nonfoil is the normal card, foil has a shiny layer, etched is a matte metallic foil. Condition: NM near
+          mint, LP lightly played, MP moderately played, HP heavily played, DMG damaged; it is for your records and the
+          price shown does not change with it. Qty: copies of this exact card you own.
+        </Tip>
+      </strong>
       <div className="add-fields">
         <label>
           Finish
