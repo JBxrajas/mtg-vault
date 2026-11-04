@@ -31,7 +31,7 @@ export const cards = pgTable(
     oracleId: uuid("oracle_id").primaryKey(),
     name: text("name").notNull(),
     manaCost: text("mana_cost"),
-    cmc: numeric("cmc", { precision: 6, scale: 1 }).notNull().default("0"),
+    cmc: numeric("cmc", { precision: 10, scale: 1 }).notNull().default("0"),
     typeLine: text("type_line").notNull().default(""),
     oracleText: text("oracle_text"),
     colors: text("colors").array().notNull().default(sql`'{}'::text[]`),
