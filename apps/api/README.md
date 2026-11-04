@@ -6,7 +6,16 @@ Hono API. Runs on plain Node locally and, later, on Vercel Functions (no API pro
 pnpm --filter @mtg-vault/api dev   # http://localhost:3001; loads ../../.env.local if present
 ```
 
-Needs `DATABASE_URL` (the pooled Neon connection, see [docs/neon.md](../../docs/neon.md)).
+## Environment variables
+
+| Variable | Required | Purpose |
+|---|---|---|
+| `DATABASE_URL` | yes (search) | Pooled Neon connection, see [docs/neon.md](../../docs/neon.md) |
+| `CORS_ORIGINS` | in production | Comma-separated browser origins allowed to call the API. Defaults to `http://localhost:5173` |
+
+## Deployment
+
+Deployed as its own Vercel project, `mtg-vault-api` (root `apps/api`, Hono preset); see [docs/vercel.md](../../docs/vercel.md). Vercel's zero-config Hono support runs the default export of `src/index.ts`, which re-exports the app from `src/app.ts`. Locally the same app is served by `src/dev.ts`.
 
 ## Endpoints
 
