@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.2.0](https://github.com/JBxrajas/mtg-vault/compare/v0.1.1...v0.2.0) (2026-11-04)
+
+
+### Features
+
+* add card name search endpoint ([#15](https://github.com/JBxrajas/mtg-vault/issues/15)) ([7466b58](https://github.com/JBxrajas/mtg-vault/commit/7466b58c18e8311ac0fa43f4b9938832cbad28e1))
+* add card search page to the web app ([#24](https://github.com/JBxrajas/mtg-vault/issues/24)) ([abedeaf](https://github.com/JBxrajas/mtg-vault/commit/abedeafef1b10c02c73a00f16580544021efd7b7))
+* add users, collection, binders and decks data model ([#25](https://github.com/JBxrajas/mtg-vault/issues/25)) ([4a635f1](https://github.com/JBxrajas/mtg-vault/commit/4a635f1f72c9a1d2f201dc16b06ad4daf42135a3))
+* deploy the API as its own Vercel project with CORS ([#21](https://github.com/JBxrajas/mtg-vault/issues/21)) ([40e0740](https://github.com/JBxrajas/mtg-vault/commit/40e07400d86c7ff7eb65a24e18df8f09aa681d40))
+
+
+### Bug Fixes
+
+* bundle the API for Vercel so workspace packages resolve ([#22](https://github.com/JBxrajas/mtg-vault/issues/22)) ([c834625](https://github.com/JBxrajas/mtg-vault/commit/c8346254c84b4b567ce3f9ce78da11ca9343356b))
+
 ## [0.1.1](https://github.com/JBxrajas/mtg-vault/compare/v0.1.0...v0.1.1) (2026-11-04)
 
 
