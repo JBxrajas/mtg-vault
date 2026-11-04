@@ -1,6 +1,6 @@
 # Vercel
 
-Vercel hosts the web app (and later the API). See [stack.md](stack.md) for the overall deployment picture.
+Vercel hosts the web app and the API. See [stack.md](stack.md) for the overall deployment picture.
 
 ## Web project (done)
 
@@ -77,7 +77,7 @@ The Vercel CLI, the Vercel plugin for Claude Code and the Vercel MCP server (`ht
 
 ## Status (2026-11-04)
 
-- **Web:** https://mtg-vault-web.vercel.app is public (HTTP 200). Only the per-deployment URLs (`*-jbxrajas-projects.vercel.app`) sit behind Vercel Authentication and redirect to a Vercel sign-in (HTTP 302); that is expected.
-- **API:** https://mtg-vault-api.vercel.app is live. Checked in production: `/health` returns 200, `/cards/search?q=lightnin bolt` returns Lightning Bolt first, and a request with `Origin: https://mtg-vault-web.vercel.app` gets the matching `Access-Control-Allow-Origin`. `DATABASE_URL` and `CORS_ORIGINS` are set (as Vercel secrets, so they are hidden in the dashboard).
-- **Web to API:** the web app does not call the API yet; it will need the API URL as a build variable.
+- **Web:** https://mtg-vault-web.vercel.app is public. Only the per-deployment URLs (`*-jbxrajas-projects.vercel.app`) sit behind Vercel Authentication and redirect to a Vercel sign-in (HTTP 302); that is expected. The web app calls the API at `https://mtg-vault-api.vercel.app` (`VITE_API_URL`, default in a production build).
+- **API:** https://mtg-vault-api.vercel.app, running in `pdx1` next to the database. `DATABASE_URL`, `CORS_ORIGINS`, `BETTER_AUTH_SECRET` and `BETTER_AUTH_URL` are set (as Vercel secrets, so they are hidden in the dashboard).
+- **Deploys:** while the daily limit was active (see above) the production deployments were made with `vercel deploy --prod` from `main`, once per project, setting `VERCEL_ORG_ID` and `VERCEL_PROJECT_ID` to the project's ids (the root directory is a project setting, so it is deployed from the repository root, not from `apps/web`). On the evening of 2026-11-04 the API was up to date with `main`; the web was behind by the deck list import and export, the printing choice for the background art and the fix to the deck tabs, waiting for the limit to reset.
 - Redeploy after changing a variable: `vercel redeploy <deployment-url>` from `apps/api`.
