@@ -1,4 +1,4 @@
-import type { CardSearchResult, Color } from "@mtg-vault/shared";
+import type { CardSearchResult, Color, PrintingSummary } from "@mtg-vault/shared";
 
 export const API_URL: string =
   import.meta.env.VITE_API_URL ??
@@ -28,4 +28,15 @@ export async function searchCards(
   if (!res.ok) throw new Error(`Search failed (${res.status})`);
   const body = (await res.json()) as { results: CardSearchResult[] };
   return body.results;
+}
+
+export function buildPrintingsUrl(oracleId: string, baseUrl: string = API_URL): string {
+  return new URL(`/cards/${encodeURIComponent(oracleId)}/printings`, baseUrl).toString();
+}
+
+export async function fetchPrintings(oracleId: string, signal?: AbortSignal): Promise<PrintingSummary[]> {
+  const res = await fetch(buildPrintingsUrl(oracleId), { signal });
+  if (!res.ok) throw new Error(`Could not load printings (${res.status})`);
+  const body = (await res.json()) as { printings: PrintingSummary[] };
+  return body.printings;
 }

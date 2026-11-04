@@ -27,8 +27,9 @@ Status: ☐ pending · ◐ in progress · ☑ done
 - ☐ API and screens to add, remove and edit inventory stacks, assign copies to binders, and build decks
 - CSV import and export (Moxfield, Deckbox, Manabox)
 
-## Phase 4 — Prices ☐
-- Daily job: price snapshots in the `price_snapshots` table
+## Phase 4 — Prices ◐
+- ◐ Price snapshots in `price_snapshots`: the Scryfall import writes a row when a printing's price changes ([apps/jobs](../apps/jobs/README.md)); latest prices shown per printing in the web app. Runs weekly for now; a daily run needs the storage plan checked first
+- ☑ Printings list per card with set name and price (`GET /cards/:oracleId/printings`)
 - Price history charts and total collection value
 - Price rise and drop alerts
 

@@ -1,11 +1,15 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const searchCards = vi.fn();
-vi.mock("./cards.js", () => ({ searchCards }));
+const listPrintings = vi.fn();
+vi.mock("./cards.js", () => ({ searchCards, listPrintings }));
 
 const { app } = await import("./app.js");
 
-beforeEach(() => searchCards.mockReset());
+beforeEach(() => {
+  searchCards.mockReset();
+  listPrintings.mockReset();
+});
 
 describe("GET /health", () => {
   it("returns ok", async () => {
@@ -53,5 +57,29 @@ describe("GET /cards/search", () => {
     const res = await app.request(`/cards/search${qs}`);
     expect(res.status).toBe(400);
     expect(searchCards).not.toHaveBeenCalled();
+  });
+});
+
+describe("GET /cards/:oracleId/printings", () => {
+  const id = "4457ed35-7c10-48c8-9776-456485fdf070";
+
+  it("returns the printings", async () => {
+    listPrintings.mockResolvedValue([{ id: "p1", setName: "Alpha" }]);
+    const res = await app.request(`/cards/${id}/printings`);
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ printings: [{ id: "p1", setName: "Alpha" }] });
+    expect(listPrintings).toHaveBeenCalledWith(id);
+  });
+
+  it("returns 404 when the card has no printings", async () => {
+    listPrintings.mockResolvedValue([]);
+    const res = await app.request(`/cards/${id}/printings`);
+    expect(res.status).toBe(404);
+  });
+
+  it("returns 400 for an id that is not a UUID", async () => {
+    const res = await app.request("/cards/not-a-uuid/printings");
+    expect(res.status).toBe(400);
+    expect(listPrintings).not.toHaveBeenCalled();
   });
 });

@@ -5,7 +5,8 @@ import { Readable } from "node:stream";
 import { pipeline } from "node:stream/promises";
 import { createGunzip } from "node:zlib";
 import { sql } from "drizzle-orm";
-import { cards, createDb, printings, sets } from "@mtg-vault/db";
+import { cards, createDb, priceSnapshots, printings, sets } from "@mtg-vault/db";
+import { hasAnyPrice, parsePrices, priceKey, type PriceRow, type ScryfallPrices } from "./prices.js";
 const API = "https://api.scryfall.com";
 const HEADERS = {
   "User-Agent": "mtg-vault-importer/0.1 (+https://github.com/JBxrajas/mtg-vault)",
@@ -30,6 +31,17 @@ async function getJson<T>(url: string): Promise<T> {
 /** Overwrite a column with the value Postgres would have inserted. */
 const excluded = (column: string) => sql.raw(`excluded."${column}"`);
 
+/**
+ * Condition for `ON CONFLICT DO UPDATE ... WHERE`: only rewrite a row when one of the columns
+ * changed. Rewriting identical rows would leave a dead copy of every row on each import.
+ */
+const changed = (table: string, columns: string[]) =>
+  sql.raw(
+    `(${columns.map((c) => `"${table}"."${c}"`).join(", ")}) is distinct from (${columns
+      .map((c) => `excluded."${c}"`)
+      .join(", ")})`,
+  );
+
 async function importSets() {
   const { data } = await getJson<{ data: ScryfallSet[] }>(`${API}/sets`);
   const rows = data.map((s) => ({
@@ -47,6 +59,7 @@ async function importSets() {
       .values(rows.slice(i, i + BATCH))
       .onConflictDoUpdate({
         target: sets.id,
+        setWhere: changed("sets", ["code", "name", "set_type", "released_at", "card_count", "icon_svg_uri"]),
         set: {
           code: sql`${excluded("code")}`,
           name: sql`${excluded("name")}`,
@@ -109,6 +122,7 @@ function toRows(card: ScryfallCard) {
 async function flush(
   cardRows: Map<string, typeof cards.$inferInsert>,
   printingRows: Map<string, typeof printings.$inferInsert>,
+  priceRows: Map<string, PriceRow> = new Map(),
 ) {
   if (cardRows.size) {
     await db
@@ -116,6 +130,17 @@ async function flush(
       .values([...cardRows.values()])
       .onConflictDoUpdate({
         target: cards.oracleId,
+        setWhere: changed("cards", [
+          "name",
+          "mana_cost",
+          "cmc",
+          "type_line",
+          "oracle_text",
+          "colors",
+          "color_identity",
+          "keywords",
+          "legalities",
+        ]),
         set: {
           name: sql`${excluded("name")}`,
           manaCost: sql`${excluded("mana_cost")}`,
@@ -135,6 +160,16 @@ async function flush(
       .values([...printingRows.values()])
       .onConflictDoUpdate({
         target: printings.id,
+        setWhere: changed("printings", [
+          "oracle_id",
+          "set_id",
+          "collector_number",
+          "lang",
+          "rarity",
+          "released_at",
+          "finishes",
+          "image_uris",
+        ]),
         set: {
           oracleId: sql`${excluded("oracle_id")}`,
           setId: sql`${excluded("set_id")}`,
@@ -147,9 +182,63 @@ async function flush(
         },
       });
   }
+  await flushPrices(priceRows);
+}
+
+const today = new Date().toISOString().slice(0, 10);
+
+/** Latest stored price per printing, as `priceKey`, to snapshot only what changed. */
+async function loadLastPriceKeys() {
+  const rows = await db.execute<{
+    printing_id: string;
+    usd: string | null;
+    usd_foil: string | null;
+    usd_etched: string | null;
+    eur: string | null;
+    eur_foil: string | null;
+    tix: string | null;
+  }>(sql`
+    select distinct on (printing_id) printing_id, usd, usd_foil, usd_etched, eur, eur_foil, tix
+    from price_snapshots
+    order by printing_id, captured_on desc
+  `);
+  return new Map(
+    rows.map((r) => [
+      r.printing_id,
+      priceKey({
+        usd: r.usd,
+        usdFoil: r.usd_foil,
+        usdEtched: r.usd_etched,
+        eur: r.eur,
+        eurFoil: r.eur_foil,
+        tix: r.tix,
+      }),
+    ]),
+  );
+}
+
+async function flushPrices(priceRows: Map<string, PriceRow>) {
+  if (!priceRows.size) return;
+  await db
+    .insert(priceSnapshots)
+    .values([...priceRows].map(([printingId, row]) => ({ printingId, capturedOn: today, ...row })))
+    .onConflictDoUpdate({
+      target: [priceSnapshots.printingId, priceSnapshots.capturedOn],
+      set: {
+        usd: sql`${excluded("usd")}`,
+        usdFoil: sql`${excluded("usd_foil")}`,
+        usdEtched: sql`${excluded("usd_etched")}`,
+        eur: sql`${excluded("eur")}`,
+        eurFoil: sql`${excluded("eur_foil")}`,
+        tix: sql`${excluded("tix")}`,
+      },
+    });
 }
 
 async function importCards(path: string) {
+  const lastPrices = await loadLastPriceKeys();
+  let priceRows = new Map<string, PriceRow>();
+  let snapshots = 0;
   let cardRows = new Map<string, typeof cards.$inferInsert>();
   let printingRows = new Map<string, typeof printings.$inferInsert>();
   // Two printings of the same set, number and language would violate a unique constraint.
@@ -177,18 +266,27 @@ async function importCards(path: string) {
     seenKeys.add(key);
     cardRows.set(rows.card.oracleId, rows.card);
     printingRows.set(rows.printing.id, rows.printing);
+    // Snapshot a price only when it differs from the latest one we have.
+    const price = parsePrices(value.prices);
+    if (hasAnyPrice(price) && lastPrices.get(rows.printing.id) !== priceKey(price)) {
+      priceRows.set(rows.printing.id, price);
+      lastPrices.set(rows.printing.id, priceKey(price));
+    }
     total++;
     if (printingRows.size >= BATCH) {
-      await flush(cardRows, printingRows);
+      snapshots += priceRows.size;
+      await flush(cardRows, printingRows, priceRows);
       cardRows = new Map();
       printingRows = new Map();
+      priceRows = new Map();
       if (total % 20000 < BATCH) console.log(`printings: ${total}`);
     }
   }
   lines.close();
   input.destroy();
-  await flush(cardRows, printingRows);
-  console.log(`printings: ${total} imported, ${skipped} skipped`);
+  snapshots += priceRows.size;
+  await flush(cardRows, printingRows, priceRows);
+  console.log(`printings: ${total} imported, ${skipped} skipped; price snapshots written: ${snapshots}`);
 }
 
 interface ScryfallSet {
@@ -225,6 +323,7 @@ interface ScryfallCard extends ScryfallFace {
   legalities?: Record<string, string>;
   finishes?: string[];
   card_faces?: ScryfallFace[];
+  prices?: ScryfallPrices;
 }
 
 const dir = process.env.DATA_DIR ?? "data";

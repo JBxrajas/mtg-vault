@@ -47,6 +47,20 @@ Each result carries `image`: the `small`, `normal` and `artCrop` URLs of the **m
 ] }
 ```
 
+### `GET /cards/:oracleId/printings`
+
+Every printing of one oracle card (the `oracleId` from the search results), newest first. Each entry has the set name and code, collector number, language, rarity, release date, finishes, the `image` URLs (as in the search) and the **latest recorded price** with its date:
+
+```json
+{ "printings": [
+  { "id": "…", "setCode": "lea", "setName": "Limited Edition Alpha", "collectorNumber": "161", "lang": "en",
+    "rarity": "common", "releasedAt": "1993-08-05", "finishes": ["nonfoil"], "image": { "small": "…", "normal": "…", "artCrop": "…" },
+    "prices": { "usd": 1800, "usdFoil": null, "usdEtched": null, "eur": 3835.09, "eurFoil": null, "tix": null }, "pricesOn": "2026-11-04" }
+] }
+```
+
+`prices` and `pricesOn` are `null` when no price has been recorded for that printing. An id that is not a UUID returns `400`; a card with no printings returns `404`.
+
 Invalid parameters return `400` with the Zod issues. The query schema lives in `packages/shared` (`cardSearchQuerySchema`) so web and desktop can reuse it.
 
-Verified manually against the Neon catalog (120k printings): a typo query, the `type` and `colors` filters, and the `400` cases. Unit tests (`app.test.ts`, `cards.test.ts`) cover validation, the response shape and LIKE escaping with the data layer mocked; the SQL itself is not covered by automated tests.
+Verified manually against the Neon catalog (120k printings): a typo query, the `type` and `colors` filters, and the `400` cases. Unit tests (`app.test.ts`, `cards.test.ts`) cover validation, status codes, the response mapping and LIKE escaping with the data layer mocked; the SQL itself is not covered by automated tests.

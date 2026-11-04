@@ -12,7 +12,9 @@ Imports the Scryfall catalog into `sets`, `cards` and `printings` (see [packages
 
 It is idempotent: running it again updates rows in place. Cards without an `oracle_id`, and printings that would repeat a set, number and language, are skipped and counted.
 
-Prices are not imported yet; daily snapshots arrive in phase 4.
+It also records prices: Scryfall sends current prices with each card, and the job writes a row in `price_snapshots` (dated that UTC day) **only when a printing's prices differ from its latest snapshot**. The first run writes about one row per priced printing; later runs write only the changes. This keeps history without growing by ~120k rows a day (the free Neon plan has 0.5 GB). Prices are normalized to two decimals (`src/prices.ts`, unit tested).
+
+Upserts of `sets`, `cards` and `printings` use `ON CONFLICT DO UPDATE ... WHERE (old) IS DISTINCT FROM (new)`, so rows that did not change are not rewritten. Before this, every import rewrote all rows and left dead copies behind, which bloated `printings` to almost four times its real size.
 
 ### Run it
 
@@ -31,6 +33,10 @@ DATABASE_URL_UNPOOLED=postgres://... pnpm --filter @mtg-vault/jobs import:scryfa
 ### Schedule
 
 `.github/workflows/import-scryfall.yml` runs it every Monday at 05:17 UTC and on demand (Actions tab → import-scryfall → Run workflow, or `gh workflow run import-scryfall`). It needs the repository secret `DATABASE_URL_UNPOOLED` (`gh secret set DATABASE_URL_UNPOOLED`, value from `.env.local`).
+
+### Storage
+
+`pg_database_size` was 475 MB on 2026-11-04, close to the 0.5 GB of the free plan, mostly dead space left by the earlier full-row upserts (`printings` took 392 MB for about 120k rows). `VACUUM FULL printings; VACUUM FULL cards;` rewrites the tables compactly. It takes an exclusive lock for the duration, so run it once, outside an import, before the first price import: `DATABASE_URL=<unpooled url>` with any Postgres client.
 
 ### Status
 

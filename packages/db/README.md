@@ -9,7 +9,7 @@ Drizzle ORM schema and migrations for Postgres (Neon in production).
 | `sets` | Editions | Scryfall set id |
 | `cards` | Oracle cards (the card as a concept) | Scryfall `oracle_id` |
 | `printings` | A card in a specific set | Scryfall card id; unique per set, collector number and language |
-| `price_snapshots` | Daily price of a printing (USD, EUR, TIX; foil and etched) | `(printing_id, captured_on)` |
+| `price_snapshots` | Price of a printing on a date (USD, EUR, TIX; foil and etched). A row is written only when the price changed since the latest one | `(printing_id, captured_on)` |
 
 `cards.name` has a trigram GIN index (`pg_trgm`) for fuzzy name search. The migration creates the extension.
 

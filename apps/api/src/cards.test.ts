@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { likeEscape, toCardImage } from "./cards.js";
+import { likeEscape, toCardImage, toPrices } from "./cards.js";
 
 describe("likeEscape", () => {
   it("escapes LIKE wildcards and the escape character", () => {
@@ -29,5 +29,17 @@ describe("toCardImage", () => {
 
   it.each([null, undefined, "x", 3, {}, { small: "a", normal: "b" }])("returns null for %j", (input) => {
     expect(toCardImage(input)).toBeNull();
+  });
+});
+
+describe("toPrices", () => {
+  it("converts numeric strings to numbers and keeps missing prices null", () => {
+    expect(
+      toPrices({ priced_on: "2026-11-04", usd: "1.50", usd_foil: "3.00", usd_etched: null, eur: "1.20", eur_foil: null, tix: "0.02" }),
+    ).toEqual({ usd: 1.5, usdFoil: 3, usdEtched: null, eur: 1.2, eurFoil: null, tix: 0.02 });
+  });
+
+  it("returns null when there is no snapshot", () => {
+    expect(toPrices({ priced_on: null, usd: null })).toBeNull();
   });
 });

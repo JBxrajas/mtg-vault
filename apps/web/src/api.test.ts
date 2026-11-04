@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { buildSearchUrl, searchCards } from "./api.js";
+import { buildPrintingsUrl, buildSearchUrl, fetchPrintings, searchCards } from "./api.js";
 
 afterEach(() => vi.unstubAllGlobals());
 
@@ -35,5 +35,24 @@ describe("searchCards", () => {
   it("throws on a non-OK response", async () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: false, status: 400 }));
     await expect(searchCards({ q: "bolt" })).rejects.toThrow("Search failed (400)");
+  });
+});
+
+describe("printings", () => {
+  const id = "4457ed35-7c10-48c8-9776-456485fdf070";
+
+  it("builds the URL", () => {
+    expect(buildPrintingsUrl(id, "https://api.example")).toBe(`https://api.example/cards/${id}/printings`);
+  });
+
+  it("returns the printings array", async () => {
+    const printings = [{ id: "p1" }];
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true, json: async () => ({ printings }) }));
+    expect(await fetchPrintings(id)).toEqual(printings);
+  });
+
+  it("throws on a non-OK response", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: false, status: 404 }));
+    await expect(fetchPrintings(id)).rejects.toThrow("Could not load printings (404)");
   });
 });
