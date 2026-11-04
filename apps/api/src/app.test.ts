@@ -15,6 +15,31 @@ describe("GET /health", () => {
   });
 });
 
+describe("CORS", () => {
+  const preflight = (origin: string) =>
+    app.request("/cards/search", {
+      method: "OPTIONS",
+      headers: { Origin: origin, "Access-Control-Request-Method": "GET" },
+    });
+
+  it("allows the local web origin by default", async () => {
+    const res = await preflight("http://localhost:5173");
+    expect(res.headers.get("access-control-allow-origin")).toBe("http://localhost:5173");
+  });
+
+  it("does not allow other origins", async () => {
+    const res = await preflight("https://evil.example");
+    expect(res.headers.get("access-control-allow-origin")).toBeNull();
+  });
+
+  it("reads allowed origins from CORS_ORIGINS", async () => {
+    vi.stubEnv("CORS_ORIGINS", "https://a.example, https://b.example");
+    const res = await preflight("https://b.example");
+    expect(res.headers.get("access-control-allow-origin")).toBe("https://b.example");
+    vi.unstubAllEnvs();
+  });
+});
+
 describe("GET /cards/search", () => {
   it("passes the validated query to searchCards and wraps the results", async () => {
     searchCards.mockResolvedValue([{ name: "Lightning Bolt" }]);
