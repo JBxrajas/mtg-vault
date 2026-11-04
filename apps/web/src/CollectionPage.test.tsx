@@ -95,6 +95,51 @@ describe("CollectionPage", () => {
     await waitFor(() => expect(stat("cards")).toHaveTextContent("3"));
   });
 
+  it("shows the new quantity at once, before the server answers", async () => {
+    fetchCollection.mockResolvedValue([aStack({ quantity: 2 })]);
+    updateCollectionItem.mockReturnValue(new Promise(() => {})); // never answers
+    renderPage(<CollectionPage />, { path: "/collection" });
+    await screen.findByText("Lightning Bolt");
+    await userEvent.click(screen.getByRole("button", { name: "One more" }));
+    expect(screen.getByLabelText("Quantity")).toHaveTextContent("3");
+    expect(stat("cards")).toHaveTextContent("3");
+  });
+
+  it("keeps the buttons usable while saving and sends quick taps one after another", async () => {
+    fetchCollection.mockResolvedValue([aStack({ quantity: 2 })]);
+    const done: (() => void)[] = [];
+    updateCollectionItem.mockImplementation(
+      (_id: string, patch: { quantity: number }) => new Promise((resolve) => done.push(() => resolve(aStack({ quantity: patch.quantity })))),
+    );
+    renderPage(<CollectionPage />, { path: "/collection" });
+    await screen.findByText("Lightning Bolt");
+    const more = screen.getByRole("button", { name: "One more" });
+    await userEvent.click(more);
+    await userEvent.click(more);
+    await userEvent.click(more);
+    expect(more).toBeEnabled();
+    expect(screen.getByLabelText("Quantity")).toHaveTextContent("5");
+
+    // Only the first request is in flight; the next one starts when it ends, so they cannot arrive out of order.
+    await waitFor(() => expect(updateCollectionItem).toHaveBeenCalledTimes(1));
+    expect(updateCollectionItem).toHaveBeenLastCalledWith("i1", { quantity: 3 });
+    done[0]!();
+    await waitFor(() => expect(updateCollectionItem).toHaveBeenCalledTimes(2));
+    expect(updateCollectionItem).toHaveBeenLastCalledWith("i1", { quantity: 4 });
+    done[1]!();
+    await waitFor(() => expect(updateCollectionItem).toHaveBeenCalledTimes(3));
+    expect(updateCollectionItem).toHaveBeenLastCalledWith("i1", { quantity: 5 });
+  });
+
+  it("puts the old quantity back when the server refuses the change", async () => {
+    fetchCollection.mockResolvedValue([aStack({ quantity: 4 })]);
+    updateCollectionItem.mockRejectedValue(new Error("4 copies are placed in binders; take them out of the binders first"));
+    renderPage(<CollectionPage />, { path: "/collection" });
+    await userEvent.click(await screen.findByRole("button", { name: "One less" }));
+    expect(await screen.findByText(/placed in binders/)).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByLabelText("Quantity")).toHaveTextContent("4"));
+  });
+
   it("removes a stack", async () => {
     fetchCollection.mockResolvedValueOnce([aStack({ id: "i1" })]).mockResolvedValue([]);
     removeFromCollection.mockResolvedValue(undefined);

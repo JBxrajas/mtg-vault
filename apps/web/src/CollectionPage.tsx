@@ -18,9 +18,26 @@ export function CollectionPage() {
   // Never show cached stacks without a signed-in user (for example right after signing out).
   const items = me ? cached : undefined;
   const refresh = () => queryClient.invalidateQueries({ queryKey: ["collection"] });
+  // Optimistic: the number changes on tap and the request follows. `scope` makes taps run one after another, so
+  // two quick taps cannot reach the server out of order. The list is re-read once the last one is done.
   const setQuantity = useMutation({
+    mutationKey: ["collection", "quantity"],
+    scope: { id: "collection-quantity" },
     mutationFn: ({ id, quantity }: { id: string; quantity: number }) => updateCollectionItem(id, { quantity }),
-    onSuccess: refresh,
+    onMutate: async ({ id, quantity }) => {
+      await queryClient.cancelQueries({ queryKey: ["collection"] });
+      const previous = queryClient.getQueryData<CollectionItem[]>(["collection"]);
+      queryClient.setQueryData<CollectionItem[]>(["collection"], (list) =>
+        list?.map((i) => (i.id === id ? { ...i, quantity } : i)),
+      );
+      return { previous };
+    },
+    onError: (_error, _vars, context) => {
+      if (context?.previous) queryClient.setQueryData(["collection"], context.previous);
+    },
+    onSettled: () => {
+      if (queryClient.isMutating({ mutationKey: ["collection", "quantity"] }) <= 1) void refresh();
+    },
   });
   const remove = useMutation({ mutationFn: removeFromCollection, onSuccess: refresh });
 
@@ -89,7 +106,7 @@ export function CollectionPage() {
               <StackRow
                 key={item.id}
                 item={item}
-                busy={setQuantity.isPending || remove.isPending}
+                busy={remove.isPending}
                 onQuantity={(quantity) => setQuantity.mutate({ id: item.id, quantity })}
                 onRemove={() => remove.mutate(item.id)}
               />
@@ -128,11 +145,11 @@ function StackRow(props: {
         </div>
       </div>
       <div className="qty">
-        <button type="button" aria-label="One less" disabled={props.busy || item.quantity <= 1} onClick={() => props.onQuantity(item.quantity - 1)}>
+        <button type="button" aria-label="One less" disabled={item.quantity <= 1} onClick={() => props.onQuantity(item.quantity - 1)}>
           −
         </button>
         <output aria-label="Quantity">{item.quantity}</output>
-        <button type="button" aria-label="One more" disabled={props.busy} onClick={() => props.onQuantity(item.quantity + 1)}>
+        <button type="button" aria-label="One more" onClick={() => props.onQuantity(item.quantity + 1)}>
           +
         </button>
         <span className="spacer" />

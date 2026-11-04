@@ -55,6 +55,10 @@ vercel redeploy <latest production deployment url>
 
 Verified in production on 2026-11-04 with a throwaway account (deleted afterwards): register (200, `set-auth-token` exposed to the web origin), `GET /me` with the token (200) and without (401), wrong password (401), sign-in (200), sign-out (200) and the old token rejected (401). To redeploy after changing a variable, pass the latest production deployment URL from `vercel ls mtg-vault-api` to `vercel redeploy`.
 
+## Function region
+
+The database is on Neon in `aws-us-west-2` (Oregon). Vercel functions default to `iad1` (Virginia), so every query crossed the country: a collection change makes about ten of them one after another, and the buttons felt very slow. `apps/api/vercel.json` pins `"regions": ["pdx1"]` (Portland), the closest Vercel region. If the Neon project ever moves, move the function region with it. The region a response came from is in its `x-vercel-id` header (`sfo1::pdx1::…`: edge, then function).
+
 ## Deployment limit (Hobby plan)
 
 The Hobby plan caps deployments per day. On 2026-11-04 both projects answered **"Deployment rate limited — retry in 24 hours"** and the merge of the decks PR (#34) did not deploy. The cause was volume: every push to a pull request built a preview of both projects, on top of the production builds.

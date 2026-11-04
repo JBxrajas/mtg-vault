@@ -118,13 +118,16 @@ export async function updateItem(
   id: string,
   patch: UpdateCollectionItem,
 ): Promise<CollectionItem | null> {
-  const current = await getItem(collectionId, id);
+  // The stack and its binder placements do not depend on each other: read them in one round trip.
+  const [current, inBinders] = await Promise.all([
+    getItem(collectionId, id),
+    patch.quantity !== undefined
+      ? exec(sql`select coalesce(sum(quantity), 0)::int as n from binder_items where collection_item_id = ${id}`)
+      : Promise.resolve(null),
+  ]);
   if (!current) return null;
 
-  if (patch.quantity !== undefined) {
-    const inBinders = await exec(
-      sql`select coalesce(sum(quantity), 0)::int as n from binder_items where collection_item_id = ${id}`,
-    );
+  if (patch.quantity !== undefined && inBinders) {
     const n = Number(inBinders[0]!.n);
     if (patch.quantity < n) {
       throw new HttpError(409, `${n} copies are placed in binders; take them out of the binders first`);
