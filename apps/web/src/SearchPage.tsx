@@ -2,6 +2,7 @@ import { colorSchema, type CardSearchResult, type Color } from "@mtg-vault/share
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { searchCards } from "./api";
+import { useI18n } from "./i18n";
 import { CardDetail } from "./CardDetail";
 import { ManaCost } from "./ManaCost";
 import { Tip } from "./Tip";
@@ -9,26 +10,37 @@ import { Welcome } from "./Welcome";
 import { useDebouncedValue } from "./useDebouncedValue";
 
 const COLORS = colorSchema.options;
-const COLOR_NAMES: Record<Color, string> = {
-  W: "White",
-  U: "Blue",
-  B: "Black",
-  R: "Red",
-  G: "Green",
-};
+const COLOR_KEY = {
+  W: "color.W",
+  U: "color.U",
+  B: "color.B",
+  R: "color.R",
+  G: "color.G",
+} as const;
 
 /** Card types people search for most; the type box accepts any word of the type line. */
-export const CARD_TYPES = ["Creature", "Instant", "Sorcery", "Artifact", "Enchantment", "Planeswalker", "Land", "Battle"];
+export const CARD_TYPES = ["Creature", "Instant", "Sorcery", "Artifact", "Enchantment", "Planeswalker", "Land", "Battle"] as const;
+const TYPE_KEY = {
+  Creature: "type.Creature",
+  Instant: "type.Instant",
+  Sorcery: "type.Sorcery",
+  Artifact: "type.Artifact",
+  Enchantment: "type.Enchantment",
+  Planeswalker: "type.Planeswalker",
+  Land: "type.Land",
+  Battle: "type.Battle",
+} as const;
 
 /** Plain-words summary of the color buttons, so it is clear what they do. */
-export function describeColors(colors: Color[]): string {
-  if (colors.length === 0) return "No color picked: cards of any color.";
-  const names = colors.map((c) => COLOR_NAMES[c]);
-  const list = names.length === 1 ? names[0] : `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
-  return colors.length === 1 ? `Cards that have ${list}.` : `Cards that have all of: ${list}.`;
+export function describeColors(colors: Color[], t: ReturnType<typeof useI18n>["t"]): string {
+  if (colors.length === 0) return t("search.colors.none");
+  const names = colors.map((c) => t(COLOR_KEY[c]));
+  const list = names.length === 1 ? names[0]! : t("search.colors.and", { head: names.slice(0, -1).join(", "), last: names[names.length - 1]! });
+  return colors.length === 1 ? t("search.colors.one", { list }) : t("search.colors.all", { list });
 }
 
 export function SearchPage() {
+  const { t } = useI18n();
   const [text, setText] = useState("");
   const [type, setType] = useState("");
   const [colors, setColors] = useState<Color[]>([]);
@@ -50,13 +62,10 @@ export function SearchPage() {
 
   return (
     <main className="page">
-      <h1>Search cards</h1>
+      <h1>{t("search.title")}</h1>
       <p className="subtitle">
-        Find any Magic card by name, even with typos.
-        <Tip label="search">
-          Type part of a name; small typos are fine. Open a card to see every printing with its art and price, and
-          add copies to your collection.
-        </Tip>
+        {t("search.subtitle")}
+        <Tip label={t("search.tip.label")}>{t("search.tip.text")}</Tip>
       </p>
       <Welcome />
 
@@ -64,8 +73,8 @@ export function SearchPage() {
         <input
           className="search"
           type="search"
-          placeholder="Lightning Bolt…"
-          aria-label="Card name"
+          placeholder={t("search.placeholder")}
+          aria-label={t("search.cardName")}
           value={text}
           onChange={(e) => setText(e.target.value)}
           autoFocus
@@ -73,31 +82,28 @@ export function SearchPage() {
         <div className="filters">
           <div className="filter">
             <span className="filter-title">
-              Card type
-              <Tip label="card type">
-                Keeps cards whose type line contains the word. Pick one below or type your own, such as a creature
-                type (goblin, elf, dragon), an artifact type (equipment) or legendary.
-              </Tip>
+              {t("search.type.title")}
+              <Tip label={t("search.type.tip.label")}>{t("search.type.tip.text")}</Tip>
             </span>
             <input
               type="text"
-              placeholder="Type (e.g. creature)"
-              aria-label="Type line contains"
+              placeholder={t("search.type.placeholder")}
+              aria-label={t("search.type.aria")}
               value={type}
               onChange={(e) => setType(e.target.value)}
             />
-            <div className="chips" role="group" aria-label="Common card types">
-              {CARD_TYPES.map((t) => {
-                const on = type.trim().toLowerCase() === t.toLowerCase();
+            <div className="chips" role="group" aria-label={t("search.type.common")}>
+              {CARD_TYPES.map((ct) => {
+                const on = type.trim().toLowerCase() === ct.toLowerCase();
                 return (
                   <button
-                    key={t}
+                    key={ct}
                     type="button"
                     className={on ? "chip on" : "chip"}
                     aria-pressed={on}
-                    onClick={() => setType(on ? "" : t)}
+                    onClick={() => setType(on ? "" : ct)}
                   >
-                    {t}
+                    {t(TYPE_KEY[ct])}
                   </button>
                 );
               })}
@@ -105,40 +111,36 @@ export function SearchPage() {
           </div>
           <div className="filter">
             <span className="filter-title">
-              Colors
-              <Tip label="colors">
-                Pick the colors a card must have. With two or more, it must have all of them: Red + Green finds
-                red-green cards (and ones with more colors), not every red or green card. Lands and colorless cards
-                have no color, so pick none to see them.
-              </Tip>
+              {t("search.colors.title")}
+              <Tip label={t("search.colors.tip.label")}>{t("search.colors.tip.text")}</Tip>
             </span>
-            <div className="colors" role="group" aria-label="Color identity">
+            <div className="colors" role="group" aria-label={t("search.colors.aria")}>
               {COLORS.map((c) => (
                 <div key={c} className="color-item">
                   <button
                     type="button"
                     className={`color pip-${c.toLowerCase()}${colors.includes(c) ? " on" : ""}`}
                     aria-pressed={colors.includes(c)}
-                    title={COLOR_NAMES[c]}
+                    title={t(COLOR_KEY[c])}
                     onClick={() => toggle(c)}
                   >
                     {c}
                   </button>
                   <span className="color-name" aria-hidden="true">
-                    {COLOR_NAMES[c]}
+                    {t(COLOR_KEY[c])}
                   </span>
                 </div>
               ))}
             </div>
-            <p className="hint filter-summary">{describeColors(colors)}</p>
+            <p className="hint filter-summary">{describeColors(colors, t)}</p>
           </div>
         </div>
       </div>
 
-      {!enabled && <p className="hint">Type at least 2 characters.</p>}
-      {enabled && error && <p className="error">Could not search: {error.message}</p>}
-      {enabled && isFetching && <p className="hint">Searching…</p>}
-      {enabled && !isFetching && !error && data?.length === 0 && <p className="hint">No cards found.</p>}
+      {!enabled && <p className="hint">{t("search.min")}</p>}
+      {enabled && error && <p className="error">{t("search.error", { message: error.message })}</p>}
+      {enabled && isFetching && <p className="hint">{t("search.searching")}</p>}
+      {enabled && !isFetching && !error && data?.length === 0 && <p className="hint">{t("search.none")}</p>}
 
       <ul className="results">
         {enabled &&
@@ -147,10 +149,10 @@ export function SearchPage() {
               <button
                 type="button"
                 className={card.image ? "tile-btn" : "tile-btn empty"}
-                aria-label={`Show ${card.name}`}
+                aria-label={t("search.show", { name: card.name })}
                 onClick={() => setPreview(card)}
               >
-                {card.image ? <img src={card.image.small} alt="" loading="lazy" /> : "No image"}
+                {card.image ? <img src={card.image.small} alt="" loading="lazy" /> : t("search.noImage")}
               </button>
               <div className="tile-info">
                 <div className="name">{card.name}</div>
@@ -164,8 +166,9 @@ export function SearchPage() {
       {preview && <CardDetail card={preview} onClose={() => setPreview(null)} />}
 
       <footer className="credit">
-        Card images are provided by <a href="https://scryfall.com">Scryfall</a>. Magic: The Gathering is
-        © Wizards of the Coast.
+        {t("credit.before")}
+        <a href="https://scryfall.com">Scryfall</a>
+        {t("credit.after")}
       </footer>
     </main>
   );

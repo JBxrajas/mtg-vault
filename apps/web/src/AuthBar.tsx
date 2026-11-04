@@ -1,11 +1,13 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { fetchMe, logout } from "./auth";
+import { useI18n } from "./i18n";
 import { refreshSession } from "./session";
 
 /** Shows who is signed in, or a link to sign in. */
 export function AuthBar() {
   const queryClient = useQueryClient();
+  const { t } = useI18n();
   const { data: me, isLoading } = useQuery({
     queryKey: ["me"],
     queryFn: ({ signal }) => fetchMe(signal),
@@ -16,8 +18,8 @@ export function AuthBar() {
   if (!me) {
     return (
       <div className="authbar">
-        <Link to="/login" className="signin" title="Sign in, or create a free account to track your collection">
-          Sign in
+        <Link to="/login" className="signin" title={t("auth.signInHint")}>
+          {t("auth.signIn")}
         </Link>
       </div>
     );
@@ -35,7 +37,7 @@ export function AuthBar() {
           await refreshSession(queryClient);
         }}
       >
-        Sign out
+        {t("auth.signOut")}
       </button>
     </div>
   );

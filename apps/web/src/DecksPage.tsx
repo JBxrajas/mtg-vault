@@ -4,11 +4,13 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
 import { fetchMe } from "./auth";
 import { createDeck, fetchDecks } from "./decksApi";
+import { useI18n } from "./i18n";
 import { Tip } from "./Tip";
 
 export const formatLabel = (f: DeckFormat) => f.charAt(0).toUpperCase() + f.slice(1);
 
 export function DecksPage() {
+  const { t } = useI18n();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const { data: me, isLoading: loadingMe } = useQuery({ queryKey: ["me"], queryFn: ({ signal }) => fetchMe(signal) });
@@ -33,17 +35,17 @@ export function DecksPage() {
 
   return (
     <main className="page">
-      <h1>My decks</h1>
+      <h1>{t("decks.title")}</h1>
       {!loadingMe && !me && (
         <section className="welcome">
-          <h2>Build decks from your collection</h2>
+          <h2>{t("decks.pitch.title")}</h2>
           <p>
-            Create a free account to build decks and see which cards you already own.{" "}
-            <Link to="/login">Sign in</Link> to build decks.
+            {t("decks.pitch.text")} <Link to="/login">{t("auth.signIn")}</Link>
+            {t("decks.pitch.signIn")}
           </p>
           <div className="welcome-actions">
             <Link to="/login" search={{ mode: "register" }} className="button">
-              Create a free account
+              {t("welcome.create")}
             </Link>
           </div>
         </section>
@@ -52,32 +54,29 @@ export function DecksPage() {
       {me && (
         <form className="new-deck" onSubmit={submit}>
           <input
-            aria-label="Deck name"
-            placeholder="New deck name"
+            aria-label={t("decks.name")}
+            placeholder={t("decks.namePlaceholder")}
             value={name}
             maxLength={100}
             onChange={(e) => setName(e.target.value)}
           />
-          <select aria-label="Format" value={format} onChange={(e) => setFormat(e.target.value as DeckFormat)}>
+          <select aria-label={t("decks.format")} value={format} onChange={(e) => setFormat(e.target.value as DeckFormat)}>
             {deckFormatSchema.options.map((f) => (
               <option key={f} value={f}>
                 {formatLabel(f)}
               </option>
             ))}
           </select>
-          <Tip label="format">
-            The format sets the target size: 100 cards for Commander, 60 for most others, none for Casual. Rules are
-            not enforced yet.
-          </Tip>
+          <Tip label={t("decks.format.tip.label")}>{t("decks.format.tip.text")}</Tip>
           <button type="submit" disabled={create.isPending || !name.trim()}>
-            Create deck
+            {t("decks.create")}
           </button>
         </form>
       )}
       {create.error && <p className="error">{create.error.message}</p>}
-      {me && isLoading && <p className="hint">Loading…</p>}
+      {me && isLoading && <p className="hint">{t("common.loading")}</p>}
       {me && error && <p className="error">{error.message}</p>}
-      {decks && decks.length === 0 && <p className="hint">No decks yet. Name one above to start.</p>}
+      {decks && decks.length === 0 && <p className="hint">{t("decks.empty")}</p>}
 
       <ul className="deck-list">
         {decks?.map((d) => {
@@ -87,10 +86,7 @@ export function DecksPage() {
               <Link to="/decks/$deckId" params={{ deckId: d.id }} className="deck-card">
                 <span className="deck-name">{d.name}</span>
                 <span className="badge">{formatLabel(d.format)}</span>
-                <span className="deck-count">
-                  {d.cardCount}
-                  {target ? ` / ${target}` : ""} cards
-                </span>
+                <span className="deck-count">{t("decks.cardCount", { count: d.cardCount, target: target ? ` / ${target}` : "" })}</span>
               </Link>
             </li>
           );

@@ -16,24 +16,26 @@ import { searchCards } from "./api";
 import { fetchMe } from "./auth";
 import { addDeckCard, deleteDeck, fetchDeck, setDeckCard, updateDeck } from "./decksApi";
 import { formatLabel } from "./DecksPage";
+import { useI18n } from "./i18n";
 import { ManaCost } from "./ManaCost";
 import { Tip } from "./Tip";
 import { useDebouncedValue } from "./useDebouncedValue";
 
-const BOARD_LABEL: Record<DeckBoard, string> = {
-  main: "Main",
-  commander: "Commander",
-  sideboard: "Sideboard",
-  maybeboard: "Maybeboard",
-};
+const BOARD_KEY = {
+  main: "board.main",
+  commander: "board.commander",
+  sideboard: "board.sideboard",
+  maybeboard: "board.maybeboard",
+} as const;
 
 /** "Owned" badge: whether the collection covers the copies the deck needs. */
-export function ownedBadge(card: Pick<DeckCardEntry, "owned" | "quantity">) {
-  if (card.owned >= card.quantity) return { text: "Owned", enough: true };
-  return { text: `Own ${card.owned}/${card.quantity}`, enough: false };
+export function ownedBadge(card: Pick<DeckCardEntry, "owned" | "quantity">, t: ReturnType<typeof useI18n>["t"]) {
+  if (card.owned >= card.quantity) return { text: t("deck.owned"), enough: true };
+  return { text: t("deck.own", { owned: card.owned, needed: card.quantity }), enough: false };
 }
 
 export function DeckPage() {
+  const { t } = useI18n();
   const { deckId } = useParams({ strict: false }) as { deckId: string };
   const queryClient = useQueryClient();
   const navigate = useNavigate();
@@ -69,7 +71,8 @@ export function DeckPage() {
     return (
       <main className="page">
         <p className="hint">
-          <Link to="/login">Sign in</Link> to see this deck.
+          <Link to="/login">{t("auth.signIn")}</Link>
+          {t("deck.signInTo")}
         </p>
       </main>
     );
@@ -77,9 +80,9 @@ export function DeckPage() {
   if (isLoading || !data) {
     return (
       <main className="page">
-        {error ? <p className="error">{error.message}</p> : <p className="hint">Loading…</p>}
+        {error ? <p className="error">{error.message}</p> : <p className="hint">{t("common.loading")}</p>}
         <p>
-          <Link to="/decks">Back to my decks</Link>
+          <Link to="/decks">{t("deck.backLong")}</Link>
         </p>
       </main>
     );
@@ -95,16 +98,15 @@ export function DeckPage() {
   return (
     <main className="page">
       <p>
-        <Link to="/decks">← My decks</Link>
+        <Link to="/decks">{t("deck.back")}</Link>
       </p>
       <h1>{deck.name}</h1>
       <p className="deck-meta">
         <span className="badge">{formatLabel(deck.format)}</span>
         <span className={target && count > target ? "count over" : "count"}>
-          {count}
-          {target ? ` / ${target}` : ""} cards
+          {t("decks.cardCount", { count, target: target ? ` / ${target}` : "" })}
         </span>
-        {deck.isPublic && <span className="badge">Public</span>}
+        {deck.isPublic && <span className="badge">{t("deck.public")}</span>}
       </p>
       {deck.description && <p className="subtitle">{deck.description}</p>}
       {mutationError && <p className="error">{mutationError.message}</p>}
@@ -117,16 +119,13 @@ export function DeckPage() {
         onAdd={(oracleId, board) => addCard.mutate({ oracleId, board })}
       />
 
-      <div className="tabs" role="group" aria-label="Boards">
+      <div className="tabs" role="group" aria-label={t("deck.boards")}>
         {(["main", "sideboard", "maybeboard"] as const).map((b) => (
           <button key={b} type="button" aria-pressed={tab === b} className={tab === b ? "tab on" : "tab"} onClick={() => setTab(b)}>
-            {BOARD_LABEL[b]} ({b === "main" ? count : flat(b).reduce((n, c) => n + c.quantity, 0)})
+            {t(BOARD_KEY[b])} ({b === "main" ? count : flat(b).reduce((n, c) => n + c.quantity, 0)})
           </button>
         ))}
-        <Tip label="boards">
-          Main is the deck you play. Sideboard holds cards you swap in between games. Maybeboard is for ideas you are
-          still considering. "Own 1/4" means you have 1 of the 4 copies in your collection.
-        </Tip>
+        <Tip label={t("deck.boards.tip.label")}>{t("deck.boards.tip.text")}</Tip>
       </div>
 
       {tab === "main" ? (
@@ -136,7 +135,7 @@ export function DeckPage() {
           {flat(tab).map((c) => (
             <DeckRow key={`${c.oracleId}-${c.board}`} card={c} busy={busy} onSet={(quantity) => setCard.mutate({ oracleId: c.oracleId, board: c.board, quantity })} />
           ))}
-          {flat(tab).length === 0 && <p className="hint">Nothing in the {BOARD_LABEL[tab].toLowerCase()} yet.</p>}
+          {flat(tab).length === 0 && <p className="hint">{t("deck.nothing", { board: t(BOARD_KEY[tab]).toLowerCase() })}</p>}
         </ul>
       )}
     </main>
@@ -144,14 +143,15 @@ export function DeckPage() {
 }
 
 function MainBoard(props: { cards: DeckCardEntry[]; busy: boolean; onSet: (card: DeckCardEntry, quantity: number) => void }) {
+  const { t } = useI18n();
   const groups = groupByCategory(props.cards);
-  if (groups.length === 0) return <p className="hint">This deck is empty. Search a card above to add it.</p>;
+  if (groups.length === 0) return <p className="hint">{t("deck.empty")}</p>;
   return (
     <div>
       {groups.map((g) => (
-        <section key={g.category} aria-label={g.category}>
+        <section key={g.category} aria-label={t(`category.${g.category}`)}>
           <h2 className="group-title">
-            {g.category} <span className="count">({g.count})</span>
+            {t(`category.${g.category}`)} <span className="count">({g.count})</span>
           </h2>
           <ul className="deck-rows">
             {g.items.map((c) => (
@@ -166,7 +166,8 @@ function MainBoard(props: { cards: DeckCardEntry[]; busy: boolean; onSet: (card:
 
 function DeckRow(props: { card: DeckCardEntry; busy: boolean; onSet: (quantity: number) => void }) {
   const { card } = props;
-  const owned = ownedBadge(card);
+  const { t } = useI18n();
+  const owned = ownedBadge(card, t);
   return (
     <li className="deck-row">
       {card.image ? <img src={card.image.small} alt="" loading="lazy" /> : <div className="thumb-ph" aria-hidden="true" />}
@@ -176,15 +177,15 @@ function DeckRow(props: { card: DeckCardEntry; busy: boolean; onSet: (quantity: 
         <span className={owned.enough ? "owned yes" : "owned no"}>{owned.text}</span>
       </div>
       <div className="qty">
-        <button type="button" aria-label={`One less ${card.name}`} disabled={props.busy} onClick={() => props.onSet(card.quantity - 1)}>
+        <button type="button" aria-label={t("deck.less", { name: card.name })} disabled={props.busy} onClick={() => props.onSet(card.quantity - 1)}>
           −
         </button>
-        <output aria-label={`${card.name} quantity`}>{card.quantity}</output>
-        <button type="button" aria-label={`One more ${card.name}`} disabled={props.busy} onClick={() => props.onSet(card.quantity + 1)}>
+        <output aria-label={t("deck.quantity", { name: card.name })}>{card.quantity}</output>
+        <button type="button" aria-label={t("deck.more", { name: card.name })} disabled={props.busy} onClick={() => props.onSet(card.quantity + 1)}>
           +
         </button>
-        <button type="button" className="link" disabled={props.busy} aria-label={`Remove ${card.name}`} onClick={() => props.onSet(0)}>
-          Remove
+        <button type="button" className="link" disabled={props.busy} aria-label={t("deck.remove", { name: card.name })} onClick={() => props.onSet(0)}>
+          {t("common.remove")}
         </button>
       </div>
     </li>
@@ -192,6 +193,7 @@ function DeckRow(props: { card: DeckCardEntry; busy: boolean; onSet: (quantity: 
 }
 
 function AddCards(props: { formats: DeckBoard[]; busy: boolean; onAdd: (oracleId: string, board: DeckBoard) => void }) {
+  const { t } = useI18n();
   const [text, setText] = useState("");
   const [board, setBoard] = useState<DeckBoard>("main");
   const q = useDebouncedValue(text.trim(), 300);
@@ -201,24 +203,24 @@ function AddCards(props: { formats: DeckBoard[]; busy: boolean; onAdd: (oracleId
     enabled: q.length >= 2,
   });
   return (
-    <section className="add-cards" aria-label="Add cards">
+    <section className="add-cards" aria-label={t("deck.addCards")}>
       <div className="add-cards-bar">
         <input
           type="search"
-          aria-label="Search a card to add"
-          placeholder="Add a card…"
+          aria-label={t("deck.searchToAdd")}
+          placeholder={t("deck.addPlaceholder")}
           value={text}
           onChange={(e) => setText(e.target.value)}
         />
-        <select aria-label="Add to board" value={board} onChange={(e) => setBoard(e.target.value as DeckBoard)}>
+        <select aria-label={t("deck.addToBoard")} value={board} onChange={(e) => setBoard(e.target.value as DeckBoard)}>
           {props.formats.map((b) => (
             <option key={b} value={b}>
-              {BOARD_LABEL[b]}
+              {t(BOARD_KEY[b])}
             </option>
           ))}
         </select>
       </div>
-      {q.length >= 2 && isFetching && <p className="hint">Searching…</p>}
+      {q.length >= 2 && isFetching && <p className="hint">{t("search.searching")}</p>}
       <ul className="deck-rows">
         {q.length >= 2 &&
           data?.map((c) => (
@@ -229,8 +231,8 @@ function AddCards(props: { formats: DeckBoard[]; busy: boolean; onAdd: (oracleId
                 <ManaCost cost={c.manaCost} />
                 <span className="sub">{c.typeLine}</span>
               </div>
-              <button type="button" disabled={props.busy} aria-label={`Add ${c.name}`} onClick={() => props.onAdd(c.oracleId, board)}>
-                Add
+              <button type="button" disabled={props.busy} aria-label={t("deck.add", { name: c.name })} onClick={() => props.onAdd(c.oracleId, board)}>
+                {t("add.add")}
               </button>
             </li>
           ))}
@@ -246,6 +248,7 @@ function DeckSettings(props: {
   deleting: boolean;
 }) {
   const queryClient = useQueryClient();
+  const { t } = useI18n();
   const { deck } = props;
   const [name, setName] = useState(deck.name);
   const [format, setFormat] = useState<DeckFormat>(deck.format);
@@ -259,7 +262,7 @@ function DeckSettings(props: {
   });
   return (
     <details className="settings">
-      <summary>Deck settings</summary>
+      <summary>{t("deck.settings")}</summary>
       <form
         className="settings-form"
         onSubmit={(e) => {
@@ -268,11 +271,11 @@ function DeckSettings(props: {
         }}
       >
         <label>
-          Name
+          {t("deck.name")}
           <input value={name} maxLength={100} onChange={(e) => setName(e.target.value)} />
         </label>
         <label>
-          Format
+          {t("deck.format")}
           <select value={format} onChange={(e) => setFormat(e.target.value as DeckFormat)}>
             {deckFormatSchema.options.map((f) => (
               <option key={f} value={f}>
@@ -282,24 +285,24 @@ function DeckSettings(props: {
           </select>
         </label>
         <label className="check">
-          <input type="checkbox" checked={isPublic} onChange={(e) => setIsPublic(e.target.checked)} /> Public deck
+          <input type="checkbox" checked={isPublic} onChange={(e) => setIsPublic(e.target.checked)} /> {t("deck.publicDeck")}
         </label>
         <div className="settings-actions">
           <button type="submit" disabled={save.isPending || !name.trim()}>
-            Save
+            {t("common.save")}
           </button>
           <button
             type="button"
             className="danger"
             disabled={props.deleting}
             onClick={() => {
-              if (window.confirm(`Delete "${deck.name}"? This cannot be undone.`)) props.onDelete();
+              if (window.confirm(t("deck.confirmDelete", { name: deck.name }))) props.onDelete();
             }}
           >
-            Delete deck
+            {t("deck.delete")}
           </button>
         </div>
-        {save.isSuccess && <p className="ok">Saved.</p>}
+        {save.isSuccess && <p className="ok">{t("deck.saved")}</p>}
         {save.error && <p className="error">{save.error.message}</p>}
       </form>
     </details>

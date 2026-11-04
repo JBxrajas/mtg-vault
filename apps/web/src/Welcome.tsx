@@ -1,34 +1,37 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { fetchMe } from "./auth";
+import { useI18n } from "./i18n";
 
 /** Pitch for visitors who are not signed in: what an account is for, and how to get one. */
 export function Welcome() {
+  const { t } = useI18n();
   const { data: me, isLoading } = useQuery({ queryKey: ["me"], queryFn: ({ signal }) => fetchMe(signal) });
   if (isLoading || me) return null;
   return (
-    <section className="welcome" aria-label="About mtg-vault">
-      <h2>Keep track of your Magic collection</h2>
-      <p>
-        Search is open to everyone. With a free account you can also:
-      </p>
+    <section className="welcome" aria-label={t("welcome.aria")}>
+      <h2>{t("welcome.title")}</h2>
+      <p>{t("welcome.lead")}</p>
       <ul>
         <li>
-          <b>Track what you own</b>: every printing, foil and condition, with its market value.
+          <b>{t("welcome.track.title")}</b>
+          {t("welcome.track.text")}
         </li>
         <li>
-          <b>Import from Moxfield</b>: upload your CSV and you are done.
+          <b>{t("welcome.import.title")}</b>
+          {t("welcome.import.text")}
         </li>
         <li>
-          <b>Build decks</b> and see which cards you already own.
+          <b>{t("welcome.decks.title")}</b>
+          {t("welcome.decks.text")}
         </li>
       </ul>
       <div className="welcome-actions">
         <Link to="/login" search={{ mode: "register" }} className="button">
-          Create a free account
+          {t("welcome.create")}
         </Link>
         <Link to="/login" className="link">
-          Sign in
+          {t("auth.signIn")}
         </Link>
       </div>
     </section>

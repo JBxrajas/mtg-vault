@@ -1151,3 +1151,20 @@ button.art-tile {
   padding: 0;
   accent-color: var(--primary);
 }
+
+/* Language button */
+button.lang {
+  min-height: 2.5rem;
+  min-width: 2.5rem;
+  padding: 0 0.55rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+button.lang:hover:not(:disabled) {
+  background: var(--surface-2);
+  color: var(--primary);
+}

@@ -4,10 +4,12 @@ import { Link } from "@tanstack/react-router";
 import { fetchMe } from "./auth";
 import { fetchCollection, removeFromCollection, updateCollectionItem } from "./collectionApi";
 import { formatUsd } from "./format";
+import { useI18n } from "./i18n";
 import { ImportCollection } from "./ImportCollection";
 import { Tip } from "./Tip";
 
 export function CollectionPage() {
+  const { t } = useI18n();
   const queryClient = useQueryClient();
   const { data: me, isLoading: loadingMe } = useQuery({ queryKey: ["me"], queryFn: ({ signal }) => fetchMe(signal) });
   const { data: cached, isLoading, error } = useQuery({
@@ -46,23 +48,23 @@ export function CollectionPage() {
 
   return (
     <main className="page">
-      <h1>My collection</h1>
+      <h1>{t("collection.title")}</h1>
 
       {!loadingMe && !me && (
         <section className="welcome">
-          <h2>Your collection, always at hand</h2>
+          <h2>{t("collection.pitch.title")}</h2>
           <p>
-            Create a free account to record every card you own, see what it is worth and import it from Moxfield.
-            Already have one? <Link to="/login">Sign in</Link> to see your collection.
+            {t("collection.pitch.text")} <Link to="/login">{t("auth.signIn")}</Link>
+            {t("collection.pitch.signIn")}
           </p>
           <div className="welcome-actions">
             <Link to="/login" search={{ mode: "register" }} className="button">
-              Create a free account
+              {t("welcome.create")}
             </Link>
           </div>
         </section>
       )}
-      {me && isLoading && <p className="hint">Loading…</p>}
+      {me && isLoading && <p className="hint">{t("common.loading")}</p>}
       {me && error && <p className="error">{error.message}</p>}
       {actionError && <p className="error">{actionError.message}</p>}
 
@@ -73,32 +75,28 @@ export function CollectionPage() {
           <div className="stats">
             <div className="stat">
               <b>{totals.copies}</b>
-              <span>{totals.copies === 1 ? "card" : "cards"}</span>
+              <span>{t("collection.cards", { count: totals.copies })}</span>
             </div>
             <div className="stat">
               <b>{totals.stacks}</b>
               <span>
-                {totals.stacks === 1 ? "stack" : "stacks"}
-                <Tip label="stacks">
-                  A stack is a group of identical copies: same printing, finish and condition. Two foil Bolts from the
-                  same set are one stack of 2.
-                </Tip>
+                {t("collection.stacks", { count: totals.stacks })}
+                <Tip label={t("collection.stacks.tip.label")}>{t("collection.stacks.tip.text")}</Tip>
               </span>
             </div>
             <div className="stat">
               <b>{formatUsd(totals.valueUsd)}</b>
               <span>
-                market value
-                <Tip label="market value">
-                  Sum of the latest Scryfall USD prices of your copies. It is an estimate, not an offer.
-                </Tip>
+                {t("collection.value")}
+                <Tip label={t("collection.value.tip.label")}>{t("collection.value.tip.text")}</Tip>
               </span>
             </div>
           </div>
-          {totals.unpriced > 0 && <p className="hint">{totals.unpriced} copies without a price are not counted in the value.</p>}
+          {totals.unpriced > 0 && <p className="hint">{t("collection.unpriced", { count: totals.unpriced })}</p>}
           {items.length === 0 && (
             <p className="hint">
-              Nothing here yet. <Link to="/">Search a card</Link> and add it from its printings, or import a CSV above.
+              {t("collection.empty.before")}<Link to="/">{t("collection.empty.link")}</Link>
+              {t("collection.empty.after")}
             </p>
           )}
           <ul className="stacks">
@@ -125,6 +123,7 @@ function StackRow(props: {
   onRemove: () => void;
 }) {
   const { item } = props;
+  const { t } = useI18n();
   return (
     <li className="stack">
       {item.image ? (
@@ -135,26 +134,26 @@ function StackRow(props: {
       <div>
         <div className="name">{item.name}</div>
         <div className="sub">
-          {item.setName} ({item.setCode.toUpperCase()}) #{item.collectorNumber} · {item.finish} · {item.condition}
+          {item.setName} ({item.setCode.toUpperCase()}) #{item.collectorNumber} · {t(`finish.${item.finish}`)} · {item.condition}
           {item.language !== "en" ? ` · ${item.language}` : ""}
         </div>
         <div className="sub">
           {item.unitPrice != null
-            ? `${formatUsd(item.unitPrice)} each · ${formatUsd(item.unitPrice * item.quantity)}`
-            : "No price yet"}
+            ? t("collection.each", { price: formatUsd(item.unitPrice)!, total: formatUsd(item.unitPrice * item.quantity)! })
+            : t("price.none")}
         </div>
       </div>
       <div className="qty">
-        <button type="button" aria-label="One less" disabled={item.quantity <= 1} onClick={() => props.onQuantity(item.quantity - 1)}>
+        <button type="button" aria-label={t("collection.less")} disabled={item.quantity <= 1} onClick={() => props.onQuantity(item.quantity - 1)}>
           −
         </button>
-        <output aria-label="Quantity">{item.quantity}</output>
-        <button type="button" aria-label="One more" onClick={() => props.onQuantity(item.quantity + 1)}>
+        <output aria-label={t("collection.quantity")}>{item.quantity}</output>
+        <button type="button" aria-label={t("collection.more")} onClick={() => props.onQuantity(item.quantity + 1)}>
           +
         </button>
         <span className="spacer" />
         <button type="button" className="link" disabled={props.busy} onClick={props.onRemove}>
-          Remove
+          {t("common.remove")}
         </button>
       </div>
     </li>

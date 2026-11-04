@@ -11,27 +11,29 @@ import {
   type Background,
   type Mode,
 } from "./appearance";
+import { LOCALE_NAME, LOCALES, setLocale, useI18n } from "./i18n";
 import { Tip } from "./Tip";
 import { useDebouncedValue } from "./useDebouncedValue";
 
-const MODES: { value: Mode; label: string }[] = [
-  { value: "system", label: "Automatic" },
-  { value: "light", label: "Light" },
-  { value: "dark", label: "Dark" },
+const MODES: { value: Mode; label: "appearance.mode.system" | "appearance.mode.light" | "appearance.mode.dark" }[] = [
+  { value: "system", label: "appearance.mode.system" },
+  { value: "light", label: "appearance.mode.light" },
+  { value: "dark", label: "appearance.mode.dark" },
 ];
 
-const BACKGROUND_LABEL: Record<Background, string> = {
-  default: "Neutral",
-  white: "White",
-  blue: "Blue",
-  black: "Black",
-  red: "Red",
-  green: "Green",
-  gold: "Gold",
-};
+const BACKGROUND_KEY = {
+  default: "bg.default",
+  white: "bg.white",
+  blue: "bg.blue",
+  black: "bg.black",
+  red: "bg.red",
+  green: "bg.green",
+  gold: "bg.gold",
+} as const satisfies Record<Background, string>;
 
 /** Lets the user pick light or dark, a background tint, or the art of a card. Saved on this device. */
 export function AppearancePage() {
+  const { t, locale } = useI18n();
   const appearance = useAppearance();
   const [text, setText] = useState("");
   const q = useDebouncedValue(text.trim(), 300);
@@ -44,18 +46,33 @@ export function AppearancePage() {
 
   return (
     <main className="page">
-      <h1>Appearance</h1>
+      <h1>{t("appearance.title")}</h1>
       <p className="subtitle">
-        Make it yours. This is saved on this device only.
-        <Tip label="appearance">
-          Pick a mode and a background color, or use the art of any Magic card as your background. Your choice stays
-          in this browser: other devices keep their own.
-        </Tip>
+        {t("appearance.subtitle")}
+        <Tip label={t("appearance.tip.label")}>{t("appearance.tip.text")}</Tip>
       </p>
 
+      <section className="panel" aria-labelledby="language-title">
+        <h2 id="language-title">{t("appearance.language")}</h2>
+        <div className="segmented" role="group" aria-label={t("appearance.language")}>
+          {LOCALES.map((l) => (
+            <button
+              key={l}
+              type="button"
+              lang={l}
+              aria-pressed={locale === l}
+              className={locale === l ? "on" : ""}
+              onClick={() => setLocale(l)}
+            >
+              {LOCALE_NAME[l]}
+            </button>
+          ))}
+        </div>
+      </section>
+
       <section className="panel" aria-labelledby="mode-title">
-        <h2 id="mode-title">Mode</h2>
-        <div className="segmented" role="group" aria-label="Mode">
+        <h2 id="mode-title">{t("appearance.mode")}</h2>
+        <div className="segmented" role="group" aria-label={t("appearance.mode")}>
           {MODES.map((m) => (
             <button
               key={m.value}
@@ -64,16 +81,16 @@ export function AppearancePage() {
               className={appearance.mode === m.value ? "on" : ""}
               onClick={() => setAppearance({ mode: m.value })}
             >
-              {m.label}
+              {t(m.label)}
             </button>
           ))}
         </div>
-        <p className="hint">Automatic follows your device's light or dark setting.</p>
+        <p className="hint">{t("appearance.mode.hint")}</p>
       </section>
 
       <section className="panel" aria-labelledby="color-title">
-        <h2 id="color-title">Background color</h2>
-        <div className="swatches" role="group" aria-label="Background color">
+        <h2 id="color-title">{t("appearance.color")}</h2>
+        <div className="swatches" role="group" aria-label={t("appearance.color")}>
           {BACKGROUNDS.map((b) => (
             <button
               key={b}
@@ -83,33 +100,33 @@ export function AppearancePage() {
               onClick={() => setAppearance({ background: b, art: null })}
             >
               <span className="swatch-dot" aria-hidden="true" />
-              {BACKGROUND_LABEL[b]}
+              {t(BACKGROUND_KEY[b])}
             </button>
           ))}
         </div>
       </section>
 
       <section className="panel" aria-labelledby="art-title">
-        <h2 id="art-title">Card art</h2>
-        <p className="hint">Search a card and use its art as the background.</p>
+        <h2 id="art-title">{t("appearance.art")}</h2>
+        <p className="hint">{t("appearance.art.hint")}</p>
         <input
           className="search"
           type="search"
-          aria-label="Search card art"
-          placeholder="Black Lotus, Sol Ring…"
+          aria-label={t("appearance.art.search")}
+          placeholder={t("appearance.art.placeholder")}
           value={text}
           onChange={(e) => setText(e.target.value)}
         />
-        {q.length >= 2 && isFetching && <p className="hint">Searching…</p>}
-        {q.length >= 2 && error && <p className="error">Could not search: {error.message}</p>}
-        {q.length >= 2 && !isFetching && !error && results.length === 0 && <p className="hint">No art found.</p>}
+        {q.length >= 2 && isFetching && <p className="hint">{t("search.searching")}</p>}
+        {q.length >= 2 && error && <p className="error">{t("search.error", { message: error.message })}</p>}
+        {q.length >= 2 && !isFetching && !error && results.length === 0 && <p className="hint">{t("appearance.art.none")}</p>}
         <ul className="art-grid">
           {results.map((c) => (
             <li key={c.oracleId}>
               <button
                 type="button"
                 className="art-tile"
-                aria-label={`Use the art of ${c.name}`}
+                aria-label={t("appearance.art.use", { name: c.name })}
                 onClick={() => setAppearance({ art: { url: c.image!.artCrop, name: c.name } })}
               >
                 <img src={c.image!.artCrop} alt="" loading="lazy" />
@@ -122,16 +139,17 @@ export function AppearancePage() {
         {appearance.art && (
           <div className="art-current">
             <p>
-              Using the art of <strong>{appearance.art.name}</strong>.
+              {t("appearance.art.using")}
+              <strong>{appearance.art.name}</strong>.
             </p>
             <div className="slider">
               <span>
-                Dimming
-                <Tip label="dimming">How much the page color covers the art. Raise it if text is hard to read.</Tip>
+                {t("appearance.dimming")}
+                <Tip label={t("appearance.dimming.tip.label")}>{t("appearance.dimming.tip.text")}</Tip>
               </span>
               <input
                 type="range"
-                aria-label="Dimming"
+                aria-label={t("appearance.dimming")}
                 min={DIMMING_MIN}
                 max={DIMMING_MAX}
                 value={appearance.dimming}
@@ -139,7 +157,7 @@ export function AppearancePage() {
               />
             </div>
             <button type="button" className="link" onClick={() => setAppearance({ art: null })}>
-              Remove the art
+              {t("appearance.art.remove")}
             </button>
           </div>
         )}
@@ -150,7 +168,7 @@ export function AppearancePage() {
         className="link"
         onClick={() => setAppearance({ mode: "system", background: "default", art: null })}
       >
-        Reset to the default look
+        {t("appearance.reset")}
       </button>
     </main>
   );

@@ -17,6 +17,7 @@ vi.mock("./decksApi", () => ({ fetchDeck, setDeckCard, addDeckCard, updateDeck, 
 vi.mock("./api", () => ({ searchCards }));
 
 import { DeckPage, ownedBadge } from "./DeckPage";
+import { t } from "./i18n";
 import { aCard, aDeck, aDeckCard, aUser, renderPage } from "./test-utils";
 
 const render = () => renderPage(<DeckPage />, { path: "/decks/d1", route: "/decks/$deckId" });
@@ -30,10 +31,10 @@ beforeEach(() => {
 
 describe("ownedBadge", () => {
   it("says Owned when the collection covers the deck, else how many of how many", () => {
-    expect(ownedBadge({ owned: 4, quantity: 4 })).toEqual({ text: "Owned", enough: true });
-    expect(ownedBadge({ owned: 9, quantity: 4 })).toEqual({ text: "Owned", enough: true });
-    expect(ownedBadge({ owned: 1, quantity: 4 })).toEqual({ text: "Own 1/4", enough: false });
-    expect(ownedBadge({ owned: 0, quantity: 1 })).toEqual({ text: "Own 0/1", enough: false });
+    expect(ownedBadge({ owned: 4, quantity: 4 }, t)).toEqual({ text: "Owned", enough: true });
+    expect(ownedBadge({ owned: 9, quantity: 4 }, t)).toEqual({ text: "Owned", enough: true });
+    expect(ownedBadge({ owned: 1, quantity: 4 }, t)).toEqual({ text: "Own 1/4", enough: false });
+    expect(ownedBadge({ owned: 0, quantity: 1 }, t)).toEqual({ text: "Own 0/1", enough: false });
   });
 });
 

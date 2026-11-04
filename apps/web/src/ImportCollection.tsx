@@ -2,6 +2,7 @@ import { parseCollectionCsv, type ImportResult, type ParsedImport } from "@mtg-v
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState, type ChangeEvent } from "react";
 import { importCollection } from "./collectionApi";
+import { useI18n } from "./i18n";
 
 /** Reads a File as text. FileReader rather than `file.text()` so it also works in older browsers. */
 export function readFileText(file: File): Promise<string> {
@@ -16,6 +17,7 @@ export function readFileText(file: File): Promise<string> {
 const SHOWN = 25;
 
 function Problems({ title, items }: { title: string; items: ImportResult["problems"] }) {
+  const { t } = useI18n();
   if (items.length === 0) return null;
   return (
     <details className="import-list">
@@ -25,10 +27,10 @@ function Problems({ title, items }: { title: string; items: ImportResult["proble
       <ul>
         {items.slice(0, SHOWN).map((p, i) => (
           <li key={`${p.line}-${i}`}>
-            <strong>Line {p.line}</strong> · {p.name}: {p.reason}
+            <strong>{t("import.line", { line: p.line })}</strong> · {p.name}: {p.reason}
           </li>
         ))}
-        {items.length > SHOWN && <li>…and {items.length - SHOWN} more.</li>}
+        {items.length > SHOWN && <li>{t("import.more", { count: items.length - SHOWN })}</li>}
       </ul>
     </details>
   );
@@ -36,6 +38,7 @@ function Problems({ title, items }: { title: string; items: ImportResult["proble
 
 /** Import a collection from a CSV export (Moxfield, or a file with similar headers). */
 export function ImportCollection() {
+  const { t } = useI18n();
   const queryClient = useQueryClient();
   const [fileName, setFileName] = useState<string | null>(null);
   const [parsed, setParsed] = useState<ParsedImport | null>(null);
@@ -58,22 +61,22 @@ export function ImportCollection() {
     try {
       setParsed(parseCollectionCsv(await readFileText(file)));
     } catch (err) {
-      setReadError(err instanceof Error ? err.message : "Could not read the file");
+      setReadError(err instanceof Error ? err.message : t("import.readError"));
     }
   }
 
   return (
     <details className="import">
-      <summary>Import from CSV</summary>
+      <summary>{t("import.title")}</summary>
       <p className="hint">
-        Export your collection from Moxfield as a CSV file and choose it here. Files from other tools work if
-        their headers are similar (name, count, set, collector number, condition, foil…).
+        {t("import.help1")}
       </p>
       <p className="hint">
-        The count in the file <strong>sets</strong> the quantity of each stack, so importing the same file again
-        changes nothing. Stacks that are not in the file are left alone.
+        {t("import.help2.before")}
+        <strong>{t("import.help2.strong")}</strong>
+        {t("import.help2.after")}
       </p>
-      <input type="file" accept=".csv,text/csv" aria-label="CSV file" onChange={onFile} />
+      <input type="file" accept=".csv,text/csv" aria-label={t("import.file")} onChange={onFile} />
       {readError && (
         <p className="error" role="alert">
           {readError}
@@ -83,16 +86,21 @@ export function ImportCollection() {
       {parsed && !run.data && (
         <div className="import-preview">
           <p>
-            <strong>{fileName}</strong>: {parsed.rows.length} {parsed.rows.length === 1 ? "line" : "lines"},{" "}
-            {parsed.totalCards} {parsed.totalCards === 1 ? "card" : "cards"} ready to import
-            {parsed.skipped > 0 && ` (${parsed.skipped} ${parsed.skipped === 1 ? "proxy" : "proxies"} skipped)`}.
+            <strong>{fileName}</strong>:{" "}
+            {t("import.preview", {
+              lines: t("import.lines", { count: parsed.rows.length }),
+              cards: t("import.cards", { count: parsed.totalCards }),
+            })}
+            {parsed.skipped > 0 && t("import.skipped", { count: parsed.skipped })}.
           </p>
-          <Problems title="Lines that cannot be read" items={parsed.problems} />
+          <Problems title={t("import.unreadable")} items={parsed.problems} />
           {parsed.ignoredColumns.length > 0 && (
-            <p className="hint">Columns not used: {parsed.ignoredColumns.join(", ")}.</p>
+            <p className="hint">{t("import.ignored", { columns: parsed.ignoredColumns.join(", ") })}</p>
           )}
           <button type="button" className="btn-primary" disabled={run.isPending || parsed.rows.length === 0} onClick={() => run.mutate(parsed.rows)}>
-            {run.isPending && progress ? `Importing… ${progress.done} / ${progress.total}` : `Import ${parsed.rows.length} ${parsed.rows.length === 1 ? "line" : "lines"}`}
+            {run.isPending && progress
+              ? t("import.progress", { done: progress.done, total: progress.total })
+              : t("import.button", { count: parsed.rows.length })}
           </button>
         </div>
       )}
@@ -106,10 +114,10 @@ export function ImportCollection() {
       {run.data && (
         <div className="import-result" role="status">
           <p className="ok">
-            Done: {run.data.created} new, {run.data.updated} updated, {run.data.unchanged} already up to date.
+            {t("import.done", { created: run.data.created, updated: run.data.updated, unchanged: run.data.unchanged })}
           </p>
-          <Problems title="Imported with a change" items={run.data.adjusted} />
-          <Problems title="Not imported" items={run.data.problems} />
+          <Problems title={t("import.adjusted")} items={run.data.adjusted} />
+          <Problems title={t("import.failed")} items={run.data.problems} />
         </div>
       )}
     </details>

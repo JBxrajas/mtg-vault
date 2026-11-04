@@ -5,11 +5,15 @@ import { useState } from "react";
 import { fetchMe } from "./auth";
 import { addToCollection } from "./collectionApi";
 import { printingLabel } from "./format";
+import { useI18n } from "./i18n";
 import { Tip } from "./Tip";
+
+const FINISH_KEY = { nonfoil: "finish.nonfoil", foil: "finish.foil", etched: "finish.etched" } as const;
 
 /** Form to add copies of the selected printing to the signed-in user's collection. */
 export function AddToCollection({ printing }: { printing: PrintingSummary }) {
   const queryClient = useQueryClient();
+  const { t } = useI18n();
   const { data: me } = useQuery({ queryKey: ["me"], queryFn: ({ signal }) => fetchMe(signal), staleTime: 60_000 });
   const [finish, setFinish] = useState(printing.finishes[0] ?? "nonfoil");
   const [condition, setCondition] = useState("NM");
@@ -35,7 +39,8 @@ export function AddToCollection({ printing }: { printing: PrintingSummary }) {
   if (!me) {
     return (
       <p className="hint">
-        <Link to="/login">Sign in</Link> to add cards to your collection.
+        <Link to="/login">{t("auth.signIn")}</Link>
+        {t("add.signInTo")}
       </p>
     );
   }
@@ -49,24 +54,22 @@ export function AddToCollection({ printing }: { printing: PrintingSummary }) {
       }}
     >
       <strong>
-        Add {printingLabel(printing)}
-        <Tip label="finish, condition and quantity">
-          Finish: nonfoil is the normal card, foil has a shiny layer, etched is a matte metallic foil. Condition: NM near
-          mint, LP lightly played, MP moderately played, HP heavily played, DMG damaged; it is for your records and the
-          price shown does not change with it. Qty: copies of this exact card you own.
-        </Tip>
+        {t("add.title", { printing: printingLabel(printing) })}
+        <Tip label={t("add.tip.label")}>{t("add.tip.text")}</Tip>
       </strong>
       <div className="add-fields">
         <label>
-          Finish
+          {t("add.finish")}
           <select value={effectiveFinish} onChange={(e) => setFinish(e.target.value)}>
             {finishes.map((f) => (
-              <option key={f}>{f}</option>
+              <option key={f} value={f}>
+                {t(FINISH_KEY[f as keyof typeof FINISH_KEY] ?? "finish.nonfoil")}
+              </option>
             ))}
           </select>
         </label>
         <label>
-          Condition
+          {t("add.condition")}
           <select value={condition} onChange={(e) => setCondition(e.target.value)}>
             {conditionSchema.options.map((c) => (
               <option key={c}>{c}</option>
@@ -74,7 +77,7 @@ export function AddToCollection({ printing }: { printing: PrintingSummary }) {
           </select>
         </label>
         <label>
-          Qty
+          {t("add.qty")}
           <input
             type="number"
             min={1}
@@ -85,12 +88,12 @@ export function AddToCollection({ printing }: { printing: PrintingSummary }) {
           />
         </label>
         <button type="submit" disabled={add.isPending}>
-          {add.isPending ? "Adding…" : "Add"}
+          {add.isPending ? t("add.adding") : t("add.add")}
         </button>
       </div>
       {add.isSuccess && (
         <p className="ok">
-          Added. You now own {add.data.quantity} of this exact copy. <Link to="/collection">My collection</Link>
+          {t("add.added", { count: add.data.quantity })} <Link to="/collection">{t("add.myCollection")}</Link>
         </p>
       )}
       {add.error && <p className="error">{add.error.message}</p>}
