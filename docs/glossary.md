@@ -31,4 +31,8 @@ Implemented in `packages/db` (see its README); the decisions are in [ADR 0008](a
 - `decks` — a user's deck with a format and visibility.
 - `deck_cards` — oracle cards in a deck, per board (main, sideboard, maybeboard, commander). Type groups (creature, instant, …) are derived from the type line.
 
+**Interface**
+- **Deck list** — a deck as text, one `4 Lightning Bolt` line per card with a section per board; used to import and export decks ([docs/apis.md](apis.md#deck-lists-text-import-and-export)).
+- **Appearance** — the user's mode (light, dark, automatic), background color or card art, kept on the device.
+
 Terms: a **stack** is owned copies that share printing, finish, condition and language; a **binder** is a sub-collection; a **board** is the part of a deck a card sits in.

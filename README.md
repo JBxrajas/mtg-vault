@@ -4,17 +4,17 @@ A platform to track and manage Magic: The Gathering collections (Moxfield-style)
 
 ## Status
 
-Phases 1 and 2 are done: the monorepo, CI, the catalog imported from Scryfall into Neon, and a card search (API and web) deployed on Vercel. Phase 3, users, collection and decks, has its data model defined and documented ([ADR 0008](docs/adr/0008-users-collection-binders-decks.md)); the API and screens for it are next. See [docs/plan.md](docs/plan.md).
+Phases 1 to 3 are largely done: the monorepo, CI, the catalog imported from Scryfall into Neon, card search, accounts, the collection (with CSV import and export), decks (with deck list import and export), an interface in English and Spanish, and a personal look (mode, color or card art). The web app and the API run on Vercel with the database on Neon. Next: deck analysis (mana curve, building guides, format rules), filters, binders, then price history. See [docs/plan.md](docs/plan.md) for what is done and what is pending.
 
-## What it will do
+## What it does
 
-- **Accounts** with a username and a password (implemented; live in production once the API has its auth secrets, see docs/vercel.md).
-- **One collection per user** (add, change and remove cards works today), as an inventory that tells printings apart (set, collector number), finish (nonfoil, foil, etched), condition and language, with purchase price and notes.
-- **Binders**: named sub-collections of the collection (a physical binder, a box, a trade list).
-- **Decks** (works today), many per user, each with a format (Standard, Modern, Commander, …) and its cards divided by type: creature, sorcery, instant, enchantment, artifact, and so on.
-- **Card search** over the whole Scryfall catalog, tolerant of typos (works today).
-- **CSV import** of a Moxfield collection export (works today).
-- Later: price history, CSV export, camera scanning and a desktop app.
+- **Accounts** with a username and a password ([ADR 0009](docs/adr/0009-username-login-with-bearer-tokens.md)).
+- **One collection per user**: an inventory that tells printings apart (set, collector number), finish (nonfoil, foil, etched), condition and language, with market value. Add, change and remove stacks; **CSV import** of a Moxfield export and **CSV export** in the same layout.
+- **Decks**: many per user, each with a format (Standard, Modern, Commander, …), boards (main, sideboard, maybeboard, commander), cards divided by type, deck size, and a badge that says how many copies you own. **Import and export** as a text list. Format rules (copy limits, legality) are not enforced yet.
+- **Card search** over the whole Scryfall catalog, tolerant of typos, with every printing and its price.
+- **Appearance**: light or dark mode, a background color, or the art of any card (and any of its printings), saved on the device.
+- **English and Spanish** interface ([ADR 0010](docs/adr/0010-interface-languages.md)).
+- Planned: binders (sub-collections), deck analysis and guides, filters, price history, camera scanning and a desktop app.
 
 ## Stack
 

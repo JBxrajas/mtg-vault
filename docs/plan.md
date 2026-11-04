@@ -30,7 +30,9 @@ Status: ☐ pending · ◐ in progress · ☑ done
 - ☑ CSV import of a collection (Moxfield layout; other files with similar headers should work) ([apps/api](../apps/api/README.md), [docs/apis.md](apis.md#collection-files-csv-import))
 - ☑ Collection CSV export and deck list import and export ([docs/apis.md](apis.md#deck-lists-text-import-and-export)); a CSV export of decks is not done
 - ☑ Interface in English and Spanish, with a language button ([ADR 0010](adr/0010-interface-languages.md)); server error messages are still English
-- ☑ Appearance: light or dark mode, background color or card art, saved on the device ([apps/web](../apps/web/README.md))
+- ☑ Appearance: light or dark mode, background color or card art with a choice of printing, saved on the device ([apps/web](../apps/web/README.md))
+- ☐ Deck analysis: mana curve, guides per format and what the curve means; format rules (size, copy limits, legality) shown as warnings
+- ☐ Filters in the collection, the deck and the search (type, color, rarity, set, mana value, legality)
 
 ## Phase 4 — Prices ◐
 - ◐ Price snapshots in `price_snapshots`: the Scryfall import writes a row when a printing's price changes ([apps/jobs](../apps/jobs/README.md)); latest prices shown per printing in the web app. Runs weekly for now; a daily run needs the storage plan checked first
@@ -44,4 +46,4 @@ Status: ☐ pending · ◐ in progress · ☑ done
 
 ## Phase 6 — Electron and extras ☐
 - `apps/desktop` with Electron loading the `apps/web` build
-- Deck builder with per-format validation, statistics, wishlist, public lists
+- Wishlist and public deck lists
