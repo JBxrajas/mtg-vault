@@ -87,3 +87,32 @@ export interface PrintingSummary {
 }
 
 export const oracleIdParamSchema = z.object({ oracleId: z.string().uuid() });
+
+/** Username: letters, digits, underscore and dot. Stored lower-case; the original is kept for display. */
+export const usernameSchema = z
+  .string()
+  .trim()
+  .min(3)
+  .max(30)
+  .regex(/^[A-Za-z0-9_.]+$/, "Use letters, digits, underscore or dot");
+
+export const passwordSchema = z.string().min(8).max(128);
+
+export const registerSchema = z.object({ username: usernameSchema, password: passwordSchema });
+export type RegisterInput = z.infer<typeof registerSchema>;
+
+export const loginSchema = z.object({ username: z.string().trim().min(1), password: z.string().min(1) });
+export type LoginInput = z.infer<typeof loginSchema>;
+
+/** The signed-in user, as `GET /me` returns it. */
+export interface CurrentUser {
+  id: string;
+  username: string;
+  displayUsername: string;
+}
+
+/**
+ * Better Auth requires an email on every user. Username-only accounts get this reserved-domain
+ * address (`.invalid` never receives mail). See docs/adr/0008-users-collection-binders-decks.md.
+ */
+export const syntheticEmail = (username: string) => `${username.trim().toLowerCase()}@users.invalid`;

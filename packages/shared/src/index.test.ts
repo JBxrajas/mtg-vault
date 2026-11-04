@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { cardSearchQuerySchema, collectionEntrySchema } from "./index.js";
+import {
+  cardSearchQuerySchema,
+  collectionEntrySchema,
+  loginSchema,
+  registerSchema,
+  syntheticEmail,
+} from "./index.js";
 
 describe("cardSearchQuerySchema", () => {
   it("applies the default limit and trims q", () => {
@@ -41,5 +47,34 @@ describe("collectionEntrySchema", () => {
   it("rejects non-positive quantity and bad condition", () => {
     expect(collectionEntrySchema.safeParse({ printingId, quantity: 0 }).success).toBe(false);
     expect(collectionEntrySchema.safeParse({ printingId, quantity: 1, condition: "XX" }).success).toBe(false);
+  });
+});
+
+describe("registerSchema", () => {
+  it("accepts a username and password and trims the username", () => {
+    expect(registerSchema.parse({ username: " Alice.1 ", password: "12345678" })).toEqual({
+      username: "Alice.1",
+      password: "12345678",
+    });
+  });
+
+  it.each(["ab", "a".repeat(31), "with space", "ñandú", "a-b"])("rejects username %j", (username) => {
+    expect(registerSchema.safeParse({ username, password: "12345678" }).success).toBe(false);
+  });
+
+  it("rejects short and oversized passwords", () => {
+    expect(registerSchema.safeParse({ username: "alice", password: "1234567" }).success).toBe(false);
+    expect(registerSchema.safeParse({ username: "alice", password: "x".repeat(129) }).success).toBe(false);
+  });
+});
+
+describe("loginSchema / syntheticEmail", () => {
+  it("requires both fields", () => {
+    expect(loginSchema.safeParse({ username: "alice", password: "x" }).success).toBe(true);
+    expect(loginSchema.safeParse({ username: "", password: "x" }).success).toBe(false);
+  });
+
+  it("builds a lower-case address on the reserved .invalid domain", () => {
+    expect(syntheticEmail(" Alice_1 ")).toBe("alice_1@users.invalid");
   });
 });
