@@ -7,6 +7,7 @@ Status: ☐ pending · ◐ in progress · ☑ done
 - ☑ Knowledge base and ADRs
 - ☑ `apps/web` with Vite + React + TanStack Router/Query (home page is now the card search)
 - ☑ Vercel projects (web and API) and Neon database (Neon: [neon.md](neon.md); web and API live on Vercel: [vercel.md](vercel.md))
+- ☑ Production deploys from GitHub Actions only when something changed, and a guard for the Vercel deployment limit ([ADR 0012](adr/0012-deploy-from-github-actions.md), [ADR 0011](adr/0011-vercel-deploy-guard-hook.md))
 - ☑ Branch, commit and release process (release-please, Conventional Commits) — see [releases.md](releases.md)
 - ☑ Docs check hook before every commit made through Claude Code — see [ADR 0006](adr/0006-docs-check-commit-hook.md)
 - ☑ GitHub settings and `main` protection — see [releases.md](releases.md)

@@ -1,0 +1,37 @@
+name: deploy-web
+
+# Production deploy of the web app. Vercel's own Git deployments are turned off (git.deploymentEnabled in
+# apps/web/vercel.json) because every deployment counts toward the Hobby limit, cancelled ones included; this
+# runs only when something the web app uses changed. Run it by hand (Actions > deploy-web > Run workflow) to
+# deploy without a code change, for example after changing a variable. See ADR 0012.
+on:
+  push:
+    branches: [main]
+    paths:
+      - apps/web/src/**
+      - apps/web/index.html
+      - apps/web/vite.config.ts
+      - apps/web/tsconfig.json
+      - apps/web/vercel.json
+      - packages/shared/src/**
+      - pnpm-lock.yaml
+      - .github/workflows/deploy-web.yml
+      - .github/workflows/deploy-project.yml
+  workflow_dispatch:
+
+# One deploy at a time, in order; a newer push waits instead of cancelling a running deploy.
+concurrency:
+  group: deploy-web
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    uses: ./.github/workflows/deploy-project.yml
+    secrets: inherit
+    with:
+      project: web
+      project-id: prj_w6r7qHPpI5FfQ6TS0PskxRFooYhV
+      check-url: https://mtg-vault-web.vercel.app/

@@ -3,7 +3,7 @@
 **Status:** accepted
 
 ## Context
-The Hobby plan allows 100 deployments per rolling 24 hours, and every deployment counts: the previews that the `ignoreCommand` cancels, the production deployments that a documentation-only merge to `main` creates and cancels (two per merge, one per project), and the ones made by hand with `vercel deploy`. On 2026-11-04 there were 155 in 24 hours and the web could not be deployed for most of a day (see [vercel.md](../vercel.md#deployment-limit-hobby-plan)). Pull request branches were fixed at the source with `git.deploymentEnabled`; what remains are merges to `main` and manual deploys.
+The Hobby plan allows 100 deployments per rolling 24 hours, and every deployment counts: the previews that the `ignoreCommand` cancels, the production deployments that a documentation-only merge to `main` creates and cancels (two per merge, one per project), and the ones made by hand with `vercel deploy`. On 2026-11-04 there were 155 in 24 hours and the web could not be deployed for most of a day (see [vercel.md](../vercel.md#deployment-limit-hobby-plan)). Pull request branches were fixed at the source with `git.deploymentEnabled`, and merges to `main` by deploying from GitHub Actions only when something changed ([ADR 0012](0012-deploy-from-github-actions.md)); what remains are manual deploys.
 
 ## Decision
 A Claude Code project hook (`PreToolUse` on `Bash`, next to the docs hook of [ADR 0006](0006-docs-check-commit-hook.md)) runs `.claude/hooks/vercel-deploy-guard.sh` before any `vercel deploy`, `vercel redeploy` or `vercel --prod`:
@@ -17,6 +17,5 @@ The script is tested (`.claude/hooks/vercel-deploy-guard.test.ts`, with a fake `
 
 ## Consequences
 - A deploy that Vercel would reject is stopped before it is tried, with the time to retry, and every deploy shows how much of the day is left.
-- **It only covers commands Claude runs.** A merge made in the GitHub UI, or by anyone else, still creates two deployments per merge on `main` (one per project), built or cancelled. Merging in batches is the only mitigation until deploys move out of Vercel's Git integration.
-- The real fix for that is to deploy from a GitHub Actions workflow with `paths` filters (a documentation-only push would then create nothing) and turn the Git deployments of `main` off. It needs a `VERCEL_TOKEN` secret in GitHub, which only the owner can set, so it is a separate decision and is not done.
+- **It only covers commands Claude runs.** Deploys that GitHub Actions makes after a merge are not seen by it; ADR 0012 keeps those to the projects whose files changed. Before ADR 0012 a merge in the GitHub UI created two deployments per merge on `main` whatever it changed, and the guard could not stop that; the guard is now the safety net for manual deploys.
 - Like the docs hook, it needs the Claude Code session to have loaded `.claude/settings.json`; a session started before the change must reload hooks (`/hooks`) or restart.
