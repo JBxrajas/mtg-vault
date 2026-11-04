@@ -31,4 +31,21 @@ describe("AuthBar", () => {
     expect(logout).toHaveBeenCalledTimes(1);
     expect(await screen.findByRole("link", { name: "Sign in" })).toBeInTheDocument();
   });
+
+  it("forgets the previous account's cached data on sign-out but keeps the public card search", async () => {
+    fetchMe.mockResolvedValueOnce(aUser).mockResolvedValue(null);
+    const { queryClient } = renderPage(<AuthBar />);
+    expect(await screen.findByText("Alice")).toBeInTheDocument();
+    queryClient.setQueryData(["collection"], [{ id: "i1" }]);
+    queryClient.setQueryData(["decks"], [{ id: "d1" }]);
+    queryClient.setQueryData(["cards", "search", "bolt"], [{ oracleId: "o1" }]);
+
+    logout.mockResolvedValue(undefined);
+    await userEvent.click(screen.getByRole("button", { name: "Sign out" }));
+    expect(await screen.findByRole("link", { name: "Sign in" })).toBeInTheDocument();
+
+    expect(queryClient.getQueryData(["collection"])).toBeUndefined();
+    expect(queryClient.getQueryData(["decks"])).toBeUndefined();
+    expect(queryClient.getQueryData(["cards", "search", "bolt"])).toBeDefined();
+  });
 });
