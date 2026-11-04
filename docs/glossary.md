@@ -36,3 +36,7 @@ Implemented in `packages/db` (see its README); the decisions are in [ADR 0008](a
 - **Appearance** — the user's mode (light, dark, automatic), background color or card art, kept on the device.
 
 Terms: a **stack** is owned copies that share printing, finish, condition and language; a **binder** is a sub-collection; a **board** is the part of a deck a card sits in.
+- **Mana value** (cmc): the total amount of mana in a card's cost. The **mana curve** is how many spells a deck has at each mana value.
+- **Ramp**: cards that give you more mana than the lands you play, such as mana rocks, mana creatures and spells that fetch lands. **Card draw**, **removal** and **board wipes** are the other roles the Commander analysis counts ([knowledge](knowledge/commander.md)).
+- **Color identity**: the colors in a card's cost and rules text; a Commander deck may only contain cards inside its commander's identity.
+- **Bracket** and **Game Changer**: Wizards of the Coast's five-level guide to a Commander deck's power level, and the list of individually powerful cards that limit the lower brackets.

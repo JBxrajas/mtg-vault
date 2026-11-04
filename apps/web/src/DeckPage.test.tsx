@@ -67,7 +67,7 @@ describe("DeckPage", () => {
     render();
     await screen.findByText("Goblin Guide");
 
-    const titles = screen.getAllByRole("heading", { level: 2 }).map((h) => h.textContent);
+    const titles = screen.getAllByRole("heading", { level: 2 }).filter((h) => !h.closest(".analysis")).map((h) => h.textContent);
     expect(titles).toEqual(["Creature (6)", "Instant (4)", "Artifact (1)", "Land (20)"]);
     // An Artifact Creature is a Creature.
     expect(within(screen.getByRole("region", { name: "Creature" })).getByText("Wall of Omens")).toBeInTheDocument();
@@ -99,7 +99,7 @@ describe("DeckPage", () => {
     );
     render();
     await screen.findByText("Atraxa");
-    expect(screen.getAllByRole("heading", { level: 2 }).map((h) => h.textContent)).toEqual(["Commander (1)", "Creature (1)"]);
+    expect(screen.getAllByRole("heading", { level: 2 }).filter((h) => !h.closest(".analysis")).map((h) => h.textContent)).toEqual(["Commander (1)", "Creature (1)"]);
     expect(screen.getByText("2 / 100 cards")).toBeInTheDocument();
   });
 
@@ -248,5 +248,17 @@ describe("DeckPage", () => {
     await userEvent.click(help);
     expect(screen.getByRole("tooltip")).toBeInTheDocument();
     expect(tabs).not.toContainElement(screen.getByRole("tooltip"));
+  });
+
+  it("shows the Commander analysis only for Commander decks", async () => {
+    fetchDeck.mockResolvedValue(detail([aDeckCard({ name: "Sol Ring", board: "commander" })], aDeck({ format: "commander" })));
+    const first = render();
+    expect(await screen.findByRole("region", { name: "Commander analysis" })).toBeInTheDocument();
+    first.unmount();
+
+    fetchDeck.mockResolvedValue(detail([aDeckCard()], aDeck({ format: "modern" })));
+    render();
+    await screen.findByText("Lightning Bolt");
+    expect(screen.queryByRole("region", { name: "Commander analysis" })).not.toBeInTheDocument();
   });
 });

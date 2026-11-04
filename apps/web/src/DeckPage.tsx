@@ -15,6 +15,7 @@ import { useState } from "react";
 import { searchCards } from "./api";
 import { fetchMe } from "./auth";
 import { addDeckCard, deleteDeck, fetchDeck, setDeckCard, updateDeck } from "./decksApi";
+import { DeckAnalysis } from "./DeckAnalysis";
 import { DeckListTools } from "./DeckListTools";
 import { formatLabel } from "./DecksPage";
 import { useI18n } from "./i18n";
@@ -115,6 +116,8 @@ export function DeckPage() {
       <DeckSettings deckId={deckId} deck={deck} onDelete={() => remove.mutate()} deleting={remove.isPending} />
 
       <DeckListTools deckId={deckId} deckName={deck.name} cards={cards} />
+
+      {deck.format === "commander" && <DeckAnalysis cards={cards} />}
 
       <AddCards
         formats={deckBoards(deck.format)}
