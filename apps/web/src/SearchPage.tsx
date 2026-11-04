@@ -1,4 +1,4 @@
-import { colorSchema, type Color } from "@mtg-vault/shared";
+import { colorSchema, type CardSearchResult, type Color } from "@mtg-vault/shared";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { searchCards } from "./api";
@@ -17,6 +17,7 @@ export function SearchPage() {
   const [text, setText] = useState("");
   const [type, setType] = useState("");
   const [colors, setColors] = useState<Color[]>([]);
+  const [preview, setPreview] = useState<CardSearchResult | null>(null);
   const q = useDebouncedValue(text.trim(), 300);
   const typeFilter = useDebouncedValue(type.trim(), 300);
 
@@ -80,13 +81,41 @@ export function SearchPage() {
         {enabled &&
           data?.map((card) => (
             <li key={card.oracleId}>
-              <div className="name">
-                {card.name} <span className="mana">{card.manaCost}</span>
+              {card.image ? (
+                <button
+                  type="button"
+                  className="thumb"
+                  aria-label={`Show ${card.name}`}
+                  onClick={() => setPreview(card)}
+                >
+                  <img src={card.image.small} alt="" loading="lazy" width={63} height={88} />
+                </button>
+              ) : (
+                <div className="thumb empty" aria-hidden="true" />
+              )}
+              <div className="info">
+                <div className="name">
+                  {card.name} <span className="mana">{card.manaCost}</span>
+                </div>
+                <div className="type">{card.typeLine}</div>
               </div>
-              <div className="type">{card.typeLine}</div>
             </li>
           ))}
       </ul>
+
+      {preview?.image && (
+        <div className="overlay" role="dialog" aria-label={preview.name} onClick={() => setPreview(null)}>
+          <img src={preview.image.normal} alt={preview.name} />
+          <button type="button" onClick={() => setPreview(null)}>
+            Close
+          </button>
+        </div>
+      )}
+
+      <footer className="credit">
+        Card images are provided by <a href="https://scryfall.com">Scryfall</a>. Magic: The Gathering is
+        © Wizards of the Coast.
+      </footer>
     </main>
   );
 }

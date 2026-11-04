@@ -27,7 +27,7 @@ describe("buildSearchUrl", () => {
 
 describe("searchCards", () => {
   it("returns the results array", async () => {
-    const results = [{ oracleId: "1", name: "Lightning Bolt", manaCost: "{R}", typeLine: "Instant", similarity: 1 }];
+    const results = [{ oracleId: "1", name: "Lightning Bolt", manaCost: "{R}", typeLine: "Instant", similarity: 1, image: null }];
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true, json: async () => ({ results }) }));
     expect(await searchCards({ q: "bolt" })).toEqual(results);
   });
