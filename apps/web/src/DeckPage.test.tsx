@@ -236,4 +236,17 @@ describe("DeckPage", () => {
     expect(await screen.findByText("route: /decks")).toBeInTheDocument();
     confirm.mockRestore();
   });
+
+  it("keeps the boards help bubble outside the scrolling tab row, where it would be clipped", async () => {
+    fetchDeck.mockResolvedValue(detail());
+    render();
+    const tabs = await screen.findByRole("group", { name: "Boards" });
+    expect(within(tabs).queryByRole("button", { name: /Help/ })).not.toBeInTheDocument();
+    expect(within(tabs).getAllByRole("button")).toHaveLength(3);
+    const help = screen.getByRole("button", { name: "Help: boards" });
+    expect(tabs.parentElement).toBe(help.closest(".tab" + "s-row"));
+    await userEvent.click(help);
+    expect(screen.getByRole("tooltip")).toBeInTheDocument();
+    expect(tabs).not.toContainElement(screen.getByRole("tooltip"));
+  });
 });

@@ -763,10 +763,18 @@ button.danger {
 .add-cards-bar select {
   flex: none;
 }
+.tabs-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 1rem 0 0.5rem;
+}
 .tabs {
   display: flex;
   gap: 0.4rem;
-  margin: 1rem 0 0.5rem;
+  min-width: 0;
+  /* Room for the focus ring, which a scrolling box would otherwise clip. */
+  padding: 4px;
   overflow-x: auto;
 }
 .tab {
