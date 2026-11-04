@@ -36,4 +36,4 @@ DATABASE_URL_UNPOOLED=postgres://... pnpm --filter @mtg-vault/jobs import:scryfa
 
 The first workflow run failed with `numeric field overflow`: a few cards have a mana value of 1,000,000, which did not fit `cards.cmc` (`numeric(6,1)`). Migration `0001` widens it to `numeric(10,1)`; apply migrations before the job runs (`pnpm --filter @mtg-vault/db migrate`). The job now prints the Postgres error and detail on failure.
 
-After the fix, a full `default_cards` import was run from a local machine against Neon: 1066 sets, 39,287 cards and 120,024 printings, 0 skipped. Fuzzy search for "lightnin bolt" returns "Lightning Bolt" first. The workflow itself has **not** succeeded yet; re-run it after this change is merged.
+After the fix, a full `default_cards` import was run from a local machine against Neon: 1066 sets, 39,287 cards and 120,024 printings, 0 skipped. Fuzzy search for "lightnin bolt" returns "Lightning Bolt" first. The workflow was then re-run from GitHub Actions on 2026-11-04 and succeeded with the same numbers (120,024 printings, 0 skipped).
