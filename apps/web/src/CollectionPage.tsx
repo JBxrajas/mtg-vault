@@ -5,6 +5,7 @@ import { fetchMe } from "./auth";
 import { fetchCollection, removeFromCollection, updateCollectionItem } from "./collectionApi";
 import { formatUsd } from "./format";
 import { ImportCollection } from "./ImportCollection";
+import { Tip } from "./Tip";
 
 export function CollectionPage() {
   const queryClient = useQueryClient();
@@ -29,9 +30,18 @@ export function CollectionPage() {
       <h1>My collection</h1>
 
       {!loadingMe && !me && (
-        <p className="hint">
-          <Link to="/login">Sign in</Link> to see your collection.
-        </p>
+        <section className="welcome">
+          <h2>Your collection, always at hand</h2>
+          <p>
+            Create a free account to record every card you own, see what it is worth and import it from Moxfield.
+            Already have one? <Link to="/login">Sign in</Link> to see your collection.
+          </p>
+          <div className="welcome-actions">
+            <Link to="/login" search={{ mode: "register" }} className="button">
+              Create a free account
+            </Link>
+          </div>
+        </section>
       )}
       {isLoading && <p className="hint">Loading…</p>}
       {error && <p className="error">{error.message}</p>}
@@ -48,17 +58,28 @@ export function CollectionPage() {
             </div>
             <div className="stat">
               <b>{totals.stacks}</b>
-              <span>{totals.stacks === 1 ? "stack" : "stacks"}</span>
+              <span>
+                {totals.stacks === 1 ? "stack" : "stacks"}
+                <Tip label="stacks">
+                  A stack is a group of identical copies: same printing, finish and condition. Two foil Bolts from the
+                  same set are one stack of 2.
+                </Tip>
+              </span>
             </div>
             <div className="stat">
               <b>{formatUsd(totals.valueUsd)}</b>
-              <span>market value</span>
+              <span>
+                market value
+                <Tip label="market value">
+                  Sum of the latest Scryfall USD prices of your copies. It is an estimate, not an offer.
+                </Tip>
+              </span>
             </div>
           </div>
           {totals.unpriced > 0 && <p className="hint">{totals.unpriced} copies without a price are not counted in the value.</p>}
           {items.length === 0 && (
             <p className="hint">
-              Nothing here yet. <Link to="/">Search a card</Link> and add it from its printings.
+              Nothing here yet. <Link to="/">Search a card</Link> and add it from its printings, or import a CSV above.
             </p>
           )}
           <ul className="stacks">

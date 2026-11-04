@@ -4,6 +4,8 @@ import { useState } from "react";
 import { searchCards } from "./api";
 import { CardDetail } from "./CardDetail";
 import { ManaCost } from "./ManaCost";
+import { Tip } from "./Tip";
+import { Welcome } from "./Welcome";
 import { useDebouncedValue } from "./useDebouncedValue";
 
 const COLORS = colorSchema.options;
@@ -38,7 +40,14 @@ export function SearchPage() {
   return (
     <main className="page">
       <h1>Search cards</h1>
-      <p className="subtitle">Find any Magic card by name, even with typos.</p>
+      <p className="subtitle">
+        Find any Magic card by name, even with typos.
+        <Tip label="search">
+          Type part of a name; small typos are fine. Open a card to see every printing with its art and price, and
+          add copies to your collection.
+        </Tip>
+      </p>
+      <Welcome />
 
       <div className="searchbox">
         <input
@@ -58,6 +67,10 @@ export function SearchPage() {
             value={type}
             onChange={(e) => setType(e.target.value)}
           />
+          <Tip label="filters">
+            Narrow the results. Type matches the card type (creature, instant, legendary…). The color buttons keep
+            only cards that use those colors.
+          </Tip>
           <div className="colors" role="group" aria-label="Color identity">
             {COLORS.map((c) => (
               <button

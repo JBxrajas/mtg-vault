@@ -17,6 +17,7 @@ import { fetchMe } from "./auth";
 import { addDeckCard, deleteDeck, fetchDeck, setDeckCard, updateDeck } from "./decksApi";
 import { formatLabel } from "./DecksPage";
 import { ManaCost } from "./ManaCost";
+import { Tip } from "./Tip";
 import { useDebouncedValue } from "./useDebouncedValue";
 
 const BOARD_LABEL: Record<DeckBoard, string> = {
@@ -122,6 +123,10 @@ export function DeckPage() {
             {BOARD_LABEL[b]} ({b === "main" ? count : flat(b).reduce((n, c) => n + c.quantity, 0)})
           </button>
         ))}
+        <Tip label="boards">
+          Main is the deck you play. Sideboard holds cards you swap in between games. Maybeboard is for ideas you are
+          still considering. "Own 1/4" means you have 1 of the 4 copies in your collection.
+        </Tip>
       </div>
 
       {tab === "main" ? (

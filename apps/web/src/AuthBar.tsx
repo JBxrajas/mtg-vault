@@ -15,7 +15,7 @@ export function AuthBar() {
   if (!me) {
     return (
       <div className="authbar">
-        <Link to="/login" className="signin">
+        <Link to="/login" className="signin" title="Sign in, or create a free account to track your collection">
           Sign in
         </Link>
       </div>
