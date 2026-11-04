@@ -10,7 +10,7 @@ Status: ☐ pending · ◐ in progress · ☑ done
 - ☑ Branch, commit and release process (release-please, Conventional Commits) — see [releases.md](releases.md)
 - ☑ Docs check hook before every commit made through Claude Code — see [ADR 0006](adr/0006-docs-check-commit-hook.md)
 - ☑ GitHub settings and `main` protection — see [releases.md](releases.md)
-- ☑ Basic CI on GitHub Actions: typecheck and web build (`.github/workflows/ci.yml`), with `pnpm-lock.yaml` committed
+- ☑ Basic CI on GitHub Actions: typecheck, unit tests (Vitest) and web build (`.github/workflows/ci.yml`), with `pnpm-lock.yaml` committed
 - ☑ `typecheck` is a required check on `main`
 - ☑ First release `v0.1.0` published; `release-as` removed
 
