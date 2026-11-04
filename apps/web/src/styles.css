@@ -85,10 +85,68 @@ body {
   justify-content: center;
   background: rgba(0, 0, 0, 0.8);
 }
-.overlay img {
-  max-width: 90vw;
-  max-height: 80vh;
+.detail {
+  box-sizing: border-box;
+  width: min(56rem, 94vw);
+  max-height: 90vh;
+  overflow: auto;
+  padding: 1rem;
   border-radius: 12px;
+  background: Canvas;
+  color: CanvasText;
+}
+.detail header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.detail h2 {
+  margin: 0;
+}
+.detail-body {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+.detail-image {
+  width: 20rem;
+  max-width: 100%;
+  align-self: flex-start;
+  border-radius: 12px;
+}
+.printings {
+  flex: 1 1 16rem;
+  min-width: 0;
+}
+.printings ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.printing {
+  display: grid;
+  width: 100%;
+  gap: 0.1rem;
+  padding: 0.5rem;
+  text-align: left;
+  cursor: pointer;
+  border: 1px solid transparent;
+  border-bottom-color: rgba(128, 128, 128, 0.3);
+  background: none;
+  color: inherit;
+}
+.printing.on {
+  border-color: currentColor;
+  border-radius: 6px;
+}
+.printing-name {
+  font-weight: 600;
+}
+.printing-meta,
+.printing-price {
+  font-size: 0.85rem;
+  opacity: 0.75;
 }
 .credit {
   margin-top: 2rem;

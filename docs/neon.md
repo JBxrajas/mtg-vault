@@ -46,6 +46,10 @@ For GitHub Actions jobs, store `DATABASE_URL` as a repository secret: `gh secret
 
 Neon also offers Managed Better Auth (`auth: true` in `neon.ts`, tables in the `neon_auth` schema). It was provisioned during setup but is **not used** and no code depends on it. We can remove `auth: true` from `neon.ts` and run `neon deploy` to deprovision it; that is not done yet, so check with `neon neon-auth status` before relying on a clean state.
 
+## Storage
+
+The free plan includes 0.5 GB per project. The database was at 475 MB on 2026-11-04 because the first imports rewrote every row; the importer now skips unchanged rows. See "Storage" in [apps/jobs/README.md](../apps/jobs/README.md) for the one-off `VACUUM FULL`. Check usage with the Neon console or `select pg_size_pretty(pg_database_size(current_database()))`.
+
 ## Status
 
 Neon is connected and the services are provisioned. Drizzle migration `0000_init` is applied to the `production` branch (use `DATABASE_URL_UNPOOLED` for `pnpm --filter @mtg-vault/db migrate`). The tables are empty until the Scryfall import job exists.

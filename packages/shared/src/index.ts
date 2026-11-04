@@ -57,3 +57,33 @@ export interface CardSearchResult {
 }
 
 export * from "./decks.js";
+
+/** Latest known prices of a printing. Null where Scryfall has none (for example no etched price). */
+export interface PrintingPrices {
+  usd: number | null;
+  usdFoil: number | null;
+  usdEtched: number | null;
+  eur: number | null;
+  eurFoil: number | null;
+  tix: number | null;
+}
+
+/** One printing of a card, for the "all versions" list. */
+export interface PrintingSummary {
+  id: string;
+  setCode: string;
+  setName: string;
+  collectorNumber: string;
+  lang: string;
+  rarity: string;
+  /** ISO date, or null. */
+  releasedAt: string | null;
+  finishes: string[];
+  image: CardImage | null;
+  /** Latest snapshot, or null when no price has been recorded yet. */
+  prices: PrintingPrices | null;
+  /** Date of that snapshot (ISO), or null. */
+  pricesOn: string | null;
+}
+
+export const oracleIdParamSchema = z.object({ oracleId: z.string().uuid() });

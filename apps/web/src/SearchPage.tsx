@@ -2,6 +2,7 @@ import { colorSchema, type CardSearchResult, type Color } from "@mtg-vault/share
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { searchCards } from "./api";
+import { CardDetail } from "./CardDetail";
 import { useDebouncedValue } from "./useDebouncedValue";
 
 const COLORS = colorSchema.options;
@@ -91,7 +92,7 @@ export function SearchPage() {
                   <img src={card.image.small} alt="" loading="lazy" width={63} height={88} />
                 </button>
               ) : (
-                <div className="thumb empty" aria-hidden="true" />
+                <button type="button" className="thumb empty" aria-label={`Show ${card.name}`} onClick={() => setPreview(card)} />
               )}
               <div className="info">
                 <div className="name">
@@ -103,14 +104,7 @@ export function SearchPage() {
           ))}
       </ul>
 
-      {preview?.image && (
-        <div className="overlay" role="dialog" aria-label={preview.name} onClick={() => setPreview(null)}>
-          <img src={preview.image.normal} alt={preview.name} />
-          <button type="button" onClick={() => setPreview(null)}>
-            Close
-          </button>
-        </div>
-      )}
+      {preview && <CardDetail card={preview} onClose={() => setPreview(null)} />}
 
       <footer className="credit">
         Card images are provided by <a href="https://scryfall.com">Scryfall</a>. Magic: The Gathering is
