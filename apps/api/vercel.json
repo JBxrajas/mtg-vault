@@ -4,11 +4,7 @@
   "regions": [
     "pdx1"
   ],
-  "ignoreCommand": "[ \"$VERCEL_GIT_COMMIT_REF\" != \"main\" ] || git diff --quiet HEAD^ HEAD -- . ../../packages/shared ../../packages/db ../../package.json ../../pnpm-lock.yaml ../../pnpm-workspace.yaml",
   "git": {
-    "deploymentEnabled": {
-      "**": false,
-      "main": true
-    }
+    "deploymentEnabled": false
   }
 }
