@@ -11,7 +11,11 @@ pnpm --filter @mtg-vault/api dev   # http://localhost:3001; loads ../../.env.loc
 | Variable | Required | Purpose |
 |---|---|---|
 | `DATABASE_URL` | yes (search) | Pooled Neon connection, see [docs/neon.md](../../docs/neon.md) |
-| `CORS_ORIGINS` | in production | Comma-separated browser origins allowed to call the API. Defaults to `http://localhost:5173` |
+| `CORS_ORIGINS` | in production | Comma-separated browser origins allowed to call the API (also Better Auth's trusted origins). Defaults to `http://localhost:5173` |
+| `BETTER_AUTH_SECRET` | yes (auth) | Signing secret, `openssl rand -base64 32`. Never commit it |
+| `BETTER_AUTH_URL` | yes (auth) | Public URL of the API: `http://localhost:3001` locally, `https://mtg-vault-api.vercel.app` in production |
+
+`.env.example` at the repository root lists them. `pnpm dev:api` loads `.env.local`.
 
 ## Deployment
 
@@ -24,6 +28,19 @@ Vercel only builds `apps/api`, and the workspace packages (`@mtg-vault/shared`, 
 ### `GET /health`
 
 Returns `{ "ok": true }`.
+
+### Accounts and sessions
+
+Username and password, with Better Auth; sessions are Bearer tokens ([ADR 0009](../../docs/adr/0009-username-login-with-bearer-tokens.md)).
+
+| Endpoint | Body | Result |
+|---|---|---|
+| `POST /auth/register` | `{ "username", "password" }` | `200` with the user and a `set-auth-token` header; `400` for invalid input or a taken username. Also creates the user's collection |
+| `POST /api/auth/sign-in/username` | `{ "username", "password" }` | `200` with `set-auth-token`; `401` for wrong credentials |
+| `POST /api/auth/sign-out` | none, `Authorization: Bearer <token>` | `200`; the token stops working |
+| `GET /me` | `Authorization: Bearer <token>` | `{ "user": { "id", "username", "displayUsername" } }`, or `401` |
+
+`POST /api/auth/sign-up/email` is closed (`404`) so every account has a username. Send the token on later requests as `Authorization: Bearer <token>`. Other Better Auth routes under `/api/auth/*` are available but not used by the web app yet.
 
 ### `GET /cards/search`
 
@@ -63,4 +80,4 @@ Every printing of one oracle card (the `oracleId` from the search results), newe
 
 Invalid parameters return `400` with the Zod issues. The query schema lives in `packages/shared` (`cardSearchQuerySchema`) so web and desktop can reuse it.
 
-Verified manually against the Neon catalog (120k printings): a typo query, the `type` and `colors` filters, and the `400` cases. Unit tests (`app.test.ts`, `cards.test.ts`) cover validation, status codes, the response mapping and LIKE escaping with the data layer mocked; the SQL itself is not covered by automated tests.
+Verified manually against the Neon catalog (120k printings): a typo query, the `type` and `colors` filters, and the `400` cases. The account flow was also run end to end on a throwaway Neon branch (register, duplicate username, sign-in in any letter case, wrong password, `/me`, sign-out, hashed password, collection created); that script is not part of the test suite. Unit tests (`app.test.ts`, `cards.test.ts`) cover validation, status codes, the response mapping and LIKE escaping with the data layer mocked; the SQL itself is not covered by automated tests.

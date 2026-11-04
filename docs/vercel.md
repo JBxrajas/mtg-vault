@@ -44,6 +44,15 @@ grep '^DATABASE_URL=' ../../.env.local | cut -d= -f2- | tr -d '"' | vercel env a
 echo https://mtg-vault-web.vercel.app | vercel env add CORS_ORIGINS production
 ```
 
+Auth variables (Production), also set by the repository owner. The secret is generated on the spot and never printed:
+
+```bash
+cd apps/api
+openssl rand -base64 32 | vercel env add BETTER_AUTH_SECRET production --sensitive
+echo https://mtg-vault-api.vercel.app | vercel env add BETTER_AUTH_URL production
+vercel redeploy <latest production deployment url>
+```
+
 ## Agent tooling
 
 The Vercel CLI, the Vercel plugin for Claude Code and the Vercel MCP server (`https://mcp.vercel.com`, user scope) were set up following https://vercel.com/get-started.md. The MCP server needs a one-time OAuth sign-in from `/mcp`.

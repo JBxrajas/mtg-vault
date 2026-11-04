@@ -2,6 +2,7 @@ import { colorSchema, type CardSearchResult, type Color } from "@mtg-vault/share
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { searchCards } from "./api";
+import { AuthBar } from "./AuthBar";
 import { CardDetail } from "./CardDetail";
 import { useDebouncedValue } from "./useDebouncedValue";
 
@@ -36,6 +37,7 @@ export function SearchPage() {
 
   return (
     <main className="page">
+      <AuthBar />
       <h1>mtg-vault</h1>
       <p className="subtitle">Search cards by name.</p>
 
