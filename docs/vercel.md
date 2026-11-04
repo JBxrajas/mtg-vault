@@ -55,6 +55,18 @@ vercel redeploy <latest production deployment url>
 
 Verified in production on 2026-11-04 with a throwaway account (deleted afterwards): register (200, `set-auth-token` exposed to the web origin), `GET /me` with the token (200) and without (401), wrong password (401), sign-in (200), sign-out (200) and the old token rejected (401). To redeploy after changing a variable, pass the latest production deployment URL from `vercel ls mtg-vault-api` to `vercel redeploy`.
 
+## Deployment limit (Hobby plan)
+
+The Hobby plan caps deployments per day. On 2026-11-04 both projects answered **"Deployment rate limited — retry in 24 hours"** and the merge of the decks PR (#34) did not deploy. The cause was volume: every push to a pull request built a preview of both projects, on top of the production builds.
+
+To stay under the limit, each project has an `ignoreCommand` in its `vercel.json` (`apps/web/vercel.json`, `apps/api/vercel.json`):
+- **Only `main` is built.** Pull request branches get no preview (the `Vercel` status on a PR shows as skipped or canceled; it is not a required check).
+- **On `main`, a push is built only if it changed something the project uses:** the project's own folder, `packages/shared` (and `packages/db` for the API), `package.json`, `pnpm-lock.yaml` or `pnpm-workspace.yaml`. A documentation-only merge deploys nothing.
+
+Consequences: there is no per-PR preview URL any more; to try a change before merging, run it locally. To deploy a change that the rule skips (for example a variable change), use **Redeploy** on the latest deployment in the Vercel dashboard or `vercel redeploy <url>`.
+
+**Recovering from a rate limit:** nothing can be deployed until the limit resets (24 hours after the message). Then redeploy `main`: in the dashboard, open the project and use *Redeploy* on the newest production deployment, or merge a change in `apps/web` or `apps/api`. Check that production runs the latest `main` by calling a route that only exists in it.
+
 ## Agent tooling
 
 The Vercel CLI, the Vercel plugin for Claude Code and the Vercel MCP server (`https://mcp.vercel.com`, user scope) were set up following https://vercel.com/get-started.md. The MCP server needs a one-time OAuth sign-in from `/mcp`.
