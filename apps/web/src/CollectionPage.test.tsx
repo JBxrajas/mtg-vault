@@ -10,7 +10,7 @@ const { fetchMe, fetchCollection, updateCollectionItem, removeFromCollection } =
   removeFromCollection: vi.fn(),
 }));
 vi.mock("./auth", () => ({ fetchMe, logout: vi.fn() }));
-vi.mock("./collectionApi", () => ({ fetchCollection, updateCollectionItem, removeFromCollection }));
+vi.mock("./collectionApi", () => ({ fetchCollection, updateCollectionItem, removeFromCollection, importCollection: vi.fn() }));
 
 import { CollectionPage } from "./CollectionPage";
 import { aStack, aUser, renderPage } from "./test-utils";

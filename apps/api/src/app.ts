@@ -7,6 +7,7 @@ import {
   deckIdParamSchema,
   deckInputSchema,
   deckUpdateSchema,
+  importRequestSchema,
   itemIdParamSchema,
   oracleIdParamSchema,
   registerSchema,
@@ -21,6 +22,7 @@ import { getAuth } from "./auth.js";
 import { listPrintings, searchCards } from "./cards.js";
 import { addDeckCard, createDeck, deleteDeck, getDeck, listDecks, setDeckCard, updateDeck } from "./decks.js";
 import { HttpError, addItem, getCollectionId, listItems, removeItem, updateItem } from "./collection.js";
+import { importRows } from "./import.js";
 import { allowedOrigins } from "./origins.js";
 
 type Env = { Variables: { userId: string } };
@@ -112,6 +114,16 @@ app.get("/collection/items", async (c) => {
 app.post("/collection/items", zValidator("json", collectionEntrySchema), async (c) => {
   const collectionId = await getCollectionId(c.get("userId"));
   return c.json({ item: await addItem(collectionId, c.req.valid("json")) }, 201);
+});
+
+/**
+ * Imports rows read from a collection export. The count in the file sets the stack's quantity,
+ * so importing the same file again changes nothing. Answers with what was created, updated,
+ * adjusted and what could not be imported.
+ */
+app.post("/collection/import", zValidator("json", importRequestSchema), async (c) => {
+  const collectionId = await getCollectionId(c.get("userId"));
+  return c.json(await importRows(collectionId, c.req.valid("json").rows));
 });
 
 app.patch(

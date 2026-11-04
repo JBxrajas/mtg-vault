@@ -13,7 +13,8 @@ Phases 1 and 2 are done: the monorepo, CI, the catalog imported from Scryfall in
 - **Binders**: named sub-collections of the collection (a physical binder, a box, a trade list).
 - **Decks** (works today), many per user, each with a format (Standard, Modern, Commander, …) and its cards divided by type: creature, sorcery, instant, enchantment, artifact, and so on.
 - **Card search** over the whole Scryfall catalog, tolerant of typos (works today).
-- Later: price history, CSV import and export, camera scanning and a desktop app.
+- **CSV import** of a Moxfield collection export (works today).
+- Later: price history, CSV export, camera scanning and a desktop app.
 
 ## Stack
 

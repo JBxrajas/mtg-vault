@@ -9,6 +9,12 @@
 - Fuzzy name lookup: `/cards/named?fuzzy=` (useful for OCR output).
 - Images: `image_uris` field (`small`, `normal`, `large`, `png`, `art_crop`, `border_crop`). We store these URLs per printing (`printings.image_uris`) and hotlink them; we do not copy the files. Scryfall's guidelines: do not crop or distort card images (use their `art_crop` for artwork), do not paywall them, and credit Scryfall. The search results expose `small`, `normal` and `artCrop` of the most recent printing that has an image.
 
+## Collection files (CSV import)
+
+The collection import reads the CSV that Moxfield exports. Its layout, as the import expects it: `Count, Tradelist Count, Name, Edition, Condition, Language, Foil, Tags, Last Modified, Collector Number, Alter, Proxy, Purchase Price`, where `Edition` is the set code, `Condition` is spelled out (Near Mint, Lightly Played, …), `Language` is a name (English, Spanish, …), `Foil` is empty, `foil` or `etched`, and `Proxy` rows are skipped. Headers are matched by name, ignoring case, spaces and order, with aliases (`Quantity`, `Set`, `Set code`, `Number`, `Scryfall ID`, `Purchase price`…), so files from other tools with similar headers, such as ManaBox (which also carries Scryfall ids), should work too.
+
+**What was and was not tested:** the reader and the import were tested with CSV files written in this layout from real cards, not with a real Moxfield export, and not with ManaBox or Deckbox files. If a real file shows something unexpected, the preview lists the columns it did not use and the lines it could not read.
+
 ## MTGJSON
 - https://mtgjson.com
 - Free. Includes historical prices from several providers (Cardmarket, TCGplayer, …). A complement to backfill history.
