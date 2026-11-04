@@ -37,8 +37,8 @@ export function LoginPage() {
 
   return (
     <main className="page">
-      <h1>mtg-vault</h1>
-      <h2>{mode === "login" ? "Sign in" : "Create your account"}</h2>
+      <div className="auth-card">
+      <h1>{mode === "login" ? "Sign in" : "Create your account"}</h1>
       <form className="auth-form" onSubmit={submit}>
         <label>
           Username
@@ -80,6 +80,7 @@ export function LoginPage() {
       <p>
         <Link to="/">Back to search</Link>
       </p>
+      </div>
     </main>
   );
 }

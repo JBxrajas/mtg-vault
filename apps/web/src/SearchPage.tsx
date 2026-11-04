@@ -2,8 +2,8 @@ import { colorSchema, type CardSearchResult, type Color } from "@mtg-vault/share
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { searchCards } from "./api";
-import { AuthBar } from "./AuthBar";
 import { CardDetail } from "./CardDetail";
+import { ManaCost } from "./ManaCost";
 import { useDebouncedValue } from "./useDebouncedValue";
 
 const COLORS = colorSchema.options;
@@ -37,41 +37,41 @@ export function SearchPage() {
 
   return (
     <main className="page">
-      <AuthBar />
-      <h1>mtg-vault</h1>
-      <p className="subtitle">Search cards by name.</p>
+      <h1>Search cards</h1>
+      <p className="subtitle">Find any Magic card by name, even with typos.</p>
 
-      <input
-        className="search"
-        type="search"
-        placeholder="Lightning Bolt…"
-        aria-label="Card name"
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-        autoFocus
-      />
-
-      <div className="filters">
+      <div className="searchbox">
         <input
-          type="text"
-          placeholder="Type (e.g. creature)"
-          aria-label="Type line contains"
-          value={type}
-          onChange={(e) => setType(e.target.value)}
+          className="search"
+          type="search"
+          placeholder="Lightning Bolt…"
+          aria-label="Card name"
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          autoFocus
         />
-        <div role="group" aria-label="Color identity">
-          {COLORS.map((c) => (
-            <button
-              key={c}
-              type="button"
-              className={colors.includes(c) ? "color on" : "color"}
-              aria-pressed={colors.includes(c)}
-              title={COLOR_NAMES[c]}
-              onClick={() => toggle(c)}
-            >
-              {c}
-            </button>
-          ))}
+        <div className="filters">
+          <input
+            type="text"
+            placeholder="Type (e.g. creature)"
+            aria-label="Type line contains"
+            value={type}
+            onChange={(e) => setType(e.target.value)}
+          />
+          <div className="colors" role="group" aria-label="Color identity">
+            {COLORS.map((c) => (
+              <button
+                key={c}
+                type="button"
+                className={`color pip-${c.toLowerCase()}${colors.includes(c) ? " on" : ""}`}
+                aria-pressed={colors.includes(c)}
+                title={COLOR_NAMES[c]}
+                onClick={() => toggle(c)}
+              >
+                {c}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -83,23 +83,18 @@ export function SearchPage() {
       <ul className="results">
         {enabled &&
           data?.map((card) => (
-            <li key={card.oracleId}>
-              {card.image ? (
-                <button
-                  type="button"
-                  className="thumb"
-                  aria-label={`Show ${card.name}`}
-                  onClick={() => setPreview(card)}
-                >
-                  <img src={card.image.small} alt="" loading="lazy" width={63} height={88} />
-                </button>
-              ) : (
-                <button type="button" className="thumb empty" aria-label={`Show ${card.name}`} onClick={() => setPreview(card)} />
-              )}
-              <div className="info">
-                <div className="name">
-                  {card.name} <span className="mana">{card.manaCost}</span>
-                </div>
+            <li key={card.oracleId} className="tile">
+              <button
+                type="button"
+                className={card.image ? "tile-btn" : "tile-btn empty"}
+                aria-label={`Show ${card.name}`}
+                onClick={() => setPreview(card)}
+              >
+                {card.image ? <img src={card.image.small} alt="" loading="lazy" /> : "No image"}
+              </button>
+              <div className="tile-info">
+                <div className="name">{card.name}</div>
+                <ManaCost cost={card.manaCost} />
                 <div className="type">{card.typeLine}</div>
               </div>
             </li>

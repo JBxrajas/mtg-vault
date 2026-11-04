@@ -15,13 +15,17 @@ export function AuthBar() {
   if (!me) {
     return (
       <div className="authbar">
-        <Link to="/login">Sign in</Link>
+        <Link to="/login" className="signin">
+          Sign in
+        </Link>
       </div>
     );
   }
   return (
     <div className="authbar">
-      <Link to="/collection">My collection</Link> · Signed in as <strong>{me.displayUsername}</strong> ·{" "}
+      <span className="who" title={me.displayUsername}>
+        {me.displayUsername}
+      </span>
       <button
         type="button"
         className="link"

@@ -1,7 +1,6 @@
 import { collectionTotals, type CollectionItem } from "@mtg-vault/shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { AuthBar } from "./AuthBar";
 import { fetchMe } from "./auth";
 import { fetchCollection, removeFromCollection, updateCollectionItem } from "./collectionApi";
 import { formatUsd } from "./format";
@@ -26,11 +25,7 @@ export function CollectionPage() {
 
   return (
     <main className="page">
-      <AuthBar />
       <h1>My collection</h1>
-      <p>
-        <Link to="/">Search cards</Link>
-      </p>
 
       {!loadingMe && !me && (
         <p className="hint">
@@ -43,13 +38,27 @@ export function CollectionPage() {
 
       {items && (
         <>
-          <p className="totals">
-            {totals.copies} {totals.copies === 1 ? "card" : "cards"} in {totals.stacks}{" "}
-            {totals.stacks === 1 ? "stack" : "stacks"} · market value {formatUsd(totals.valueUsd)}
-            {totals.unpriced > 0 && <span className="hint"> ({totals.unpriced} without a price)</span>}
-          </p>
-          {items.length === 0 && <p className="hint">Nothing here yet. Search a card and add it from its printings.</p>}
-          <ul className="results">
+          <div className="stats">
+            <div className="stat">
+              <b>{totals.copies}</b>
+              <span>{totals.copies === 1 ? "card" : "cards"}</span>
+            </div>
+            <div className="stat">
+              <b>{totals.stacks}</b>
+              <span>{totals.stacks === 1 ? "stack" : "stacks"}</span>
+            </div>
+            <div className="stat">
+              <b>{formatUsd(totals.valueUsd)}</b>
+              <span>market value</span>
+            </div>
+          </div>
+          {totals.unpriced > 0 && <p className="hint">{totals.unpriced} copies without a price are not counted in the value.</p>}
+          {items.length === 0 && (
+            <p className="hint">
+              Nothing here yet. <Link to="/">Search a card</Link> and add it from its printings.
+            </p>
+          )}
+          <ul className="stacks">
             {items.map((item) => (
               <StackRow
                 key={item.id}
@@ -74,19 +83,19 @@ function StackRow(props: {
 }) {
   const { item } = props;
   return (
-    <li>
+    <li className="stack">
       {item.image ? (
-        <img className="thumb-img" src={item.image.small} alt="" loading="lazy" width={63} height={88} />
+        <img src={item.image.small} alt="" loading="lazy" />
       ) : (
-        <div className="thumb empty" aria-hidden="true" />
+        <div className="thumb-ph" aria-hidden="true" />
       )}
-      <div className="info">
+      <div>
         <div className="name">{item.name}</div>
-        <div className="type">
+        <div className="sub">
           {item.setName} ({item.setCode.toUpperCase()}) #{item.collectorNumber} · {item.finish} · {item.condition}
           {item.language !== "en" ? ` · ${item.language}` : ""}
         </div>
-        <div className="type">
+        <div className="sub">
           {item.unitPrice != null
             ? `${formatUsd(item.unitPrice)} each · ${formatUsd(item.unitPrice * item.quantity)}`
             : "No price yet"}
@@ -96,10 +105,11 @@ function StackRow(props: {
         <button type="button" aria-label="One less" disabled={props.busy || item.quantity <= 1} onClick={() => props.onQuantity(item.quantity - 1)}>
           −
         </button>
-        <span aria-label="Quantity">{item.quantity}</span>
+        <output aria-label="Quantity">{item.quantity}</output>
         <button type="button" aria-label="One more" disabled={props.busy} onClick={() => props.onQuantity(item.quantity + 1)}>
           +
         </button>
+        <span className="spacer" />
         <button type="button" className="link" disabled={props.busy} onClick={props.onRemove}>
           Remove
         </button>

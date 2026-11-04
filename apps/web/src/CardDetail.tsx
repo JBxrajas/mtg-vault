@@ -21,8 +21,8 @@ export function CardDetail({ card, onClose }: { card: CardSearchResult; onClose:
       <div className="detail" onClick={(e) => e.stopPropagation()}>
         <header>
           <h2>{card.name}</h2>
-          <button type="button" onClick={onClose}>
-            Close
+          <button type="button" className="close" aria-label="Close" onClick={onClose}>
+            ×
           </button>
         </header>
         <div className="detail-body">

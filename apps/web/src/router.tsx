@@ -1,15 +1,15 @@
 import {
-  Outlet,
   createHashHistory,
   createRootRoute,
   createRoute,
   createRouter,
 } from "@tanstack/react-router";
 import { CollectionPage } from "./CollectionPage";
+import { Layout } from "./Layout";
 import { LoginPage } from "./LoginPage";
 import { SearchPage } from "./SearchPage";
 
-const rootRoute = createRootRoute({ component: () => <Outlet /> });
+const rootRoute = createRootRoute({ component: Layout });
 
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
