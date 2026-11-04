@@ -4,7 +4,7 @@
 - Docs: https://scryfall.com/docs/api
 - Free. Requires `User-Agent` and `Accept` headers on every request.
 - Courtesy rate limit: 50–100 ms between requests (roughly 10 per second at most).
-- **Bulk data** (`/bulk-data`): JSON files with the whole catalog, refreshed periodically. Use `default_cards` (one entry per printing) or `oracle_cards` (one per card). Import the bulk file instead of querying card by card.
+- **Bulk data** (`/bulk-data`): files with the whole catalog, refreshed periodically. Each entry exposes `jsonl_download_uri`, a gzipped JSON Lines file (one card per line). Use `default_cards` (one entry per printing) or `oracle_cards` (one per card). Import the bulk file instead of querying card by card.
 - Prices (`prices.usd`, `usd_foil`, `eur`, `eur_foil`, `tix`): current value only, **no history**. Price data refreshes once a day, so a daily snapshot is enough.
 - Fuzzy name lookup: `/cards/named?fuzzy=` (useful for OCR output).
 - Images: `image_uris` field (`small`, `normal`, `large`, `png`, `art_crop`).
