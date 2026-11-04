@@ -15,7 +15,9 @@ pnpm --filter @mtg-vault/api dev   # http://localhost:3001; loads ../../.env.loc
 
 ## Deployment
 
-Deployed as its own Vercel project, `mtg-vault-api` (root `apps/api`, Hono preset); see [docs/vercel.md](../../docs/vercel.md). Vercel's zero-config Hono support runs the default export of `src/index.ts`, which re-exports the app from `src/app.ts`. Locally the same app is served by `src/dev.ts`.
+Deployed as its own Vercel project, `mtg-vault-api` (root `apps/api`, Hono preset); see [docs/vercel.md](../../docs/vercel.md). Vercel's zero-config Hono support runs the default export of the entry file, which re-exports the app from `src/app.ts`. Locally the same app is served by `src/dev.ts`.
+
+Vercel only builds `apps/api`, and the workspace packages (`@mtg-vault/shared`, `@mtg-vault/db`) export TypeScript source, so a plain deploy crashed with `ERR_MODULE_NOT_FOUND`. `apps/api/vercel.json` therefore runs `pnpm build`, which bundles the app with tsup (`tsup.config.ts`) into `apps/api/index.js` (git-ignored). That file, found at the root, is the entry point Vercel runs; third-party dependencies stay external, which is why `postgres` is a direct dependency of the API. Build it locally with `pnpm --filter @mtg-vault/api build`.
 
 ## Endpoints
 

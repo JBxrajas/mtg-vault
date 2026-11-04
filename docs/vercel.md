@@ -34,6 +34,8 @@ The root directory and framework were then set through the project API (`vercel 
 
 It was created with `vercel link --yes --project mtg-vault-api` run **inside `apps/api`**, so the link lives in `apps/api/.vercel/` (git-ignored) and does not replace the web project's link at the repo root. Root directory and preset were set through the project API, as for the web project. Delete the `apps/api/.gitignore` that `vercel link` creates; the root one already covers it.
 
+The API is bundled before deploy (`apps/api/vercel.json` → `pnpm build`, tsup) because the workspace packages export TypeScript; see [apps/api/README.md](../apps/api/README.md#deployment).
+
 Environment variables (Production), to be set by the repository owner because storing secrets from the agent session is blocked:
 
 ```bash
