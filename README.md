@@ -67,4 +67,4 @@ pnpm test                             # unit tests (Vitest)
 - [docs/releases.md](docs/releases.md) — branches, versioning and releases
 - [CONTRIBUTING.md](CONTRIBUTING.md) — workflow and rules
 
-All documentation, code, comments and UI text are written in English.
+All documentation, code, comments and commit messages are written in English. The interface is available in English and Spanish ([ADR 0010](docs/adr/0010-interface-languages.md)).

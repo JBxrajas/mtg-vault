@@ -13,4 +13,4 @@
 
 Convention: every relevant decision is recorded as an ADR (`adr/NNNN-title.md`) with context, decision and consequences. If a decision changes, add a new ADR that supersedes the old one instead of editing it.
 
-Language: everything in this repository (docs, code, comments, commit messages, UI text) is written in English.
+Language: everything in this repository (docs, code, comments, commit messages) is written in English. The interface is in English with a Spanish translation ([ADR 0010](adr/0010-interface-languages.md)).

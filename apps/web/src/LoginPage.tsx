@@ -3,25 +3,28 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
 import { login, register } from "./auth";
+import { useI18n } from "./i18n";
 import { refreshSession } from "./session";
 
 type Field = "username" | "password";
 type FieldErrors = Partial<Record<Field, string>>;
-
-const NO_EMAIL = "Use a username, not an email: emails are not used here";
+type T = ReturnType<typeof useI18n>["t"];
 
 /** Checks the whole form at once, so every wrong field is flagged and not just the first one. */
-export function validateForm(mode: "login" | "register", input: { username: string; password: string }): FieldErrors {
+export function validateForm(mode: "login" | "register", input: { username: string; password: string }, t: T): FieldErrors {
   const errors: FieldErrors = {};
-  if (input.username.includes("@")) errors.username = NO_EMAIL;
+  if (input.username.includes("@")) errors.username = t("login.noEmail");
   const parsed = (mode === "register" ? registerSchema : loginSchema).safeParse(input);
   if (!parsed.success) {
     for (const issue of parsed.error.issues) {
       const field = issue.path[0];
-      if ((field === "username" || field === "password") && !errors[field]) {
-        errors[field] =
-          mode === "login" ? `Enter your ${field}` : issue.message;
-      }
+      if ((field !== "username" && field !== "password") || errors[field]) continue;
+      if (mode === "login") errors[field] = t(field === "username" ? "login.enterUsername" : "login.enterPassword");
+      else if (field === "username")
+        errors.username = t(
+          issue.code === "too_small" ? "login.username.min" : issue.code === "too_big" ? "login.username.max" : "login.username.chars",
+        );
+      else errors.password = t(issue.code === "too_big" ? "login.password.max" : "login.password.min");
     }
   }
   return errors;
@@ -31,7 +34,15 @@ export function validateForm(mode: "login" | "register", input: { username: stri
 export const serverFieldError = (message: string): Field | null =>
   /username/i.test(message) && /taken|exists|already/i.test(message) ? "username" : null;
 
+/** The server answers in English; the messages we know get translated, any other is shown as it came. */
+export function serverMessage(message: string, t: T): string {
+  if (/invalid username or password/i.test(message)) return t("login.error.invalid");
+  if (serverFieldError(message)) return t("login.error.taken");
+  return message;
+}
+
 export function LoginPage() {
+  const { t } = useI18n();
   const search = useSearch({ strict: false }) as { mode?: string };
   const [mode, setMode] = useState<"login" | "register">(search.mode === "register" ? "register" : "login");
   const [username, setUsername] = useState("");
@@ -50,7 +61,7 @@ export function LoginPage() {
   async function submit(e: FormEvent) {
     e.preventDefault();
     setError(null);
-    const errors = validateForm(mode, { username, password });
+    const errors = validateForm(mode, { username, password }, t);
     setFieldErrors(errors);
     if (errors.username || errors.password) return;
     const input = { username: username.trim(), password };
@@ -61,10 +72,10 @@ export function LoginPage() {
       await refreshSession(queryClient);
       await navigate({ to: "/" });
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Something went wrong";
+      const message = err instanceof Error ? err.message : "";
       const field = mode === "register" ? serverFieldError(message) : null;
-      if (field) setFieldErrors({ [field]: message });
-      else setError(message);
+      if (field) setFieldErrors({ [field]: serverMessage(message, t) });
+      else setError(message ? serverMessage(message, t) : t("login.error.generic"));
     } finally {
       setBusy(false);
     }
@@ -79,15 +90,11 @@ export function LoginPage() {
   return (
     <main className="page">
       <div className="auth-card">
-        <h1>{mode === "login" ? "Sign in" : "Create your account"}</h1>
-        <p className="hint">
-          {mode === "register"
-            ? "Free. No email needed: just pick a username and a password."
-            : "Use your username, not an email."}
-        </p>
+        <h1>{mode === "login" ? t("auth.signIn") : t("login.createTitle")}</h1>
+        <p className="hint">{mode === "register" ? t("login.registerHint") : t("login.loginHint")}</p>
         <form className="auth-form" onSubmit={submit} noValidate>
           <div className="field">
-            <label htmlFor="username">Username</label>
+            <label htmlFor="username">{t("login.username")}</label>
             <input
               id="username"
               value={username}
@@ -101,11 +108,11 @@ export function LoginPage() {
               aria-describedby="username-help"
             />
             <span id="username-help" className={fieldErrors.username ? "field-error" : "field-help"} role={fieldErrors.username ? "alert" : undefined}>
-              {fieldErrors.username ?? "3–30 characters: letters, digits, underscore or dot."}
+              {fieldErrors.username ?? t("login.usernameRules")}
             </span>
           </div>
           <div className="field">
-            <label htmlFor="password">Password</label>
+            <label htmlFor="password">{t("login.password")}</label>
             <input
               id="password"
               type="password"
@@ -119,7 +126,7 @@ export function LoginPage() {
               aria-describedby="password-help"
             />
             <span id="password-help" className={fieldErrors.password ? "field-error" : "field-help"} role={fieldErrors.password ? "alert" : undefined}>
-              {fieldErrors.password ?? (mode === "register" ? "At least 8 characters." : "")}
+              {fieldErrors.password ?? (mode === "register" ? t("login.passwordRules") : "")}
             </span>
           </div>
           {error && (
@@ -128,16 +135,16 @@ export function LoginPage() {
             </p>
           )}
           <button type="submit" disabled={busy}>
-            {busy ? "Please wait…" : mode === "login" ? "Sign in" : "Create account"}
+            {busy ? t("login.wait") : mode === "login" ? t("auth.signIn") : t("login.createButton")}
           </button>
         </form>
         <p>
           <button type="button" className="link" onClick={switchMode}>
-            {mode === "login" ? "No account? Create one" : "Already have an account? Sign in"}
+            {mode === "login" ? t("login.toRegister") : t("login.toLogin")}
           </button>
         </p>
         <p>
-          <Link to="/">Back to search</Link>
+          <Link to="/">{t("login.back")}</Link>
         </p>
       </div>
     </main>

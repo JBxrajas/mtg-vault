@@ -5,7 +5,7 @@ SPA built with Vite + React + TanStack Router and Query.
 It must remain a pure SPA (no SSR) so that `apps/desktop` can load the same build. See [ADR 0002](../../docs/adr/0002-spa-for-electron-reuse.md).
 
 - Assets use relative paths (`base: "./"`) and routing uses hash history, so the build also works from `file://` in Electron.
-- All UI text is in English.
+- The UI is in English and Spanish ([ADR 0010](../../docs/adr/0010-interface-languages.md)); see **Languages** below.
 
 ## Scripts
 
@@ -42,6 +42,10 @@ The session token lives in `localStorage` (`src/auth.ts`), but React Query also 
 ### Quantity buttons
 
 `+` and `−` on *My collection* are **optimistic** (`src/CollectionPage.tsx`): the number and the totals change on tap and the request follows. Requests of the same list run one after another (mutation `scope`), so quick taps cannot reach the server out of order, and the buttons stay enabled meanwhile. When the server refuses a change (for example copies placed in binders) the old number comes back with the message. The list is re-read once, after the last request ends, instead of after every tap.
+
+## Languages
+
+English is the source and the fallback; Spanish is a translation. Every UI message is a key in `src/messages/en.ts` with its Spanish text in `src/messages/es.ts`, and the build fails if a key is missing in Spanish. Use `const { t } = useI18n()` in components (they re-render when the language changes) and `t(key, vars)` elsewhere: `{name}` placeholders, `{ one, other }` for plurals (the key takes `count`). The start language is the saved choice (`localStorage` `mtg-vault.locale`), else the browser's, else English; the **EN / ES button** in the top bar and the *Language* section of *Appearance* change it, and `<html lang>` follows. Prices use the language's number format. Card names and type lines are English data from Scryfall and are not translated, so the type filter still sends English words; errors that come from the server are shown as received, except the sign-in and sign-up ones we know (`serverMessage` in `src/LoginPage.tsx`). Tests start in English whatever the machine's language (`test-setup.ts`); `i18n.test.ts` checks that both catalogs have the same keys, placeholders and plural shape, and `i18n-pages.test.tsx` renders screens in Spanish. Why this and not Lingui: [ADR 0010](../../docs/adr/0010-interface-languages.md).
 
 ## Appearance
 

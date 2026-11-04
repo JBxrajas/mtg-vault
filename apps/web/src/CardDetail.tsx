@@ -4,9 +4,11 @@ import { useState } from "react";
 import { AddToCollection } from "./AddToCollection";
 import { fetchPrintings } from "./api";
 import { priceLine, printingLabel, releaseYear } from "./format";
+import { useI18n } from "./i18n";
 
 /** Dialog with the card image and every printing of the card, with set name and price. */
 export function CardDetail({ card, onClose }: { card: CardSearchResult; onClose: () => void }) {
+  const { t } = useI18n();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const { data: printings, isLoading, error } = useQuery({
     queryKey: ["cards", card.oracleId, "printings"],
@@ -21,17 +23,17 @@ export function CardDetail({ card, onClose }: { card: CardSearchResult; onClose:
       <div className="detail" onClick={(e) => e.stopPropagation()}>
         <header>
           <h2>{card.name}</h2>
-          <button type="button" className="close" aria-label="Close" onClick={onClose}>
+          <button type="button" className="close" aria-label={t("detail.close")} onClick={onClose}>
             ×
           </button>
         </header>
         <div className="detail-body">
           {image && <img className="detail-image" src={image.normal} alt={card.name} />}
           <div className="printings">
-            {isLoading && <p className="hint">Loading printings…</p>}
+            {isLoading && <p className="hint">{t("detail.loading")}</p>}
             {error && <p className="error">{error.message}</p>}
             {selected && <AddToCollection key={selected.id} printing={selected} />}
-            {printings && <p className="hint">{printings.length} printings</p>}
+            {printings && <p className="hint">{t("detail.count", { count: printings.length })}</p>}
             <ul>
               {printings?.map((p) => (
                 <li key={p.id}>
@@ -47,7 +49,7 @@ export function CardDetail({ card, onClose }: { card: CardSearchResult; onClose:
                         .filter(Boolean)
                         .join(" · ")}
                     </span>
-                    <span className="printing-price">{priceLine(p.prices) ?? "No price yet"}</span>
+                    <span className="printing-price">{priceLine(p.prices) ?? t("price.none")}</span>
                   </button>
                 </li>
               ))}

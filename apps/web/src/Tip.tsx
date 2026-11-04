@@ -1,10 +1,12 @@
 import { useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { useI18n } from "./i18n";
 
 /**
  * Small "?" help bubble. Opens on hover, keyboard focus or tap (a plain `title` never shows on phones).
  * Escape, a tap outside or leaving with the mouse closes it.
  */
 export function Tip({ label, children }: { label: string; children: ReactNode }) {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const id = useId();
   const root = useRef<HTMLSpanElement>(null);
@@ -45,7 +47,7 @@ export function Tip({ label, children }: { label: string; children: ReactNode })
       <button
         type="button"
         className="tip-btn"
-        aria-label={`Help: ${label}`}
+        aria-label={t("tip.help", { label })}
         aria-expanded={open}
         aria-describedby={open ? id : undefined}
         onClick={(e) => {

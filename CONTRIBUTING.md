@@ -4,7 +4,7 @@
 
 1. **Implemented means documented.** A change is not done until `docs/` (plan status, stack, APIs, ADRs) and the affected READMEs are updated in the same PR.
 2. **New behavior comes with tests** whenever it can be tested (see [Tests](#tests)). `pnpm test` must pass before merging.
-3. **English only:** code, comments, docs, commit messages, PR text and UI text.
+3. **English only** for code, comments, docs, commit messages and PR text. The interface is written in English and translated to Spanish in `apps/web/src/messages/` ([ADR 0010](docs/adr/0010-interface-languages.md)): a new UI message goes in both catalogs.
 4. **`main` is always stable.** Work happens on a branch and enters `main` through a pull request, squash-merged.
 
 ### Docs hook (Claude Code)
