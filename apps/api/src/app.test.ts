@@ -16,6 +16,7 @@ const deckFns = {
   deleteDeck: vi.fn(),
   addDeckCard: vi.fn(),
   setDeckCard: vi.fn(),
+  importDeckRows: vi.fn(),
 };
 vi.mock("./decks.js", () => deckFns);
 
@@ -370,6 +371,7 @@ describe("/decks", () => {
     ["DELETE", `/decks/${deckId}`],
     ["POST", `/decks/${deckId}/cards`],
     ["PUT", `/decks/${deckId}/cards`],
+    ["POST", `/decks/${deckId}/import`],
   ])("%s %s requires a session", async (method, path) => {
     getSession.mockResolvedValue(null);
     const res = await app.request(path, { method });
@@ -470,5 +472,38 @@ describe("/decks", () => {
     expect(deckFns.setDeckCard).toHaveBeenCalledWith("u1", deckId, { oracleId, board: "sideboard", quantity: 0 });
     expect((await send("PUT", `/decks/${deckId}/cards`, { oracleId, quantity: -1 })).status).toBe(400);
     expect((await send("PUT", `/decks/${deckId}/cards`, { oracleId, quantity: 1000 })).status).toBe(400);
+  });
+
+  it("imports a deck list for the signed-in user's deck", async () => {
+    asUser();
+    const report = { created: 2, updated: 0, unchanged: 0, problems: [] };
+    deckFns.importDeckRows.mockResolvedValue(report);
+    const rows = [
+      { line: 1, name: "Lightning Bolt", quantity: 4, board: "main" },
+      { line: 3, name: "Pyroblast", quantity: 2, board: "sideboard" },
+    ];
+    const res = await send("POST", `/decks/${deckId}/import`, { rows });
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual(report);
+    expect(deckFns.importDeckRows).toHaveBeenCalledWith("u1", deckId, rows);
+  });
+
+  it.each([
+    { rows: [] },
+    { rows: [{ line: 1, name: "Bolt", quantity: 0, board: "main" }] },
+    { rows: [{ line: 1, name: "Bolt", quantity: 1, board: "graveyard" }] },
+    { rows: [{ line: 1, name: "", quantity: 1, board: "main" }] },
+    { rows: Array.from({ length: 1001 }, (_, n) => ({ line: n + 1, name: "Bolt", quantity: 1, board: "main" })) },
+  ])("rejects an invalid deck import", async (body) => {
+    asUser();
+    expect((await send("POST", `/decks/${deckId}/import`, body)).status).toBe(400);
+    expect(deckFns.importDeckRows).not.toHaveBeenCalled();
+  });
+
+  it("answers 404 when the deck is not the user's", async () => {
+    asUser();
+    deckFns.importDeckRows.mockRejectedValue(new HttpError(404, "Deck not found"));
+    const res = await send("POST", `/decks/${deckId}/import`, { rows: [{ line: 1, name: "Bolt", quantity: 1, board: "main" }] });
+    expect(res.status).toBe(404);
   });
 });

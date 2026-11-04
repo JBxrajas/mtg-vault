@@ -71,6 +71,16 @@ A user has many decks ([ADR 0008](../../docs/adr/0008-users-collection-binders-d
 
 Formats: standard, pioneer, modern, legacy, vintage, commander, oathbreaker, brawl, pauper, historic, casual. Boards: `main`, `sideboard`, `maybeboard` and `commander`. Dividing the deck by card type (creature, sorcery, instant, …) is done by the client with `groupByCategory` from `packages/shared`, from each card's type line. **Format rules are not enforced** (deck size, copy limits, legality): the deck size and the target of the format (`deckTargetSize`: 60, Commander 100, none for casual) are shown, not required.
 
+### Importing a deck list
+
+`POST /decks/:id/import` (Bearer token) takes `{ rows }`, 1 to 1000 rows already read from a text list by `parseDeckList` in `packages/shared` (the web app reads it and sends it in chunks of 500). A row has `line`, `name`, `quantity` (1 to 999) and `board`. It answers `{ created, updated, unchanged, problems }`; `404` when the deck is not the user's.
+
+- **The count sets the copies** of that card on that board, as in the collection import: importing the same list twice changes nothing, and cards that are not in the list are left alone. Rows for the same card and board are added together (up to 999).
+- **Finding the card** is by name only (a deck holds oracle cards, not printings): case-insensitive, and the front face of a double-faced card is enough (`Fire` finds `Fire // Ice`). The set and number a list may carry are dropped by the parser.
+- **`problems`**: no card with that name, the `commander` board in a format that has none (only Commander, Brawl and Oathbreaker do), or more than 999 copies.
+- The SQL was run end to end on a throwaway Neon branch (lower-case names, double-faced cards, duplicates, unknown card, second import without changes, a changed count, another user's deck, the commander board in Modern).
+- Exporting needs no endpoint: the web app writes the list from `GET /decks/:id` with `formatDeckList`, and the collection CSV from `GET /collection/items` with `collectionToCsv`.
+
 ### Importing a collection
 
 `POST /collection/import` (Bearer token) takes `{ rows }`, 1 to 1000 rows already read from a CSV by `parseCollectionCsv` in `packages/shared` (the web app does the reading and sends the file in chunks of `IMPORT_CHUNK` = 500). A row has `line`, `name`, `count` and optionally `setCode`, `collectorNumber`, `scryfallId`, `finish`, `condition`, `language`, `purchasePrice`, `notes`. It answers `{ created, updated, unchanged, adjusted, problems }`.

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { toDeckCardEntry, toDeckSummary } from "./decks.js";
+import { planDeckImport, toDeckCardEntry, toDeckSummary } from "./decks.js";
 
 describe("toDeckSummary", () => {
   it("maps columns, converts the count and serialises the date", () => {
@@ -67,5 +67,53 @@ describe("toDeckCardEntry", () => {
     expect(e.manaCost).toBeNull();
     expect(e.owned).toBe(0);
     expect(e.typeLine).toBe("");
+  });
+});
+
+describe("planDeckImport", () => {
+  const row = (line: number, name: string, quantity: number, board: "main" | "sideboard" | "maybeboard" | "commander" = "main") => ({
+    line,
+    name,
+    quantity,
+    board,
+  });
+
+  it("keeps resolved rows and reports the ones with no card", () => {
+    const plan = planDeckImport([row(1, "Lightning Bolt", 4), row(2, "Lightnin Bolt", 1)], new Map([[1, "o-bolt"]]), "modern");
+    expect(plan.entries).toEqual([{ oracleId: "o-bolt", board: "main", quantity: 4 }]);
+    expect(plan.problems).toEqual([{ line: 2, name: "Lightnin Bolt", reason: "No card found" }]);
+  });
+
+  it("adds up lines for the same card on the same board but keeps boards apart", () => {
+    const resolved = new Map([
+      [1, "o-bolt"],
+      [2, "o-bolt"],
+      [3, "o-bolt"],
+    ]);
+    const plan = planDeckImport([row(1, "Bolt", 2), row(2, "Bolt", 1), row(3, "Bolt", 3, "sideboard")], resolved, "modern");
+    expect(plan.entries).toEqual([
+      { oracleId: "o-bolt", board: "main", quantity: 3 },
+      { oracleId: "o-bolt", board: "sideboard", quantity: 3 },
+    ]);
+  });
+
+  it("refuses the commander board for formats without one, and allows it for Commander, Brawl and Oathbreaker", () => {
+    const resolved = new Map([[1, "o-atraxa"]]);
+    const rows = [row(1, "Atraxa", 1, "commander")];
+    expect(planDeckImport(rows, resolved, "modern").problems[0]?.reason).toMatch(/Commander, Brawl and Oathbreaker/);
+    expect(planDeckImport(rows, resolved, "modern").entries).toEqual([]);
+    for (const format of ["commander", "brawl", "oathbreaker"] as const) {
+      expect(planDeckImport(rows, resolved, format).entries).toEqual([{ oracleId: "o-atraxa", board: "commander", quantity: 1 }]);
+    }
+  });
+
+  it("reports lines that add up to more than 999 copies instead of writing them", () => {
+    const resolved = new Map([
+      [1, "o-island"],
+      [2, "o-island"],
+    ]);
+    const plan = planDeckImport([row(1, "Island", 600), row(2, "Island", 600)], resolved, "casual");
+    expect(plan.entries).toEqual([]);
+    expect(plan.problems).toEqual([{ line: 1, name: "Island", reason: "Lines for the same card add up to more than 999 copies" }]);
   });
 });

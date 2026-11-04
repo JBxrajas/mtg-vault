@@ -10,13 +10,15 @@ const { fetchMe, fetchCollection, updateCollectionItem, removeFromCollection } =
   removeFromCollection: vi.fn(),
 }));
 vi.mock("./auth", () => ({ fetchMe, logout: vi.fn() }));
+const { downloadText } = vi.hoisted(() => ({ downloadText: vi.fn() }));
+vi.mock("./download", () => ({ downloadText }));
 vi.mock("./collectionApi", () => ({ fetchCollection, updateCollectionItem, removeFromCollection, importCollection: vi.fn() }));
 
 import { CollectionPage } from "./CollectionPage";
 import { aStack, aUser, renderPage } from "./test-utils";
 
 beforeEach(() => {
-  for (const f of [fetchMe, fetchCollection, updateCollectionItem, removeFromCollection]) f.mockReset();
+  for (const f of [fetchMe, fetchCollection, updateCollectionItem, removeFromCollection, downloadText]) f.mockReset();
   fetchMe.mockResolvedValue(aUser);
 });
 
@@ -138,6 +140,26 @@ describe("CollectionPage", () => {
     await userEvent.click(await screen.findByRole("button", { name: "One less" }));
     expect(await screen.findByText(/placed in binders/)).toBeInTheDocument();
     await waitFor(() => expect(screen.getByLabelText("Quantity")).toHaveTextContent("4"));
+  });
+
+  it("exports the collection as a CSV file the import can read back", async () => {
+    fetchCollection.mockResolvedValue([aStack({ name: "Lightning Bolt", quantity: 3 })]);
+    renderPage(<CollectionPage />, { path: "/collection" });
+    await userEvent.click(await screen.findByRole("button", { name: "Export CSV" }));
+    expect(downloadText).toHaveBeenCalledTimes(1);
+    const [name, text, type] = downloadText.mock.calls[0]!;
+    expect(name).toMatch(/^mtg-vault-collection-\d{4}-\d{2}-\d{2}\.csv$/);
+    expect(type).toBe("text/csv");
+    expect(text).toContain("Count,Name,Edition,Condition,Language,Foil,Collector Number,Scryfall ID,Purchase Price");
+    expect(text).toContain("3,Lightning Bolt,lea,Near Mint,English,,161,p1,");
+    expect(text.startsWith("\ufeff")).toBe(true);
+  });
+
+  it("offers no export for an empty collection", async () => {
+    fetchCollection.mockResolvedValue([]);
+    renderPage(<CollectionPage />, { path: "/collection" });
+    await screen.findByText(/Nothing here yet/);
+    expect(screen.queryByRole("button", { name: "Export CSV" })).not.toBeInTheDocument();
   });
 
   it("removes a stack", async () => {

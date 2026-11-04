@@ -72,7 +72,9 @@ export interface CardSearchResult {
 }
 
 export * from "./csv.js";
+export * from "./decklist.js";
 export * from "./decks.js";
+export * from "./export.js";
 export * from "./import.js";
 
 /** Latest known prices of a printing. Null where Scryfall has none (for example no etched price). */

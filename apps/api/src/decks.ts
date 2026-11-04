@@ -1,16 +1,20 @@
 import type {
+  DeckBoard,
   DeckCard,
   DeckCardEntry,
   DeckCardSet,
   DeckDetail,
   DeckFormat,
+  DeckImportResult,
+  DeckImportRow,
   DeckInput,
   DeckSummary,
   DeckUpdate,
+  ImportProblem,
 } from "@mtg-vault/shared";
-import { MAX_COPIES } from "@mtg-vault/shared";
+import { deckBoards, MAX_COPIES } from "@mtg-vault/shared";
 import { sql } from "drizzle-orm";
-import { toCardImage } from "./cards.js";
+import { likeEscape, toCardImage } from "./cards.js";
 import { HttpError } from "./collection.js";
 import { getDb } from "./db.js";
 
@@ -166,4 +170,94 @@ export async function setDeckCard(userId: string, deckId: string, card: DeckCard
     if (!updated[0]) throw new HttpError(404, "That card is not on this board; add it first");
   }
   await exec(sql`update decks set updated_at = now() where id = ${deckId}`);
+}
+
+export interface PlannedDeckCard {
+  oracleId: string;
+  board: DeckBoard;
+  quantity: number;
+}
+
+/**
+ * Decides what to write for a deck list. A card that was not found, a board the format does not have, and a total
+ * above `MAX_COPIES` are problems; rows for the same card and board are added together. Pure: no database.
+ */
+export function planDeckImport(rows: DeckImportRow[], resolved: Map<number, string>, format: DeckFormat) {
+  const allowed = new Set<DeckBoard>(["main", ...deckBoards(format)]);
+  const problems: ImportProblem[] = [];
+  const entries = new Map<string, PlannedDeckCard & { line: number; name: string }>();
+
+  for (const row of rows) {
+    const oracleId = resolved.get(row.line);
+    if (!oracleId) {
+      problems.push({ line: row.line, name: row.name, reason: "No card found" });
+      continue;
+    }
+    if (!allowed.has(row.board)) {
+      problems.push({
+        line: row.line,
+        name: row.name,
+        reason: "The commander board is only for Commander, Brawl and Oathbreaker decks",
+      });
+      continue;
+    }
+    const key = `${oracleId}|${row.board}`;
+    const existing = entries.get(key);
+    if (existing) existing.quantity += row.quantity;
+    else entries.set(key, { oracleId, board: row.board, quantity: row.quantity, line: row.line, name: row.name });
+  }
+
+  const ok: PlannedDeckCard[] = [];
+  for (const e of entries.values()) {
+    if (e.quantity > MAX_COPIES) {
+      problems.push({ line: e.line, name: e.name, reason: `Lines for the same card add up to more than ${MAX_COPIES} copies` });
+    } else {
+      ok.push({ oracleId: e.oracleId, board: e.board, quantity: e.quantity });
+    }
+  }
+  return { entries: ok, problems };
+}
+
+/** Oracle id for each row by card name (case-insensitive; the front face of "A // B" is enough), by line. */
+async function resolveCardNames(rows: DeckImportRow[]): Promise<Map<number, string>> {
+  const tuples = rows.map((r) => sql`(${r.line}::int, ${likeEscape(r.name)}::text)`);
+  const found = await exec(sql`
+    with input(line, name) as (values ${sql.join(tuples, sql`, `)})
+    select i.line, c.oracle_id
+    from input i
+    join lateral (
+      select oracle_id
+      from cards
+      where name ilike i.name or name ilike i.name || ' // %'
+      order by (name ilike i.name) desc
+      limit 1
+    ) c on true
+  `);
+  return new Map(found.map((f) => [Number(f.line), f.oracle_id as string]));
+}
+
+/**
+ * Imports a deck list into a deck. The count **sets** the copies of that card on that board, it is not added to what
+ * is there, so importing the same list again changes nothing. Cards that are not in the list are left alone.
+ */
+export async function importDeckRows(userId: string, deckId: string, rows: DeckImportRow[]): Promise<DeckImportResult> {
+  const deck = await getSummary(userId, deckId);
+  if (!deck) throw new HttpError(404, "Deck not found");
+  const { entries, problems } = planDeckImport(rows, await resolveCardNames(rows), deck.format);
+
+  let created = 0;
+  let updated = 0;
+  if (entries.length > 0) {
+    const tuples = entries.map((e) => sql`(${deckId}::uuid, ${e.oracleId}::uuid, ${e.board}, ${e.quantity}::int)`);
+    const written = await exec(sql`
+      insert into deck_cards (deck_id, oracle_id, board, quantity)
+      values ${sql.join(tuples, sql`, `)}
+      on conflict (deck_id, oracle_id, board) do update set quantity = excluded.quantity
+        where deck_cards.quantity is distinct from excluded.quantity
+      returning (xmax = 0) as inserted
+    `);
+    for (const w of written) w.inserted ? created++ : updated++;
+    if (written.length > 0) await exec(sql`update decks set updated_at = now() where id = ${deckId}`);
+  }
+  return { created, updated, unchanged: entries.length - created - updated, problems };
 }

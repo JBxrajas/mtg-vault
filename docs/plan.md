@@ -28,7 +28,7 @@ Status: ☐ pending · ◐ in progress · ☑ done
 - ☐ Binders: API and screens to place copies of a stack in binders (the tables and the quantity rule exist)
 - ☑ Decks: API and screens to build decks with formats, boards, type groups, deck size and an owned/missing badge from the collection ([apps/api](../apps/api/README.md), [apps/web](../apps/web/README.md)). Format rules (size limits, copy limits, legality) are not enforced yet
 - ☑ CSV import of a collection (Moxfield layout; other files with similar headers should work) ([apps/api](../apps/api/README.md), [docs/apis.md](apis.md#collection-files-csv-import))
-- ☐ CSV export of the collection and of decks
+- ☑ Collection CSV export and deck list import and export ([docs/apis.md](apis.md#deck-lists-text-import-and-export)); a CSV export of decks is not done
 - ☑ Interface in English and Spanish, with a language button ([ADR 0010](adr/0010-interface-languages.md)); server error messages are still English
 - ☑ Appearance: light or dark mode, background color or card art, saved on the device ([apps/web](../apps/web/README.md))
 
