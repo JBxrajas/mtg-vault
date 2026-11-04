@@ -12,7 +12,9 @@ export function DecksPage() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const { data: me, isLoading: loadingMe } = useQuery({ queryKey: ["me"], queryFn: ({ signal }) => fetchMe(signal) });
-  const { data: decks, isLoading, error } = useQuery({ queryKey: ["decks"], queryFn: fetchDecks, enabled: !!me });
+  const { data: cached, isLoading, error } = useQuery({ queryKey: ["decks"], queryFn: fetchDecks, enabled: !!me });
+  // Never show cached decks without a signed-in user (for example right after signing out).
+  const decks = me ? cached : undefined;
   const [name, setName] = useState("");
   const [format, setFormat] = useState<DeckFormat>("casual");
 
@@ -73,8 +75,8 @@ export function DecksPage() {
         </form>
       )}
       {create.error && <p className="error">{create.error.message}</p>}
-      {isLoading && <p className="hint">Loading…</p>}
-      {error && <p className="error">{error.message}</p>}
+      {me && isLoading && <p className="hint">Loading…</p>}
+      {me && error && <p className="error">{error.message}</p>}
       {decks && decks.length === 0 && <p className="hint">No decks yet. Name one above to start.</p>}
 
       <ul className="deck-list">

@@ -1,6 +1,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { fetchMe, logout } from "./auth";
+import { refreshSession } from "./session";
 
 /** Shows who is signed in, or a link to sign in. */
 export function AuthBar() {
@@ -31,7 +32,7 @@ export function AuthBar() {
         className="link"
         onClick={async () => {
           await logout();
-          await queryClient.invalidateQueries({ queryKey: ["me"] });
+          await refreshSession(queryClient);
         }}
       >
         Sign out

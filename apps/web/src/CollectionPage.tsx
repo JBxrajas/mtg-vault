@@ -10,11 +10,13 @@ import { Tip } from "./Tip";
 export function CollectionPage() {
   const queryClient = useQueryClient();
   const { data: me, isLoading: loadingMe } = useQuery({ queryKey: ["me"], queryFn: ({ signal }) => fetchMe(signal) });
-  const { data: items, isLoading, error } = useQuery({
+  const { data: cached, isLoading, error } = useQuery({
     queryKey: ["collection"],
     queryFn: fetchCollection,
     enabled: !!me,
   });
+  // Never show cached stacks without a signed-in user (for example right after signing out).
+  const items = me ? cached : undefined;
   const refresh = () => queryClient.invalidateQueries({ queryKey: ["collection"] });
   const setQuantity = useMutation({
     mutationFn: ({ id, quantity }: { id: string; quantity: number }) => updateCollectionItem(id, { quantity }),
@@ -43,8 +45,8 @@ export function CollectionPage() {
           </div>
         </section>
       )}
-      {isLoading && <p className="hint">Loading…</p>}
-      {error && <p className="error">{error.message}</p>}
+      {me && isLoading && <p className="hint">Loading…</p>}
+      {me && error && <p className="error">{error.message}</p>}
       {actionError && <p className="error">{actionError.message}</p>}
 
       {me && <ImportCollection />}

@@ -32,6 +32,16 @@ describe("CollectionPage", () => {
     expect(fetchCollection).not.toHaveBeenCalled();
   });
 
+  it("hides the cached stacks as soon as nobody is signed in", async () => {
+    fetchCollection.mockResolvedValue([aStack({ name: "Lightning Bolt" })]);
+    const { queryClient } = renderPage(<CollectionPage />, { path: "/collection" });
+    expect(await screen.findByText("Lightning Bolt")).toBeInTheDocument();
+
+    queryClient.setQueryData(["me"], null);
+    expect(await screen.findByText(/to see your collection/)).toBeInTheDocument();
+    expect(screen.queryByText("Lightning Bolt")).not.toBeInTheDocument();
+  });
+
   it("shows an empty collection with a pointer to the search", async () => {
     fetchCollection.mockResolvedValue([]);
     renderPage(<CollectionPage />, { path: "/collection" });

@@ -3,6 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
 import { login, register } from "./auth";
+import { refreshSession } from "./session";
 
 type Field = "username" | "password";
 type FieldErrors = Partial<Record<Field, string>>;
@@ -57,7 +58,7 @@ export function LoginPage() {
     try {
       if (mode === "register") await register(input);
       else await login(input);
-      await queryClient.invalidateQueries({ queryKey: ["me"] });
+      await refreshSession(queryClient);
       await navigate({ to: "/" });
     } catch (err) {
       const message = err instanceof Error ? err.message : "Something went wrong";
