@@ -17,6 +17,17 @@ const COLOR_NAMES: Record<Color, string> = {
   G: "Green",
 };
 
+/** Card types people search for most; the type box accepts any word of the type line. */
+export const CARD_TYPES = ["Creature", "Instant", "Sorcery", "Artifact", "Enchantment", "Planeswalker", "Land", "Battle"];
+
+/** Plain-words summary of the color buttons, so it is clear what they do. */
+export function describeColors(colors: Color[]): string {
+  if (colors.length === 0) return "No color picked: cards of any color.";
+  const names = colors.map((c) => COLOR_NAMES[c]);
+  const list = names.length === 1 ? names[0] : `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
+  return colors.length === 1 ? `Cards that have ${list}.` : `Cards that have all of: ${list}.`;
+}
+
 export function SearchPage() {
   const [text, setText] = useState("");
   const [type, setType] = useState("");
@@ -60,30 +71,66 @@ export function SearchPage() {
           autoFocus
         />
         <div className="filters">
-          <input
-            type="text"
-            placeholder="Type (e.g. creature)"
-            aria-label="Type line contains"
-            value={type}
-            onChange={(e) => setType(e.target.value)}
-          />
-          <Tip label="filters">
-            Narrow the results. Type matches the card type (creature, instant, legendary…). The color buttons keep
-            only cards that use those colors.
-          </Tip>
-          <div className="colors" role="group" aria-label="Color identity">
-            {COLORS.map((c) => (
-              <button
-                key={c}
-                type="button"
-                className={`color pip-${c.toLowerCase()}${colors.includes(c) ? " on" : ""}`}
-                aria-pressed={colors.includes(c)}
-                title={COLOR_NAMES[c]}
-                onClick={() => toggle(c)}
-              >
-                {c}
-              </button>
-            ))}
+          <div className="filter">
+            <span className="filter-title">
+              Card type
+              <Tip label="card type">
+                Keeps cards whose type line contains the word. Pick one below or type your own, such as a creature
+                type (goblin, elf, dragon), an artifact type (equipment) or legendary.
+              </Tip>
+            </span>
+            <input
+              type="text"
+              placeholder="Type (e.g. creature)"
+              aria-label="Type line contains"
+              value={type}
+              onChange={(e) => setType(e.target.value)}
+            />
+            <div className="chips" role="group" aria-label="Common card types">
+              {CARD_TYPES.map((t) => {
+                const on = type.trim().toLowerCase() === t.toLowerCase();
+                return (
+                  <button
+                    key={t}
+                    type="button"
+                    className={on ? "chip on" : "chip"}
+                    aria-pressed={on}
+                    onClick={() => setType(on ? "" : t)}
+                  >
+                    {t}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+          <div className="filter">
+            <span className="filter-title">
+              Colors
+              <Tip label="colors">
+                Pick the colors a card must have. With two or more, it must have all of them: Red + Green finds
+                red-green cards (and ones with more colors), not every red or green card. Lands and colorless cards
+                have no color, so pick none to see them.
+              </Tip>
+            </span>
+            <div className="colors" role="group" aria-label="Color identity">
+              {COLORS.map((c) => (
+                <div key={c} className="color-item">
+                  <button
+                    type="button"
+                    className={`color pip-${c.toLowerCase()}${colors.includes(c) ? " on" : ""}`}
+                    aria-pressed={colors.includes(c)}
+                    title={COLOR_NAMES[c]}
+                    onClick={() => toggle(c)}
+                  >
+                    {c}
+                  </button>
+                  <span className="color-name" aria-hidden="true">
+                    {COLOR_NAMES[c]}
+                  </span>
+                </div>
+              ))}
+            </div>
+            <p className="hint filter-summary">{describeColors(colors)}</p>
           </div>
         </div>
       </div>

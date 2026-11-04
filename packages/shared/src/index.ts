@@ -109,11 +109,14 @@ export const oracleIdParamSchema = z.object({ oracleId: z.string().uuid() });
 export const usernameSchema = z
   .string()
   .trim()
-  .min(3)
-  .max(30)
-  .regex(/^[A-Za-z0-9_.]+$/, "Use letters, digits, underscore or dot");
+  .min(3, "Use at least 3 characters")
+  .max(30, "Use at most 30 characters")
+  .regex(/^[A-Za-z0-9_.]+$/, "Use only letters, digits, underscore or dot (no spaces, no @)");
 
-export const passwordSchema = z.string().min(8).max(128);
+export const passwordSchema = z
+  .string()
+  .min(8, "Use at least 8 characters")
+  .max(128, "Use at most 128 characters");
 
 export const registerSchema = z.object({ username: usernameSchema, password: passwordSchema });
 export type RegisterInput = z.infer<typeof registerSchema>;
