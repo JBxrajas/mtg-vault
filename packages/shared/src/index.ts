@@ -35,6 +35,16 @@ export const cardSearchQuerySchema = z.object({
 });
 export type CardSearchQuery = z.infer<typeof cardSearchQuerySchema>;
 
+/** Scryfall image URLs for one printing; hotlinked, not stored by us. */
+export interface CardImage {
+  /** Small card image, for lists. */
+  small: string;
+  /** Regular card image, for a detail view. */
+  normal: string;
+  /** Just the artwork, cropped by Scryfall. */
+  artCrop: string;
+}
+
 export interface CardSearchResult {
   oracleId: string;
   name: string;
@@ -42,6 +52,8 @@ export interface CardSearchResult {
   typeLine: string;
   /** Trigram similarity to the query, 0 to 1. */
   similarity: number;
+  /** Image of the most recent printing that has one, or null. */
+  image: CardImage | null;
 }
 
 export * from "./decks.js";

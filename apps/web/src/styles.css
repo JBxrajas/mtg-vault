@@ -45,6 +45,9 @@ body {
   padding: 0;
 }
 .results li {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
   padding: 0.6rem 0;
   border-bottom: 1px solid rgba(128, 128, 128, 0.3);
 }
@@ -52,4 +55,43 @@ body {
 .type {
   opacity: 0.7;
   font-size: 0.9rem;
+}
+.thumb {
+  flex: none;
+  width: 63px;
+  height: 88px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+.thumb img {
+  display: block;
+  border-radius: 4px;
+}
+.thumb.empty {
+  cursor: default;
+  background: rgba(128, 128, 128, 0.2);
+  border-radius: 4px;
+}
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.8);
+}
+.overlay img {
+  max-width: 90vw;
+  max-height: 80vh;
+  border-radius: 12px;
+}
+.credit {
+  margin-top: 2rem;
+  font-size: 0.8rem;
+  opacity: 0.6;
 }
