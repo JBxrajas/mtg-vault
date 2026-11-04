@@ -24,7 +24,17 @@ export function Layout() {
             ))}
           </nav>
         </div>
-        <AuthBar />
+        <div className="topbar-right">
+          <Link to="/appearance" className="icon-link" aria-label="Appearance" title="Appearance: mode, background color and card art">
+            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 3a9 9 0 1 0 0 18c1.1 0 1.6-.8 1.6-1.6 0-1.3-1-1.6-1-2.7 0-.9.7-1.5 1.6-1.5H16a5 5 0 0 0 5-5c0-4.1-4-7.2-9-7.2Z" />
+              <circle cx="7.5" cy="11" r="1" />
+              <circle cx="10.5" cy="7.5" r="1" />
+              <circle cx="15" cy="7.5" r="1" />
+            </svg>
+          </Link>
+          <AuthBar />
+        </div>
       </header>
       <Outlet />
     </div>

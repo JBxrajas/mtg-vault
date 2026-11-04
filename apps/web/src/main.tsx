@@ -2,8 +2,12 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { RouterProvider } from "@tanstack/react-router";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
+import { startAppearance } from "./appearance";
 import { router } from "./router";
 import "./styles.css";
+
+// Apply the saved look before the first render so the page does not flash the default one.
+startAppearance();
 
 const queryClient = new QueryClient();
 
