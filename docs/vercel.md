@@ -61,15 +61,15 @@ The database is on Neon in `aws-us-west-2` (Oregon). Vercel functions default to
 
 ## Deployment limit (Hobby plan)
 
-The Hobby plan caps deployments per day. On 2026-11-04 both projects answered **"Deployment rate limited — retry in 24 hours"** and the merge of the decks PR (#34) did not deploy. The cause was volume: every push to a pull request built a preview of both projects, on top of the production builds.
+The Hobby plan allows **100 deployments per 24 hours** (the error says `api-deployments-free-per-day`; the Git integration shows "Deployment rate limited — retry in 24 hours"). It was hit on 2026-11-04, when merges stopped deploying. Counting with the API (`vercel api "/v6/deployments?limit=100&teamId=…"`), there were **155 deployments in 24 hours**, almost all previews: every push to a pull request creates one per project, and a preview that the `ignoreCommand` cancels **still counts**. Deployments made by hand with `vercel deploy` count too.
 
-To stay under the limit, each project has an `ignoreCommand` in its `vercel.json` (`apps/web/vercel.json`, `apps/api/vercel.json`):
-- **Only `main` is built.** Pull request branches get no preview (the `Vercel` status on a PR shows as skipped or canceled; it is not a required check).
-- **On `main`, a push is built only if it changed something the project uses:** the project's own folder, `packages/shared` (and `packages/db` for the API), `package.json`, `pnpm-lock.yaml` or `pnpm-workspace.yaml`. A documentation-only merge deploys nothing.
+Two settings in each project's `vercel.json` (`apps/web/vercel.json`, `apps/api/vercel.json`) keep the count low:
+- **`git.deploymentEnabled`: `{ "**": false, "main": true }`.** Only pushes to `main` create a deployment; any other branch creates none (Vercel uses [minimatch](https://vercel.com/docs/project-configuration/git-configuration#git.deploymentenabled) patterns, `**` also matches branch names with a slash such as `feat/x`, and a branch matching a `true` rule deploys). A pull request shows no `Vercel` status at all. This replaces the earlier approach of cancelling the build in `ignoreCommand`, which did not stop the deployment from being counted.
+- **`ignoreCommand`:** on `main`, a push is built only if it changed something the project uses: the project's own folder, `packages/shared` (and `packages/db` for the API), `package.json`, `pnpm-lock.yaml` or `pnpm-workspace.yaml`. A documentation-only merge deploys nothing.
 
-Consequences: there is no per-PR preview URL any more; to try a change before merging, run it locally. To deploy a change that the rule skips (for example a variable change), use **Redeploy** on the latest deployment in the Vercel dashboard or `vercel redeploy <url>`.
+Consequences: no per-PR preview URL; to try a change before merging, run it locally. Merging to `main` deploys by itself when the limit allows, so a manual `vercel deploy --prod` is only needed after a rate limit or for a change the `ignoreCommand` skips (a variable change: use **Redeploy** in the dashboard or `vercel redeploy <url>`). To check the count: list the deployments with the API as above and count those created in the last 24 hours.
 
-**Recovering from a rate limit:** nothing can be deployed until the limit resets (24 hours after the message). Then redeploy `main`: in the dashboard, open the project and use *Redeploy* on the newest production deployment, or merge a change in `apps/web` or `apps/api`. Check that production runs the latest `main` by calling a route that only exists in it.
+**Recovering from a rate limit:** the count is a rolling 24 hours, so deployments free up as the oldest ones age out; retrying earlier fails the same way. Then redeploy `main`: in the dashboard, *Redeploy* on the newest production deployment, or merge a change in `apps/web` or `apps/api`. Check that production runs the latest `main` by calling a route that only exists in it.
 
 ## Agent tooling
 
