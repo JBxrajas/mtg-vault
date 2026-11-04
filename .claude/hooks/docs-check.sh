@@ -16,12 +16,20 @@ changed=$(git status --porcelain | sed -E 's/^.{3}//; s/.* -> //')
 code_changed=$(printf '%s\n' "$changed" | grep -E "$code_re" | grep -vE '(^|/)pnpm-lock\.yaml$')
 docs_changed=$(printf '%s\n' "$changed" | grep -E "$docs_re")
 
+# Tests: source files under src/ (not tests, not config) changed without any *.test.ts change.
+src_changed=$(printf '%s\n' "$changed" | grep -E '^(apps|packages)/[^/]+/src/.*\.tsx?$' | grep -vE '\.test\.tsx?$')
+tests_changed=$(printf '%s\n' "$changed" | grep -E '\.test\.tsx?$')
+test_note=""
+if [ -n "$src_changed" ] && [ -z "$tests_changed" ]; then
+  test_note=" Tests check: source files changed but no *.test.ts did. Add or update unit tests when the change can be tested (see CONTRIBUTING.md, Tests); if it cannot, say why in the PR."
+fi
+
 reminder="Docs check: implemented means documented. Before this commit, review docs/ (plan.md status, stack.md, apis.md, glossary.md, ADRs in docs/adr/), READMEs and CONTRIBUTING.md, and update whatever this change affects."
 
 if [ -n "$code_changed" ] && [ -z "$docs_changed" ] && [[ "$cmd" != *NO_DOCS_NEEDED* ]]; then
   jq -n --arg r "$reminder Code or config changed but no documentation file did. Update the docs, or if none are affected, rerun the commit with NO_DOCS_NEEDED=1 as a prefix (for example: NO_DOCS_NEEDED=1 git commit ...)." \
     '{hookSpecificOutput:{hookEventName:"PreToolUse",permissionDecision:"deny",permissionDecisionReason:$r}}'
 else
-  jq -n --arg r "$reminder" \
+  jq -n --arg r "$reminder$test_note" \
     '{hookSpecificOutput:{hookEventName:"PreToolUse",additionalContext:$r}}'
 fi
