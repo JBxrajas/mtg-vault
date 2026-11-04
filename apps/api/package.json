@@ -4,15 +4,20 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "tsx watch src/dev.ts",
+    "dev": "tsx --env-file-if-exists=../../.env.local watch src/dev.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@hono/node-server": "^1.13.0",
+    "@hono/zod-validator": "^0.7.0",
+    "@mtg-vault/db": "workspace:*",
     "@mtg-vault/shared": "workspace:*",
-    "hono": "^4.6.0"
+    "drizzle-orm": "^0.45.4",
+    "hono": "^4.6.0",
+    "zod": "^3.23.0"
   },
   "devDependencies": {
+    "@types/node": "^26.6.6",
     "tsx": "^4.19.0"
   }
 }

@@ -10,14 +10,14 @@ Status: ☐ pending · ◐ in progress · ☑ done
 - ☑ Branch, commit and release process (release-please, Conventional Commits) — see [releases.md](releases.md)
 - ☑ Docs check hook before every commit made through Claude Code — see [ADR 0006](adr/0006-docs-check-commit-hook.md)
 - ☑ GitHub settings and `main` protection — see [releases.md](releases.md)
-- ☑ Basic CI on GitHub Actions: typecheck and web build (`.github/workflows/ci.yml`), with `pnpm-lock.yaml` committed
+- ☑ Basic CI on GitHub Actions: typecheck, unit tests (Vitest) and web build (`.github/workflows/ci.yml`), with `pnpm-lock.yaml` committed
 - ☑ `typecheck` is a required check on `main`
 - ☑ First release `v0.1.0` published; `release-as` removed
 
 ## Phase 2 — Catalog ◐
 - ☑ Drizzle schema: `sets`, `cards` (oracle), `printings`, `price_snapshots` and first migration (`packages/db`) — not yet applied to a real database
 - ☑ GitHub Actions job: import Scryfall bulk data into Neon ([apps/jobs](../apps/jobs/README.md); verified end to end in Actions)
-- ☐ Name search endpoint (`pg_trgm`) and basic filters
+- ☑ Name search endpoint (`pg_trgm`) and basic filters ([apps/api](../apps/api/README.md))
 
 ## Phase 3 — Collection and users ☐
 - Auth with email and password (Better Auth)
