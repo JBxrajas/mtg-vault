@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.1](https://github.com/JBxrajas/mtg-vault/compare/v0.1.0...v0.1.1) (2026-11-04)
+
+
+### Bug Fixes
+
+* remove release-as now that v0.1.0 is published ([#13](https://github.com/JBxrajas/mtg-vault/issues/13)) ([923bd1e](https://github.com/JBxrajas/mtg-vault/commit/923bd1ea8bb97901600b0024053b81e8fbbf6a1f))
+
 ## 0.1.0 (2026-11-04)
 
 
