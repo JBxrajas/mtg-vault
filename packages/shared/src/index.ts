@@ -10,13 +10,31 @@ export type Finish = z.infer<typeof finishSchema>;
 /** One stack of identical cards in a collection: same printing, finish, condition and language. */
 export const collectionEntrySchema = z.object({
   printingId: z.string().uuid(),
-  quantity: z.number().int().positive(),
+  quantity: z.number().int().positive().max(9999),
   finish: finishSchema.default("nonfoil"),
   condition: conditionSchema.default("NM"),
-  language: z.string().default("en"),
-  purchasePrice: z.number().nonnegative().optional(),
+  language: z.string().trim().min(2).max(5).default("en"),
+  /** Price paid per copy, in USD. */
+  purchasePrice: z.number().nonnegative().max(1_000_000).optional(),
+  /** ISO date (YYYY-MM-DD). */
+  acquiredOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  notes: z.string().trim().max(500).optional(),
 });
 export type CollectionEntry = z.infer<typeof collectionEntrySchema>;
+
+/** Fields of a stack that can change after it exists. Condition, finish and language identify the stack: remove and add instead. */
+export const updateCollectionItemSchema = z
+  .object({
+    quantity: z.number().int().positive().max(9999),
+    purchasePrice: z.number().nonnegative().max(1_000_000).nullable(),
+    acquiredOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable(),
+    notes: z.string().trim().max(500).nullable(),
+  })
+  .partial()
+  .refine((v) => Object.keys(v).length > 0, "Send at least one field to change");
+export type UpdateCollectionItem = z.infer<typeof updateCollectionItemSchema>;
+
+export const itemIdParamSchema = z.object({ id: z.string().uuid() });
 
 export const colorSchema = z.enum(["W", "U", "B", "R", "G"]);
 export type Color = z.infer<typeof colorSchema>;
@@ -116,3 +134,46 @@ export interface CurrentUser {
  * address (`.invalid` never receives mail). See docs/adr/0008-users-collection-binders-decks.md.
  */
 export const syntheticEmail = (username: string) => `${username.trim().toLowerCase()}@users.invalid`;
+
+/** A stack in the signed-in user's collection, with the card and its latest price. */
+export interface CollectionItem {
+  id: string;
+  printingId: string;
+  oracleId: string;
+  name: string;
+  setCode: string;
+  setName: string;
+  collectorNumber: string;
+  rarity: string;
+  finish: Finish;
+  condition: Condition;
+  language: string;
+  quantity: number;
+  /** Price paid per copy (USD), or null. */
+  purchasePrice: number | null;
+  acquiredOn: string | null;
+  notes: string | null;
+  image: CardImage | null;
+  /** Latest market price per copy in USD for this finish, or null when unknown. */
+  unitPrice: number | null;
+  pricesOn: string | null;
+}
+
+/** Market price in USD of one copy with the given finish; null when that finish has no price. */
+export function unitPriceUsd(finish: Finish, prices: PrintingPrices | null): number | null {
+  if (!prices) return null;
+  return finish === "foil" ? prices.usdFoil : finish === "etched" ? prices.usdEtched : prices.usd;
+}
+
+/** Totals for a list of stacks. Copies without a price count as `unpriced`. */
+export function collectionTotals(items: Pick<CollectionItem, "quantity" | "unitPrice">[]) {
+  let copies = 0;
+  let unpriced = 0;
+  let valueUsd = 0;
+  for (const item of items) {
+    copies += item.quantity;
+    if (item.unitPrice == null) unpriced += item.quantity;
+    else valueUsd += item.unitPrice * item.quantity;
+  }
+  return { stacks: items.length, copies, unpriced, valueUsd: Math.round(valueUsd * 100) / 100 };
+}

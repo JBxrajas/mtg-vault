@@ -2,7 +2,25 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const searchCards = vi.fn();
 const listPrintings = vi.fn();
-vi.mock("./cards.js", () => ({ searchCards, listPrintings }));
+vi.mock("./cards.js", async (original) => ({
+  ...(await original<typeof import("./cards.js")>()),
+  searchCards,
+  listPrintings,
+}));
+
+const addItem = vi.fn();
+const updateItem = vi.fn();
+const removeItem = vi.fn();
+const listItems = vi.fn();
+const getCollectionId = vi.fn();
+vi.mock("./collection.js", async (original) => ({
+  ...(await original<typeof import("./collection.js")>()),
+  addItem,
+  updateItem,
+  removeItem,
+  listItems,
+  getCollectionId,
+}));
 
 const getSession = vi.fn();
 const signUpEmail = vi.fn();
@@ -10,6 +28,7 @@ const handler = vi.fn();
 vi.mock("./auth.js", () => ({ getAuth: () => ({ handler, api: { getSession, signUpEmail } }) }));
 
 const { app } = await import("./app.js");
+const { HttpError } = await import("./collection.js");
 
 beforeEach(() => {
   searchCards.mockReset();
@@ -17,6 +36,8 @@ beforeEach(() => {
   getSession.mockReset();
   signUpEmail.mockReset();
   handler.mockReset();
+  for (const f of [addItem, updateItem, removeItem, listItems, getCollectionId]) f.mockReset();
+  getCollectionId.mockResolvedValue("col-1");
 });
 
 describe("GET /health", () => {
@@ -184,5 +205,111 @@ describe("CORS for auth", () => {
       },
     });
     expect(res.headers.get("access-control-allow-headers")).toContain("Authorization");
+  });
+});
+
+describe("/collection/items", () => {
+  const printingId = "4457ed35-7c10-48c8-9776-456485fdf070";
+  const itemId = "2b93787d-47ea-4b8b-912d-ffc5d5440171";
+  const asUser = () => getSession.mockResolvedValue({ user: { id: "u1" } });
+  const send = (method: string, path: string, body?: unknown) =>
+    app.request(path, {
+      method,
+      headers: { "Content-Type": "application/json", Authorization: "Bearer tok" },
+      body: body === undefined ? undefined : JSON.stringify(body),
+    });
+
+  it.each([
+    ["GET", "/collection/items"],
+    ["POST", "/collection/items"],
+    ["PATCH", `/collection/items/${itemId}`],
+    ["DELETE", `/collection/items/${itemId}`],
+  ])("%s %s requires a session", async (method, path) => {
+    getSession.mockResolvedValue(null);
+    const res = await app.request(path, { method });
+    expect(res.status).toBe(401);
+    expect(listItems).not.toHaveBeenCalled();
+    expect(addItem).not.toHaveBeenCalled();
+  });
+
+  it("lists the stacks of the signed-in user's own collection", async () => {
+    asUser();
+    listItems.mockResolvedValue([{ id: itemId }]);
+    const res = await send("GET", "/collection/items");
+    expect(await res.json()).toEqual({ items: [{ id: itemId }] });
+    expect(getCollectionId).toHaveBeenCalledWith("u1");
+    expect(listItems).toHaveBeenCalledWith("col-1");
+  });
+
+  it("adds a stack with defaults and answers 201", async () => {
+    asUser();
+    addItem.mockResolvedValue({ id: itemId, quantity: 2 });
+    const res = await send("POST", "/collection/items", { printingId, quantity: 2 });
+    expect(res.status).toBe(201);
+    expect(addItem).toHaveBeenCalledWith("col-1", {
+      printingId,
+      quantity: 2,
+      finish: "nonfoil",
+      condition: "NM",
+      language: "en",
+    });
+  });
+
+  it.each([
+    { printingId, quantity: 0 },
+    { printingId, quantity: 10000 },
+    { printingId: "nope", quantity: 1 },
+    { printingId, quantity: 1, finish: "shiny" },
+    { printingId, quantity: 1, condition: "XX" },
+    { printingId, quantity: 1, acquiredOn: "yesterday" },
+  ])("rejects an invalid stack %j", async (body) => {
+    asUser();
+    const res = await send("POST", "/collection/items", body);
+    expect(res.status).toBe(400);
+    expect(addItem).not.toHaveBeenCalled();
+  });
+
+  it("maps service errors to their status", async () => {
+    asUser();
+    addItem.mockRejectedValue(new HttpError(400, "This printing does not come in foil"));
+    const res = await send("POST", "/collection/items", { printingId, quantity: 1, finish: "foil" });
+    expect(res.status).toBe(400);
+    expect(await res.json()).toEqual({ error: "This printing does not come in foil" });
+  });
+
+  it("updates a stack, and answers 404 for one that is not in this collection", async () => {
+    asUser();
+    updateItem.mockResolvedValueOnce({ id: itemId, quantity: 5 });
+    const ok = await send("PATCH", `/collection/items/${itemId}`, { quantity: 5 });
+    expect(ok.status).toBe(200);
+    expect(updateItem).toHaveBeenCalledWith("col-1", itemId, { quantity: 5 });
+    updateItem.mockResolvedValueOnce(null);
+    expect((await send("PATCH", `/collection/items/${itemId}`, { quantity: 1 })).status).toBe(404);
+  });
+
+  it("answers 409 when the quantity is lower than what binders hold", async () => {
+    asUser();
+    updateItem.mockRejectedValue(new HttpError(409, "2 copies are placed in binders"));
+    expect((await send("PATCH", `/collection/items/${itemId}`, { quantity: 1 })).status).toBe(409);
+  });
+
+  it.each([{}, { quantity: 0 }, { condition: "NM" }])("rejects an empty or invalid update %j", async (body) => {
+    asUser();
+    const res = await send("PATCH", `/collection/items/${itemId}`, body);
+    expect(res.status).toBe(400);
+    expect(updateItem).not.toHaveBeenCalled();
+  });
+
+  it("rejects an id that is not a UUID", async () => {
+    asUser();
+    expect((await send("DELETE", "/collection/items/42")).status).toBe(400);
+  });
+
+  it("deletes with 204 and answers 404 when nothing was removed", async () => {
+    asUser();
+    removeItem.mockResolvedValueOnce(true);
+    expect((await send("DELETE", `/collection/items/${itemId}`)).status).toBe(204);
+    removeItem.mockResolvedValueOnce(false);
+    expect((await send("DELETE", `/collection/items/${itemId}`)).status).toBe(404);
   });
 });

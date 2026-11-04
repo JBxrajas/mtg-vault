@@ -21,7 +21,7 @@ export function AuthBar() {
   }
   return (
     <div className="authbar">
-      Signed in as <strong>{me.displayUsername}</strong> ·{" "}
+      <Link to="/collection">My collection</Link> · Signed in as <strong>{me.displayUsername}</strong> ·{" "}
       <button
         type="button"
         className="link"
