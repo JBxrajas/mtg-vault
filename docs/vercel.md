@@ -44,7 +44,7 @@ grep '^DATABASE_URL=' ../../.env.local | cut -d= -f2- | tr -d '"' | vercel env a
 echo https://mtg-vault-web.vercel.app | vercel env add CORS_ORIGINS production
 ```
 
-Auth variables (Production), also set by the repository owner. The secret is generated on the spot and never printed:
+Auth variables (Production), also set by the repository owner (set on 2026-11-04). The secret is generated on the spot and never printed:
 
 ```bash
 cd apps/api
@@ -52,6 +52,8 @@ openssl rand -base64 32 | vercel env add BETTER_AUTH_SECRET production --sensiti
 echo https://mtg-vault-api.vercel.app | vercel env add BETTER_AUTH_URL production
 vercel redeploy <latest production deployment url>
 ```
+
+Verified in production on 2026-11-04 with a throwaway account (deleted afterwards): register (200, `set-auth-token` exposed to the web origin), `GET /me` with the token (200) and without (401), wrong password (401), sign-in (200), sign-out (200) and the old token rejected (401). To redeploy after changing a variable, pass the latest production deployment URL from `vercel ls mtg-vault-api` to `vercel redeploy`.
 
 ## Agent tooling
 

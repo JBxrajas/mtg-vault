@@ -23,7 +23,7 @@ Status: ☐ pending · ◐ in progress · ☑ done
 
 ## Phase 3 — Collection and users ◐
 - ☑ Data model: users, one collection per user (inventory with printings, finish, condition, language), binders, decks with formats and type groups ([ADR 0008](adr/0008-users-collection-binders-decks.md)); migration `0002` not applied to production yet
-- ☑ Auth with username and password: register, sign in and out, `GET /me`, sign-in screen in the web app ([ADR 0009](adr/0009-username-login-with-bearer-tokens.md)); needs `BETTER_AUTH_SECRET` and `BETTER_AUTH_URL` set in the API project on Vercel
+- ☑ Auth with username and password: register, sign in and out, `GET /me`, sign-in screen in the web app ([ADR 0009](adr/0009-username-login-with-bearer-tokens.md)); live in production, verified end to end (see [vercel.md](vercel.md))
 - ☐ API and screens to add, remove and edit inventory stacks, assign copies to binders, and build decks
 - CSV import and export (Moxfield, Deckbox, Manabox)
 
