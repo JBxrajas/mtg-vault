@@ -35,4 +35,4 @@ Ordering: exact name, then names starting with `q`, then trigram similarity.
 
 Invalid parameters return `400` with the Zod issues. The query schema lives in `packages/shared` (`cardSearchQuerySchema`) so web and desktop can reuse it.
 
-Verified manually against the Neon catalog (120k printings): a typo query, the `type` and `colors` filters, and the `400` cases. There are no automated tests yet.
+Verified manually against the Neon catalog (120k printings): a typo query, the `type` and `colors` filters, and the `400` cases. Unit tests (`app.test.ts`, `cards.test.ts`) cover validation, the response shape and LIKE escaping with the data layer mocked; the SQL itself is not covered by automated tests.

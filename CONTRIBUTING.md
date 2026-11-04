@@ -41,3 +41,7 @@ Example: `feat/scryfall-import`.
 ## Releases
 
 See [docs/releases.md](docs/releases.md). In short: merging to `main` makes release-please open or update a release PR; merging that PR creates the tag and the GitHub Release.
+
+## Tests
+
+Run `pnpm test` (Vitest) before opening a PR; CI runs it too. Add unit tests next to the code you change, in `*.test.ts` files. Unit tests must not touch a real database or the network; mock those modules. Test code that needs a database is not set up yet.

@@ -11,7 +11,7 @@ export interface CardSearchResult {
 }
 
 /** Escape LIKE wildcards so user input is matched literally. */
-const likeEscape = (s: string) => s.replace(/[\\%_]/g, "\\$&");
+export const likeEscape = (s: string) => s.replace(/[\\%_]/g, "\\$&");
 
 /**
  * Fuzzy name search backed by the `pg_trgm` GIN index on `cards.name`.

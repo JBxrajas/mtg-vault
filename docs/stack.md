@@ -36,7 +36,8 @@ packages/db     Drizzle schema and migrations (postgres.js driver)
 - Node.js 22 LTS and pnpm 9 (pinned in the root `package.json` via `packageManager`).
 - Web: React 19, Vite, TanStack Router (hash history) and Query.
 - API: Hono served locally with `@hono/node-server` and `tsx`.
-- CI (`.github/workflows/ci.yml`): `pnpm install --frozen-lockfile`, `pnpm typecheck` and the web build on every PR and push to `main`.
+- Tests: Vitest, run from the root with `pnpm test`. Unit tests live next to the code as `*.test.ts` and must not need a database or network: mock `./cards.js` or other I/O modules (see `apps/api/src/app.test.ts`).
+- CI (`.github/workflows/ci.yml`): `pnpm install --frozen-lockfile`, `pnpm typecheck`, `pnpm test` and the web build on every PR and push to `main`.
 
 ## Electron
 
