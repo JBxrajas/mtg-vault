@@ -39,7 +39,8 @@ describe("SearchPage", () => {
 
     expect(await screen.findByText("Lightning Bolt")).toBeInTheDocument();
     expect(screen.getByRole("img", { name: "{R}" })).toBeInTheDocument();
-    expect(screen.getByText("Instant")).toBeInTheDocument();
+    // The type line of the result (the filter chips also say "Instant").
+    expect(screen.getAllByText("Instant")).toHaveLength(2);
     // Decorative image (the button carries the name), so it has no accessible role.
     const img = screen.getByRole("button", { name: "Show Lightning Bolt" }).querySelector("img")!;
     expect(img).toHaveAttribute("src", "https://img.example/small.jpg");
@@ -106,5 +107,31 @@ describe("SearchPage", () => {
 
     await userEvent.click(within(dialog).getByRole("button", { name: "Close" }));
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("lists the common card types and fills the type filter when one is picked", async () => {
+    searchCards.mockResolvedValue([aCard()]);
+    renderPage(<SearchPage />);
+    const types = within(await screen.findByRole("group", { name: "Common card types" }));
+    for (const t of ["Creature", "Sorcery", "Artifact", "Instant"]) expect(types.getByRole("button", { name: t })).toBeInTheDocument();
+
+    await userEvent.type(screen.getByLabelText("Card name"), "bolt");
+    await userEvent.click(types.getByRole("button", { name: "Sorcery" }));
+    expect(screen.getByLabelText("Type line contains")).toHaveValue("Sorcery");
+    expect(types.getByRole("button", { name: "Sorcery" })).toHaveAttribute("aria-pressed", "true");
+    await vi.waitFor(() => expect(searchCards).toHaveBeenLastCalledWith(expect.objectContaining({ type: "Sorcery" }), expect.anything()));
+
+    await userEvent.click(types.getByRole("button", { name: "Sorcery" }));
+    expect(screen.getByLabelText("Type line contains")).toHaveValue("");
+  });
+
+  it("says in words which colors are being filtered", async () => {
+    renderPage(<SearchPage />);
+    expect(await screen.findByText("No color picked: cards of any color.")).toBeInTheDocument();
+    const colors = within(screen.getByRole("group", { name: "Color identity" }));
+    await userEvent.click(colors.getByRole("button", { name: "R" }));
+    expect(screen.getByText("Cards that have Red.")).toBeInTheDocument();
+    await userEvent.click(colors.getByRole("button", { name: "G" }));
+    expect(screen.getByText("Cards that have all of: Red and Green.")).toBeInTheDocument();
   });
 });

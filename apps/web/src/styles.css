@@ -506,7 +506,7 @@ button.link {
   gap: 0.9rem;
   margin-top: 1rem;
 }
-.auth-form label {
+.auth-form .field {
   display: grid;
   gap: 0.25rem;
   font-size: 0.85rem;
@@ -909,4 +909,73 @@ a.button {
 }
 a.button:hover {
   background: var(--primary-hover);
+}
+
+/* Form field help and errors */
+.field-help,
+.field-error {
+  font-size: 0.8rem;
+  min-height: 1.1em;
+}
+.field-error {
+  color: var(--danger);
+  font-weight: 600;
+}
+input[aria-invalid="true"] {
+  border-color: var(--danger);
+  outline-color: var(--danger);
+}
+
+/* Search filters */
+.filters {
+  align-items: flex-start;
+  gap: 1rem;
+}
+.filter {
+  display: grid;
+  gap: 0.4rem;
+  flex: 1 1 14rem;
+  min-width: 0;
+}
+.filter-title {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+button.chip {
+  min-height: 2rem;
+  padding: 0.2rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+button.chip:hover:not(:disabled) {
+  background: var(--surface);
+  border-color: var(--primary);
+}
+button.chip.on {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--on-primary);
+}
+.color-item {
+  display: grid;
+  justify-items: center;
+  gap: 0.2rem;
+}
+.color-name {
+  font-size: 0.7rem;
+  color: var(--muted);
+}
+.filter-summary {
+  margin: 0;
+  font-size: 0.8rem;
 }
