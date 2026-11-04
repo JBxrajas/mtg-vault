@@ -122,12 +122,15 @@ export function DeckPage() {
         onAdd={(oracleId, board) => addCard.mutate({ oracleId, board })}
       />
 
-      <div className="tabs" role="group" aria-label={t("deck.boards")}>
-        {(["main", "sideboard", "maybeboard"] as const).map((b) => (
-          <button key={b} type="button" aria-pressed={tab === b} className={tab === b ? "tab on" : "tab"} onClick={() => setTab(b)}>
-            {t(BOARD_KEY[b])} ({b === "main" ? count : flat(b).reduce((n, c) => n + c.quantity, 0)})
-          </button>
-        ))}
+      {/* The help bubble sits beside the tabs, not inside them: the tabs scroll sideways on a phone, and a scrolling box clips (and scrolls) anything that hangs out of it. */}
+      <div className="tabs-row">
+        <div className="tabs" role="group" aria-label={t("deck.boards")}>
+          {(["main", "sideboard", "maybeboard"] as const).map((b) => (
+            <button key={b} type="button" aria-pressed={tab === b} className={tab === b ? "tab on" : "tab"} onClick={() => setTab(b)}>
+              {t(BOARD_KEY[b])} ({b === "main" ? count : flat(b).reduce((n, c) => n + c.quantity, 0)})
+            </button>
+          ))}
+        </div>
         <Tip label={t("deck.boards.tip.label")}>{t("deck.boards.tip.text")}</Tip>
       </div>
 
