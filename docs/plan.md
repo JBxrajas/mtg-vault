@@ -12,6 +12,7 @@ Status: ☐ pending · ◐ in progress · ☑ done
 - ☑ GitHub settings and `main` protection — see [releases.md](releases.md)
 - ☑ Basic CI on GitHub Actions: typecheck, unit tests (Vitest) and web build (`.github/workflows/ci.yml`), with `pnpm-lock.yaml` committed
 - ☑ `typecheck` is a required check on `main`
+- ☑ `test` is a required check on `main` (applied 2026-11-04, see [ADR 0007](adr/0007-tests-before-merge.md))
 - ☑ First release `v0.1.0` published; `release-as` removed
 
 ## Phase 2 — Catalog ◐
