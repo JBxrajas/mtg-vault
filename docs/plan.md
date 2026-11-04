@@ -27,7 +27,8 @@ Status: ☐ pending · ◐ in progress · ☑ done
 - ☑ Inventory: API (`/collection/items`) and screens to add, change and remove stacks, with market value ([apps/api](../apps/api/README.md), [apps/web](../apps/web/README.md))
 - ☐ Binders: API and screens to place copies of a stack in binders (the tables and the quantity rule exist)
 - ☑ Decks: API and screens to build decks with formats, boards, type groups, deck size and an owned/missing badge from the collection ([apps/api](../apps/api/README.md), [apps/web](../apps/web/README.md)). Format rules (size limits, copy limits, legality) are not enforced yet
-- CSV import and export (Moxfield, Deckbox, Manabox)
+- ☑ CSV import of a collection (Moxfield layout; other files with similar headers should work) ([apps/api](../apps/api/README.md), [docs/apis.md](apis.md#collection-files-csv-import))
+- ☐ CSV export of the collection and of decks
 
 ## Phase 4 — Prices ◐
 - ◐ Price snapshots in `price_snapshots`: the Scryfall import writes a row when a printing's price changes ([apps/jobs](../apps/jobs/README.md)); latest prices shown per printing in the web app. Runs weekly for now; a daily run needs the storage plan checked first

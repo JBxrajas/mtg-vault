@@ -794,3 +794,33 @@ button.danger {
     grid-column: auto;
   }
 }
+
+/* Import */
+.import {
+  margin: 1rem 0;
+  padding: 0.7rem 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.import summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+.import input[type="file"] {
+  width: 100%;
+  margin: 0.5rem 0;
+}
+.import-preview,
+.import-result {
+  display: grid;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+.import-list ul {
+  max-height: 14rem;
+  overflow: auto;
+  margin: 0.4rem 0 0;
+  padding-left: 1.1rem;
+  font-size: 0.85rem;
+}

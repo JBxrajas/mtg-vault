@@ -19,6 +19,9 @@ const deckFns = {
 };
 vi.mock("./decks.js", () => deckFns);
 
+const importRows = vi.fn();
+vi.mock("./import.js", () => ({ importRows }));
+
 const addItem = vi.fn();
 const updateItem = vi.fn();
 const removeItem = vi.fn();
@@ -47,7 +50,7 @@ beforeEach(() => {
   getSession.mockReset();
   signUpEmail.mockReset();
   handler.mockReset();
-  for (const f of [addItem, updateItem, removeItem, listItems, getCollectionId, ...Object.values(deckFns)]) f.mockReset();
+  for (const f of [addItem, updateItem, removeItem, listItems, getCollectionId, importRows, ...Object.values(deckFns)]) f.mockReset();
   getCollectionId.mockResolvedValue("col-1");
 });
 
@@ -314,6 +317,29 @@ describe("/collection/items", () => {
   it("rejects an id that is not a UUID", async () => {
     asUser();
     expect((await send("DELETE", "/collection/items/42")).status).toBe(400);
+  });
+
+  it("imports rows into the user's own collection and returns the report", async () => {
+    asUser();
+    const report = { created: 1, updated: 0, unchanged: 0, adjusted: [], problems: [] };
+    importRows.mockResolvedValue(report);
+    const res = await send("POST", "/collection/import", { rows: [{ line: 2, name: "Bolt", count: 4, setCode: "m10" }] });
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual(report);
+    expect(getCollectionId).toHaveBeenCalledWith("u1");
+    expect(importRows).toHaveBeenCalledWith("col-1", [
+      { line: 2, name: "Bolt", count: 4, setCode: "m10", finish: "nonfoil", condition: "NM", language: "en" },
+    ]);
+  });
+
+  it("needs a session to import and validates the rows", async () => {
+    getSession.mockResolvedValue(null);
+    expect((await app.request("/collection/import", { method: "POST" })).status).toBe(401);
+    asUser();
+    expect((await send("POST", "/collection/import", { rows: [] })).status).toBe(400);
+    expect((await send("POST", "/collection/import", { rows: [{ line: 2, name: "Bolt", count: 0 }] })).status).toBe(400);
+    expect((await send("POST", "/collection/import", { rows: Array.from({ length: 1001 }, (_, i) => ({ line: i + 2, name: "Bolt", count: 1 })) })).status).toBe(400);
+    expect(importRows).not.toHaveBeenCalled();
   });
 
   it("deletes with 204 and answers 404 when nothing was removed", async () => {

@@ -4,6 +4,7 @@ import { Link } from "@tanstack/react-router";
 import { fetchMe } from "./auth";
 import { fetchCollection, removeFromCollection, updateCollectionItem } from "./collectionApi";
 import { formatUsd } from "./format";
+import { ImportCollection } from "./ImportCollection";
 
 export function CollectionPage() {
   const queryClient = useQueryClient();
@@ -35,6 +36,8 @@ export function CollectionPage() {
       {isLoading && <p className="hint">Loading…</p>}
       {error && <p className="error">{error.message}</p>}
       {actionError && <p className="error">{actionError.message}</p>}
+
+      {me && <ImportCollection />}
 
       {items && (
         <>

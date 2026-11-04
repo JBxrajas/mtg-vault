@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { setToken } from "./auth.js";
-import { addToCollection, fetchCollection, removeFromCollection, updateCollectionItem } from "./collectionApi.js";
+import { addToCollection, fetchCollection, importCollection, removeFromCollection, updateCollectionItem } from "./collectionApi.js";
 
 const store = new Map<string, string>();
 beforeEach(() => {
@@ -59,5 +59,59 @@ describe("collection API client", () => {
     setToken("tok");
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(json(409, { error: "2 copies are placed in binders" })));
     await expect(updateCollectionItem("i1", { quantity: 1 })).rejects.toThrow("2 copies are placed in binders");
+  });
+});
+
+describe("importCollection", () => {
+  const rows = (n: number) => Array.from({ length: n }, (_, i) => ({ line: i + 2, name: `Card ${i}`, count: 1 }));
+  const report = (over = {}) => ({ created: 0, updated: 0, unchanged: 0, adjusted: [], problems: [], ...over });
+
+  it("sends the rows in chunks of 500, in order, and adds the reports up", async () => {
+    setToken("tok");
+    const fetchMock = vi
+      .fn()
+      .mockImplementationOnce(async () => json(200, report({ created: 500, adjusted: [{ line: 2, name: "a", reason: "r" }] })))
+      .mockImplementationOnce(async () => json(200, report({ created: 400, unchanged: 100, problems: [{ line: 600, name: "b", reason: "x" }] })))
+      .mockImplementationOnce(async () => json(200, report({ updated: 200 })));
+    vi.stubGlobal("fetch", fetchMock);
+    const progress: [number, number][] = [];
+
+    const result = await importCollection(rows(1200), (done, total) => progress.push([done, total]));
+
+    const sent = fetchMock.mock.calls.map((c) => JSON.parse((c[1] as RequestInit).body as string).rows as { line: number }[]);
+    expect(sent.map((r) => r.length)).toEqual([500, 500, 200]);
+    expect(sent[0]![0]!.line).toBe(2);
+    expect(sent[2]!.at(-1)!.line).toBe(1201);
+    expect((fetchMock.mock.calls[0]![0] as URL).toString()).toMatch(/\/collection\/import$/);
+    expect(progress).toEqual([[500, 1200], [1000, 1200], [1200, 1200]]);
+    expect(result).toMatchObject({ created: 900, updated: 200, unchanged: 100 });
+    expect(result.adjusted).toHaveLength(1);
+    expect(result.problems).toHaveLength(1);
+  });
+
+  it("makes one request for a small file", async () => {
+    setToken("tok");
+    const fetchMock = vi.fn().mockImplementation(async () => json(200, report({ created: 3 })));
+    vi.stubGlobal("fetch", fetchMock);
+    expect((await importCollection(rows(3))).created).toBe(3);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("stops at the first failing request and keeps the server's message", async () => {
+    setToken("tok");
+    const fetchMock = vi
+      .fn()
+      .mockImplementationOnce(async () => json(200, report({ created: 500 })))
+      .mockImplementationOnce(async () => json(500, { error: "Internal server error" }));
+    vi.stubGlobal("fetch", fetchMock);
+    await expect(importCollection(rows(1500))).rejects.toThrow("Internal server error");
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("does not call the API without a session", async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+    await expect(importCollection(rows(1))).rejects.toThrow("Sign in");
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 });
