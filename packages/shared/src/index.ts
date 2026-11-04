@@ -29,3 +29,12 @@ export const cardSearchQuerySchema = z.object({
     .optional(),
 });
 export type CardSearchQuery = z.infer<typeof cardSearchQuerySchema>;
+
+export interface CardSearchResult {
+  oracleId: string;
+  name: string;
+  manaCost: string | null;
+  typeLine: string;
+  /** Trigram similarity to the query, 0 to 1. */
+  similarity: number;
+}

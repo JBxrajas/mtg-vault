@@ -5,18 +5,14 @@ import {
   createRoute,
   createRouter,
 } from "@tanstack/react-router";
+import { SearchPage } from "./SearchPage";
 
 const rootRoute = createRootRoute({ component: () => <Outlet /> });
 
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/",
-  component: () => (
-    <main>
-      <h1>mtg-vault</h1>
-      <p>Track your Magic: The Gathering collection.</p>
-    </main>
-  ),
+  component: SearchPage,
 });
 
 // Hash history works both on the web and when loaded from file:// in Electron.
