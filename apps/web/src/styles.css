@@ -571,12 +571,13 @@ button.link {
 /* Collection */
 .stats {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr)); /* columns that can shrink: a long price must wrap, not push the page wider */
   gap: 0.6rem;
   margin: 1rem 0;
 }
 .stat {
-  padding: 0.85rem 1rem;
+  min-width: 0;
+  padding: 0.85rem 0.8rem;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--surface);
@@ -584,7 +585,8 @@ button.link {
 }
 .stat b {
   display: block;
-  font-size: 1.3rem;
+  font-size: clamp(1.05rem, 5vw, 1.3rem);
+  overflow-wrap: anywhere;
 }
 .stat span {
   color: var(--muted);
