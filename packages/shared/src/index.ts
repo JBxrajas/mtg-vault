@@ -2,6 +2,7 @@ import { z } from "zod";
 import { conditionSchema, finishSchema, type Condition, type Finish } from "./primitives.js";
 
 export * from "./primitives.js";
+export * from "./art-hash.js";
 
 
 /** One stack of identical cards in a collection: same printing, finish, condition and language. */

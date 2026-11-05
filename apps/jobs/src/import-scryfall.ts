@@ -1,17 +1,11 @@
-import { createReadStream, createWriteStream } from "node:fs";
+import { createReadStream } from "node:fs";
 import { mkdir } from "node:fs/promises";
 import { createInterface } from "node:readline";
-import { Readable } from "node:stream";
-import { pipeline } from "node:stream/promises";
 import { createGunzip } from "node:zlib";
 import { sql } from "drizzle-orm";
 import { cards, createDb, priceSnapshots, printings, sets } from "@mtg-vault/db";
+import { API, downloadBulk, getJson } from "./bulk.js";
 import { hasAnyPrice, parsePrices, priceKey, type PriceRow, type ScryfallPrices } from "./prices.js";
-const API = "https://api.scryfall.com";
-const HEADERS = {
-  "User-Agent": "mtg-vault-importer/0.1 (+https://github.com/JBxrajas/mtg-vault)",
-  Accept: "application/json;q=0.9,*/*;q=0.8",
-};
 const BATCH = 1000;
 const BULK_TYPE = process.env.BULK_TYPE ?? "default_cards";
 /** Stop after this many cards; for testing only. */
@@ -21,12 +15,6 @@ const databaseUrl = process.env.DATABASE_URL_UNPOOLED ?? process.env.DATABASE_UR
 if (!databaseUrl) throw new Error("Set DATABASE_URL_UNPOOLED (or DATABASE_URL)");
 
 const { db, client } = createDb(databaseUrl);
-
-async function getJson<T>(url: string): Promise<T> {
-  const res = await fetch(url, { headers: HEADERS });
-  if (!res.ok) throw new Error(`${url}: ${res.status} ${res.statusText}`);
-  return (await res.json()) as T;
-}
 
 /** Overwrite a column with the value Postgres would have inserted. */
 const excluded = (column: string) => sql.raw(`excluded."${column}"`);
@@ -71,18 +59,6 @@ async function importSets() {
       });
   }
   console.log(`sets: ${rows.length}`);
-}
-
-async function downloadBulk(path: string) {
-  const { data } = await getJson<{ data: { type: string; jsonl_download_uri: string }[] }>(
-    `${API}/bulk-data`,
-  );
-  const entry = data.find((d) => d.type === BULK_TYPE);
-  if (!entry) throw new Error(`Bulk type not found: ${BULK_TYPE}`);
-  const res = await fetch(entry.jsonl_download_uri, { headers: HEADERS });
-  if (!res.ok || !res.body) throw new Error(`Bulk download failed: ${res.status}`);
-  await pipeline(Readable.fromWeb(res.body as never), createWriteStream(path));
-  console.log(`downloaded ${BULK_TYPE}`);
 }
 
 function toRows(card: ScryfallCard) {
@@ -331,7 +307,7 @@ await mkdir(dir, { recursive: true });
 const file = `${dir}/${BULK_TYPE}.jsonl.gz`;
 try {
   await importSets();
-  if (!process.env.SKIP_DOWNLOAD) await downloadBulk(file);
+  if (!process.env.SKIP_DOWNLOAD) await downloadBulk(BULK_TYPE, file);
   await importCards(file);
 } catch (e) {
   // Drizzle wraps the driver error; print the Postgres message and detail.

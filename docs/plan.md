@@ -44,9 +44,14 @@ Status: ☐ pending · ◐ in progress · ☑ done
 
 - ☑ High-resolution art page and art view in the collection, with the artist (from Scryfall, on demand)
 
-## Phase 5 — Scanning ☐
-- Photo upload with OCR (name and collector number) and fuzzy lookup on Scryfall
-- Live camera and perceptual hashing (pHash) against Scryfall images to tell printings apart
+## Phase 5 — Scanning ◐
+Design in [ADR 0014](adr/0014-card-scanning-with-art-fingerprints.md): identify the card by an art fingerprint, on the device, in English, Spanish, Japanese and Russian.
+- ✓ Fingerprint, index file format and nearest-match search (`packages/shared`), and the weekly job that builds the index (`apps/jobs`)
+- ☐ API route that serves the index with long cache headers
+- ☐ Scanner screen: camera with an alignment frame, focus meter from red to green, capture sound, toast with name and price, upload-a-photo fallback
+- ☐ Batch session: confirm each card, then add it to the collection or to a deck; whole-deck scanning
+- ☐ Measure on the full index with sleeved and foil cards, and tune `matchConfidence`
+- ☐ Use the bottom-left line (set, number, language) to pick the exact printing when it can be read
 
 ## Phase 6 — Electron and extras ☐
 - `apps/desktop` with Electron loading the `apps/web` build

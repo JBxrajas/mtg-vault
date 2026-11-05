@@ -1,0 +1,40 @@
+name: art-index
+
+on:
+  schedule:
+    - cron: "43 6 * * 1" # Mondays 06:43 UTC, after the catalog import
+  workflow_dispatch:
+
+permissions:
+  contents: write # publishes the index as a release asset
+
+concurrency:
+  group: art-index
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      # Start from the index published last time, so only new illustrations are downloaded.
+      - name: Fetch the previous index
+        run: gh release download art-index --pattern art-index.bin --dir data || true
+        env:
+          GH_TOKEN: ${{ github.token }}
+      - run: pnpm --filter @mtg-vault/jobs art-index
+        env:
+          DATA_DIR: data
+      - name: Publish the index
+        run: |
+          gh release view art-index >/dev/null 2>&1 || gh release create art-index --title "Art index" --notes "Card art fingerprints for the scanner. Rebuilt weekly by the art-index workflow; do not edit." --latest=false
+          gh release upload art-index data/art-index.bin --clobber
+        env:
+          GH_TOKEN: ${{ github.token }}
