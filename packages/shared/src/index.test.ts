@@ -108,6 +108,10 @@ describe("collection helpers", () => {
     expect(updateCollectionItemSchema.safeParse({ quantity: 2 }).success).toBe(true);
     expect(updateCollectionItemSchema.safeParse({ notes: null, purchasePrice: null }).success).toBe(true);
     expect(updateCollectionItemSchema.safeParse({ quantity: 0 }).success).toBe(false);
+    // What the stack is can change too.
+    expect(updateCollectionItemSchema.safeParse({ printingId: "4457ed35-7c10-48c8-9776-456485fdf070", finish: "foil", condition: "LP", language: "es" }).success).toBe(true);
+    expect(updateCollectionItemSchema.safeParse({ printingId: "nope" }).success).toBe(false);
+    expect(updateCollectionItemSchema.safeParse({ finish: "shiny" }).success).toBe(false);
   });
 
   it("collectionEntrySchema validates the optional purchase data", () => {

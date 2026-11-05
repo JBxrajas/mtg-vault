@@ -20,9 +20,16 @@ export const collectionEntrySchema = z.object({
 });
 export type CollectionEntry = z.infer<typeof collectionEntrySchema>;
 
-/** Fields of a stack that can change after it exists. Condition, finish and language identify the stack: remove and add instead. */
+/**
+ * Fields of a stack that can change after it exists. Printing, finish, condition and language identify the
+ * stack: changing them moves the copies, and they join the stack that already has that identity, if any.
+ */
 export const updateCollectionItemSchema = z
   .object({
+    printingId: z.string().uuid(),
+    finish: finishSchema,
+    condition: conditionSchema,
+    language: z.string().trim().min(2).max(5),
     quantity: z.number().int().positive().max(9999),
     purchasePrice: z.number().nonnegative().max(1_000_000).nullable(),
     acquiredOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable(),

@@ -360,13 +360,24 @@ describe("/collection/items", () => {
     expect((await send("PATCH", `/collection/items/${itemId}`, { quantity: 1 })).status).toBe(404);
   });
 
+  it("passes an edition change to the update", async () => {
+    asUser();
+    const printingId = "4457ed35-7c10-48c8-9776-456485fdf070";
+    updateItem.mockResolvedValueOnce({ id: itemId, printingId });
+    const res = await send("PATCH", `/collection/items/${itemId}`, { printingId, finish: "foil" });
+    expect(res.status).toBe(200);
+    expect(updateItem).toHaveBeenCalledWith("col-1", itemId, { printingId, finish: "foil" });
+    updateItem.mockRejectedValueOnce(new HttpError(400, "That printing is of another card"));
+    expect((await send("PATCH", `/collection/items/${itemId}`, { printingId })).status).toBe(400);
+  });
+
   it("answers 409 when the quantity is lower than what binders hold", async () => {
     asUser();
     updateItem.mockRejectedValue(new HttpError(409, "2 copies are placed in binders"));
     expect((await send("PATCH", `/collection/items/${itemId}`, { quantity: 1 })).status).toBe(409);
   });
 
-  it.each([{}, { quantity: 0 }, { condition: "NM" }])("rejects an empty or invalid update %j", async (body) => {
+  it.each([{}, { quantity: 0 }, { condition: "XX" }])("rejects an empty or invalid update %j", async (body) => {
     asUser();
     const res = await send("PATCH", `/collection/items/${itemId}`, body);
     expect(res.status).toBe(400);

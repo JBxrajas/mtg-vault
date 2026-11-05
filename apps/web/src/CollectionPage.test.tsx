@@ -12,14 +12,16 @@ const { fetchMe, fetchCollection, updateCollectionItem, removeFromCollection } =
 vi.mock("./auth", () => ({ fetchMe, logout: vi.fn() }));
 const { downloadText } = vi.hoisted(() => ({ downloadText: vi.fn() }));
 vi.mock("./download", () => ({ downloadText }));
+const { fetchPrintings } = vi.hoisted(() => ({ fetchPrintings: vi.fn() }));
+vi.mock("./api", async (orig) => ({ ...(await orig<typeof import("./api")>()), fetchPrintings }));
 vi.mock("./collectionApi", () => ({ fetchCollection, updateCollectionItem, removeFromCollection, importCollection: vi.fn() }));
 
 import { CollectionPage } from "./CollectionPage";
 import { resetCurrency } from "./currency";
-import { aStack, aUser, renderPage } from "./test-utils";
+import { aPrinting, aStack, aUser, renderPage } from "./test-utils";
 
 beforeEach(() => {
-  for (const f of [fetchMe, fetchCollection, updateCollectionItem, removeFromCollection, downloadText]) f.mockReset();
+  for (const f of [fetchMe, fetchCollection, updateCollectionItem, removeFromCollection, downloadText, fetchPrintings]) f.mockReset();
   fetchMe.mockResolvedValue(aUser);
   resetCurrency();
 });
@@ -178,6 +180,39 @@ describe("CollectionPage", () => {
     await userEvent.click(await screen.findByRole("button", { name: "Remove" }));
     expect(removeFromCollection).toHaveBeenCalledWith("i1", expect.anything());
     expect(await screen.findByText(/Nothing here yet/)).toBeInTheDocument();
+  });
+
+  it("changes the edition and finish of a stack", async () => {
+    fetchCollection.mockResolvedValue([aStack({ id: "i1", printingId: "p1" })]);
+    fetchPrintings.mockResolvedValue([
+      aPrinting({ id: "p1", setName: "Limited Edition Alpha", setCode: "lea", finishes: ["nonfoil"] }),
+      aPrinting({ id: "p2", setName: "Magic 2011", setCode: "m11", collectorNumber: "149", finishes: ["nonfoil", "foil"], releasedAt: "2010-07-16" }),
+    ]);
+    updateCollectionItem.mockResolvedValue(aStack({ id: "i1", printingId: "p2" }));
+    renderPage(<CollectionPage />, { path: "/collection" });
+    await userEvent.click(await screen.findByRole("button", { name: "Edit Lightning Bolt" }));
+    const edition = await screen.findByLabelText("Edition");
+    await waitFor(() => expect(within(edition).getAllByRole("option")).toHaveLength(2));
+    await userEvent.selectOptions(edition, "p2");
+    await userEvent.selectOptions(screen.getByLabelText("Finish"), "foil");
+    await userEvent.selectOptions(screen.getByLabelText("Condition"), "LP");
+    await userEvent.click(screen.getByRole("button", { name: "Save" }));
+    expect(updateCollectionItem).toHaveBeenCalledWith("i1", { printingId: "p2", finish: "foil", condition: "LP" });
+    await waitFor(() => expect(screen.queryByLabelText("Edition")).not.toBeInTheDocument());
+  });
+
+  it("sends nothing when the edit changes nothing, and shows why a change was refused", async () => {
+    fetchCollection.mockResolvedValue([aStack({ id: "i1", printingId: "p1" })]);
+    fetchPrintings.mockResolvedValue([aPrinting({ id: "p1" })]);
+    renderPage(<CollectionPage />, { path: "/collection" });
+    await userEvent.click(await screen.findByRole("button", { name: "Edit Lightning Bolt" }));
+    await userEvent.click(await screen.findByRole("button", { name: "Save" }));
+    expect(updateCollectionItem).not.toHaveBeenCalled();
+    await userEvent.click(screen.getByRole("button", { name: "Edit Lightning Bolt" }));
+    updateCollectionItem.mockRejectedValue(new Error("A stack cannot hold more than 9999 copies"));
+    await userEvent.selectOptions(await screen.findByLabelText("Condition"), "HP");
+    await userEvent.click(screen.getByRole("button", { name: "Save" }));
+    expect(await screen.findByText(/9999 copies/)).toBeInTheDocument();
   });
 
   it("shows why a change was refused", async () => {

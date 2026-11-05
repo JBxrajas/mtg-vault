@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useState, type CSSProperties, type FormEvent } from "react";
 import { fetchMe } from "./auth";
-import { createDeck, fetchDecks } from "./decksApi";
+import { createDeck, deleteDeck, fetchDecks } from "./decksApi";
 import { useI18n } from "./i18n";
 import { ImportDeck } from "./ImportDeck";
 import { NewCommanderDeck } from "./NewCommanderDeck";
@@ -28,6 +28,11 @@ export function DecksPage() {
       await queryClient.invalidateQueries({ queryKey: ["decks"] });
       await navigate({ to: "/decks/$deckId", params: { deckId: deck.id } });
     },
+  });
+
+  const remove = useMutation({
+    mutationFn: deleteDeck,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["decks"] }),
   });
 
   const submit = (e: FormEvent) => {
@@ -77,7 +82,7 @@ export function DecksPage() {
       )}
       {me && <NewCommanderDeck />}
       {me && <ImportDeck />}
-      {create.error && <p className="error">{create.error.message}</p>}
+      {(create.error ?? remove.error) && <p className="error">{(create.error ?? remove.error)!.message}</p>}
       {me && isLoading && <p className="hint">{t("common.loading")}</p>}
       {me && error && <p className="error">{error.message}</p>}
       {decks && decks.length === 0 && <p className="hint">{t("decks.empty")}</p>}
@@ -112,6 +117,17 @@ export function DecksPage() {
                 )}
                 <span className="deck-count">{t("decks.cardCount", { count: d.cardCount, target: target ? ` / ${target}` : "" })}</span>
               </Link>
+              <button
+                type="button"
+                className="deck-delete"
+                disabled={remove.isPending}
+                aria-label={t("decks.deleteLabel", { name: d.name })}
+                onClick={() => {
+                  if (window.confirm(t("deck.confirmDelete", { name: d.name }))) remove.mutate(d.id);
+                }}
+              >
+                {t("decks.delete")}
+              </button>
             </li>
           );
         })}
