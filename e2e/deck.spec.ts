@@ -67,6 +67,11 @@ test("a card can be enlarged: by hovering on a computer, with a button next to t
     expect(box.y).toBeGreaterThanOrEqual(0);
     expect(box.x + box.width).toBeLessThanOrEqual(1280);
     expect(box.y + box.height).toBeLessThanOrEqual(800);
+
+    // Clicking the button opens the dialog and replaces the floating image: never two big cards at once.
+    await row.getByRole("button", { name: "Enlarge Filler 0" }).click();
+    await expect(page.getByRole("dialog", { name: "Filler 0" })).toBeVisible();
+    await expect(floating).toBeHidden();
   }
 });
 

@@ -31,7 +31,7 @@ export function CardPreview({ name, image, className = "thumb-wrap" }: { name: s
       className={className}
       ref={box}
       onMouseEnter={() => {
-        if (!canHover() || !box.current) return;
+        if (open || !canHover() || !box.current) return;
         setFloating(previewPosition(box.current.getBoundingClientRect(), { width: window.innerWidth, height: window.innerHeight }));
       }}
       onMouseLeave={() => setFloating(null)}
@@ -42,7 +42,10 @@ export function CardPreview({ name, image, className = "thumb-wrap" }: { name: s
         <div className="thumb-ph" aria-hidden="true" />
       )}
       {image && (
-        <button type="button" className="enlarge" aria-label={t("preview.enlarge", { name })} title={t("preview.enlarge", { name })} onClick={() => setOpen(true)}>
+        <button type="button" className="enlarge" aria-label={t("preview.enlarge", { name })} title={t("preview.enlarge", { name })} onClick={() => {
+            setFloating(null); // the dialog replaces the hover preview, they must not show together
+            setOpen(true);
+          }}>
           ⤢
         </button>
       )}

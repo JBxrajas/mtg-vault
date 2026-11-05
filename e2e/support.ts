@@ -38,6 +38,27 @@ export function commanderDeck(): DeckDetail {
 }
 
 /** Signs in and answers the deck endpoints from memory. Everything else gets an empty answer. */
+export const stack = {
+  id: "s1",
+  printingId: "p1",
+  oracleId: "bolt",
+  name: "Lightning Bolt",
+  setCode: "lea",
+  setName: "Alpha",
+  collectorNumber: "161",
+  rarity: "common",
+  finish: "nonfoil",
+  condition: "NM",
+  language: "en",
+  quantity: 2,
+  purchasePrice: null,
+  acquiredOn: null,
+  notes: null,
+  image: picture,
+  unitPrice: 5,
+  pricesOn: "2026-11-04",
+};
+
 export const iroh = {
   oracleId: "iroh",
   name: "Iroh, Grand Lotus",
@@ -75,7 +96,9 @@ export async function mockApi(page: Page, deck: DeckDetail) {
           ? deck
           : path === "/decks"
             ? { decks: [] }
-            : path === "/cards/search"
+            : path === "/collection/items"
+              ? { items: [stack] }
+              : path === "/cards/search"
               ? { results: [iroh] }
               : path.endsWith("/printings")
                 ? { printings: [printing("p1", "cmm"), printing("p2", "ltr"), printing("p3", "30a")] }

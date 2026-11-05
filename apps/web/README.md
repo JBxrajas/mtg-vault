@@ -69,7 +69,7 @@ A Commander deck starts with its commander, because everything else is checked a
 - **Colors**: the identity shows as pips and as its common name (Temur, Azorius, Five-color…).
 - **Problems highlighted** on the card itself (red border and a note): outside the commander's colors (with the colors), repeated copies, the commander also in the main board, a commander that cannot lead (`cardProblems` in `packages/shared`).
 - **Groups fold** (button with `aria-expanded`, "Collapse all" / "Expand all"); a folded group still says how many of its cards have a problem.
-- **Bigger card**: hovering a thumbnail on a computer floats the large image beside it; on a phone an *Enlarge* button under the image opens it in a dialog (`src/CardPreview.tsx`). The button also works by keyboard.
+- **Bigger card**: hovering a thumbnail on a computer floats the large image beside it; on a phone an *Enlarge* button under the image opens it in a dialog (`src/CardPreview.tsx`). The button also works by keyboard. The same thumbnail is used in the deck lists, the deck's add-card results and the collection list; opening the dialog closes the hover image so they never show together.
 
 ## Commander analysis
 

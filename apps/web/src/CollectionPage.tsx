@@ -1,6 +1,7 @@
 import { collectionToCsv, collectionTotals, type CollectionItem } from "@mtg-vault/shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
+import { CardPreview } from "./CardPreview";
 import { fetchMe } from "./auth";
 import { fetchCollection, removeFromCollection, updateCollectionItem } from "./collectionApi";
 import { downloadText } from "./download";
@@ -142,11 +143,7 @@ function StackRow(props: {
   const { t } = useI18n();
   return (
     <li className="stack">
-      {item.image ? (
-        <img src={item.image.small} alt="" loading="lazy" />
-      ) : (
-        <div className="thumb-ph" aria-hidden="true" />
-      )}
+      <CardPreview name={item.name} image={item.image} className="thumb-wrap wide" />
       <div>
         <div className="name">{item.name}</div>
         <div className="sub">

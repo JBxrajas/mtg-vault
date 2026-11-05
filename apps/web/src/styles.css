@@ -603,8 +603,8 @@ button.link {
   border-radius: var(--radius);
   background: var(--surface);
 }
-.stack img,
-.stack .thumb-ph {
+.stack .thumb-wrap > img:not(.floating-preview),
+.stack .thumb-wrap > .thumb-ph {
   width: 4rem;
   aspect-ratio: 488 / 680;
   border-radius: 4.5% / 3.3%;
@@ -1662,4 +1662,14 @@ button.art-tile.on {
 /* A folded group: the `hidden` attribute must beat the list's own display rule. */
 .deck-rows[hidden] {
   display: none;
+}
+
+/* A larger thumbnail (the collection list) keeps the same enlarge button. */
+.thumb-wrap.wide {
+  width: 4rem;
+}
+@media (hover: hover) {
+  .thumb-wrap.wide .enlarge {
+    width: 1.8rem;
+  }
 }
