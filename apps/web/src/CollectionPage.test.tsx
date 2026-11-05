@@ -234,7 +234,7 @@ describe("CollectionPage", () => {
       aStack({ id: "b", name: "Llanowar Elves", typeLine: "Creature — Elf Druid", cmc: 1, colorIdentity: ["G"], rarity: "common", setCode: "m19", setName: "Core Set 2019", quantity: 1, unitPrice: 0.5 }),
       aStack({ id: "c", name: "Sol Ring", typeLine: "Artifact", cmc: 1, colorIdentity: [], rarity: "uncommon", setCode: "cmm", setName: "Commander Masters", quantity: 1, unitPrice: 30 }),
     ];
-    const names = () => rows().map((r) => within(r).getByText(/^(Lightning Bolt|Llanowar Elves|Sol Ring)$/).textContent);
+    const names = () => screen.queryAllByText(/^(Lightning Bolt|Llanowar Elves|Sol Ring)$/).map((e) => e.textContent);
 
     it("searches by name and says what is shown out of what there is", async () => {
       fetchCollection.mockResolvedValue(stacks());
@@ -251,9 +251,13 @@ describe("CollectionPage", () => {
       await userEvent.click(screen.getByRole("button", { name: "Colorless" }));
       expect(names()).toEqual(["Sol Ring"]);
       await userEvent.click(screen.getByRole("button", { name: "Red" }));
-      expect(names()).toEqual(["Lightning Bolt", "Sol Ring"]);
+      // A color replaces colorless: they exclude each other.
+      expect(names()).toEqual(["Lightning Bolt"]);
+      await userEvent.click(screen.getByRole("button", { name: "Green" }));
+      expect(names()).toEqual([]); // nothing is both red and green here
+      await userEvent.click(screen.getByRole("button", { name: "Green" }));
       await userEvent.click(screen.getByRole("button", { name: "Uncommon" }));
-      expect(names()).toEqual(["Sol Ring"]);
+      expect(names()).toEqual([]);
       await userEvent.click(screen.getByRole("button", { name: "Clear filters" }));
       expect(names()).toHaveLength(3);
       expect(screen.queryByText(/Showing \d+ of/)).not.toBeInTheDocument();

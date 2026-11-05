@@ -217,7 +217,7 @@ export function CollectionFilterBar(props: {
                 aria-pressed={f.colors.includes(c)}
                 aria-label={t(`color.${c}`)}
                 title={t(`color.${c}`)}
-                onClick={() => set({ colors: toggle(f.colors, c) })}
+                onClick={() => set({ colors: c === "C" ? (f.colors.includes("C") ? [] : ["C"]) : toggle(f.colors.filter((v) => v !== "C"), c) })}
               >
                 <span className={`pip pip-${c === "C" ? "n" : c.toLowerCase()}`} aria-hidden="true">
                   {c}
