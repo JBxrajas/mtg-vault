@@ -75,7 +75,7 @@ Order matters: free space first, then add providers. Designs: [ADR 0015](adr/001
 - ✓ Collection: toolbar, quick filters, List / Cards / Art switch; decks list with the commander's art and size bars; deck page with a header, a type-split bar and the analysis in a side column
 - ☐ The same care for the search page, the scanner and the login screens; a design review on real phones
 - ☐ Search results named only "Card" or "Card // Card" are hidden or put last
-- ☐ After adding a card, a confirmation and the search box cleared and focused
+- ◐ After adding a card, a confirmation and the search box cleared and focused: done in the deck page; the card search page still to do
 - ☐ Rule warnings higher on the page; fold the deck analysis on phones
 - ☐ An e2e test per main flow; make `e2e` a required check on `main`
 - ☐ A friendlier message than "Failed to fetch"

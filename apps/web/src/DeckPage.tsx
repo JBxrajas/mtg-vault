@@ -16,7 +16,7 @@ import {
 } from "@mtg-vault/shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate, useParams } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { searchCards } from "./api";
 import { fetchMe } from "./auth";
 import { addDeckCard, deleteDeck, fetchDeck, setDeckCard, updateDeck } from "./decksApi";
@@ -263,7 +263,21 @@ function AddCards(props: { formats: DeckBoard[]; busy: boolean; onAdd: (oracleId
   const { t } = useI18n();
   const [text, setText] = useState("");
   const [board, setBoard] = useState<DeckBoard>("main");
+  const [added, setAdded] = useState<string | null>(null);
+  const input = useRef<HTMLInputElement>(null);
+  const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  useEffect(() => () => clearTimeout(timer.current), []);
   const q = useDebouncedValue(text.trim(), 300);
+
+  /** Adding a card closes the results and clears the box, ready for the next one; a line says what was added. */
+  const add = (card: { oracleId: string; name: string }) => {
+    props.onAdd(card.oracleId, board);
+    setText("");
+    setAdded(t("deck.added", { name: card.name, board: t(BOARD_KEY[board]).toLowerCase() }));
+    clearTimeout(timer.current);
+    timer.current = setTimeout(() => setAdded(null), 4000);
+    input.current?.focus();
+  };
   const { data, isFetching } = useQuery({
     queryKey: ["cards", "search", "deck", q],
     queryFn: ({ signal }) => searchCards({ q, limit: 8 }, signal),
@@ -273,6 +287,7 @@ function AddCards(props: { formats: DeckBoard[]; busy: boolean; onAdd: (oracleId
     <section className="add-cards" aria-label={t("deck.addCards")}>
       <div className="add-cards-bar">
         <input
+          ref={input}
           type="search"
           aria-label={t("deck.searchToAdd")}
           placeholder={t("deck.addPlaceholder")}
@@ -287,9 +302,13 @@ function AddCards(props: { formats: DeckBoard[]; busy: boolean; onAdd: (oracleId
           ))}
         </select>
       </div>
+      <p className="hint added" role="status">
+        {added}
+      </p>
       {q.length >= 2 && isFetching && <p className="hint">{t("search.searching")}</p>}
       <ul className="deck-rows">
-        {q.length >= 2 &&
+        {text.trim().length >= 2 &&
+          q.length >= 2 &&
           data?.map((c) => (
             <li key={c.oracleId} className="deck-row">
               <CardPreview name={c.name} image={c.image} />
@@ -298,7 +317,7 @@ function AddCards(props: { formats: DeckBoard[]; busy: boolean; onAdd: (oracleId
                 <ManaCost cost={c.manaCost} />
                 <span className="sub">{c.typeLine}</span>
               </div>
-              <button type="button" disabled={props.busy} aria-label={t("deck.add", { name: c.name })} onClick={() => props.onAdd(c.oracleId, board)}>
+              <button type="button" disabled={props.busy} aria-label={t("deck.add", { name: c.name })} onClick={() => add(c)}>
                 {t("add.add")}
               </button>
             </li>
