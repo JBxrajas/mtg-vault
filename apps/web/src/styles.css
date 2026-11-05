@@ -1188,6 +1188,7 @@ button.lang:hover:not(:disabled) {
 }
 .decklist {
   display: grid;
+  grid-template-columns: minmax(0, 1fr); /* shrinkable, so a wide file picker cannot stretch the box */
   gap: 0.6rem;
   margin: 0.5rem 0;
 }
@@ -1620,11 +1621,30 @@ button.art-tile.on {
 }
 .wizard-step {
   display: grid;
+  /* One column that may shrink below its content: a grid's default column grows to the widest child
+     (a textarea, a file input) and pushes everything past the edge of a phone screen. */
+  grid-template-columns: minmax(0, 1fr);
   gap: 0.8rem;
+}
+.wizard-step > *,
+.wizard-commander > * {
+  min-width: 0;
+}
+.decklist > *,
+.wizard-step textarea,
+.wizard-step input[type="file"],
+.wizard-step input:not([type]) {
+  min-width: 0;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+}
+.wizard-step .row-actions {
+  flex-wrap: wrap;
 }
 .wizard-commander {
   display: grid;
-  grid-template-columns: minmax(8rem, 12rem) 1fr;
+  grid-template-columns: minmax(6rem, 12rem) minmax(0, 1fr);
   gap: 1rem;
   align-items: start;
 }
