@@ -13,6 +13,8 @@ export interface Art {
   name: string;
   /** The card, so its other printings (each with its own art) can be offered later. */
   oracleId?: string;
+  /** The printing the art comes from, so its high-resolution page and artist can be opened. */
+  printingId?: string;
 }
 
 export interface Appearance {
@@ -48,6 +50,7 @@ export function parseAppearance(raw: unknown): Appearance {
             url: art.url,
             name: art.name.slice(0, 200),
             ...(typeof art.oracleId === "string" && UUID.test(art.oracleId) ? { oracleId: art.oracleId } : {}),
+            ...(typeof art.printingId === "string" && UUID.test(art.printingId) ? { printingId: art.printingId } : {}),
           }
         : null,
     dimming: Math.min(DIMMING_MAX, Math.max(DIMMING_MIN, Math.round(dimming))),

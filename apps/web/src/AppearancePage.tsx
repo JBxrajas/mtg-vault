@@ -11,6 +11,7 @@ import {
   type Background,
   type Mode,
 } from "./appearance";
+import { artHref } from "./art";
 import { printingLabel } from "./format";
 import { LOCALE_NAME, LOCALES, setLocale, useI18n } from "./i18n";
 import { Tip } from "./Tip";
@@ -153,7 +154,12 @@ export function AppearancePage() {
           <div className="art-current">
             <p>
               {t("appearance.art.using")}
-              <strong>{appearance.art.name}</strong>.
+              <strong>{appearance.art.name}</strong>.{" "}
+              {appearance.art.printingId && (
+                <a href={artHref(appearance.art.printingId)} target="_blank" rel="noopener noreferrer">
+                  {t("appearance.art.hires")} ↗
+                </a>
+              )}
             </p>
             {oracleId && (
               <div className="printing-art">
@@ -170,7 +176,7 @@ export function AppearancePage() {
                         className={p.image!.artCrop === appearance.art!.url ? "art-tile on" : "art-tile"}
                         aria-pressed={p.image!.artCrop === appearance.art!.url}
                         aria-label={t("appearance.printing.use", { printing: printingLabel(p) })}
-                        onClick={() => setAppearance({ art: { url: p.image!.artCrop, name: appearance.art!.name, oracleId } })}
+                        onClick={() => setAppearance({ art: { url: p.image!.artCrop, name: appearance.art!.name, oracleId, printingId: p.id } })}
                       >
                         <img src={p.image!.artCrop} alt="" loading="lazy" />
                         <span>{printingLabel(p)}</span>

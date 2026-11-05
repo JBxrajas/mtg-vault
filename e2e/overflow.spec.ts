@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { card, commanderDeck, mockApi } from "./support";
+import { card, commanderDeck, mockApi, mockScryfall } from "./support";
 
 // A phone is narrow and Spanish text is longer, so this is where things stick out. Each screen must fit the window.
 const WIDTHS = [360, 390];
@@ -49,6 +49,23 @@ for (const language of LANGUAGES) {
         await page.locator(".filters > summary").click();
         await page.locator(".filter-row input[type=number]").first().fill("2");
         await expect(page.locator(".filter-bar")).toBeVisible();
+        expect(await fits(page)).toEqual({ scrolls: false, wide: [] });
+      });
+
+      test("collection: pesos, art view and an open filter panel", async ({ page }) => {
+        await mockApi(page, commanderDeck());
+        await page.goto("/#/collection");
+        await page.locator(".currency .chip").nth(1).click();
+        await page.locator(".chips .chip", { hasText: /^(Art|Arte)$/ }).click();
+        await expect(page.locator(".art-gallery")).toBeVisible();
+        expect(await fits(page)).toEqual({ scrolls: false, wide: [] });
+      });
+
+      test("the art page", async ({ page }) => {
+        await mockApi(page, commanderDeck());
+        await mockScryfall(page);
+        await page.goto("/#/art/bba5ea18-4e58-42a8-b613-2178706476a6");
+        await expect(page.locator(".art-figure img")).toBeVisible();
         expect(await fits(page)).toEqual({ scrolls: false, wide: [] });
       });
 

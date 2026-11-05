@@ -15,11 +15,13 @@ vi.mock("./download", () => ({ downloadText }));
 vi.mock("./collectionApi", () => ({ fetchCollection, updateCollectionItem, removeFromCollection, importCollection: vi.fn() }));
 
 import { CollectionPage } from "./CollectionPage";
+import { resetCurrency } from "./currency";
 import { aStack, aUser, renderPage } from "./test-utils";
 
 beforeEach(() => {
   for (const f of [fetchMe, fetchCollection, updateCollectionItem, removeFromCollection, downloadText]) f.mockReset();
   fetchMe.mockResolvedValue(aUser);
+  resetCurrency();
 });
 
 const rows = () => screen.getAllByRole("listitem");
@@ -245,6 +247,61 @@ describe("CollectionPage", () => {
       renderPage(<CollectionPage />, { path: "/collection" });
       await screen.findByText(/Nothing here yet/);
       expect(screen.queryByLabelText("Search your collection")).not.toBeInTheDocument();
+    });
+  });
+  describe("prices in Mexican pesos", () => {
+    it("converts every amount with the rate the user sets, and keeps the choice", async () => {
+      fetchCollection.mockResolvedValue([aStack({ id: "i1", quantity: 2, unitPrice: 10 })]);
+      renderPage(<CollectionPage />, { path: "/collection" });
+      expect(await screen.findByText("$10.00 each · $20.00")).toBeInTheDocument();
+
+      await userEvent.click(screen.getByRole("button", { name: "Mexican pesos" }));
+      expect(await screen.findByText("MX$180.00 each · MX$360.00")).toBeInTheDocument(); // the default rate, 18
+      expect(stat("market value")).toHaveTextContent("MX$360.00");
+
+      const rate = screen.getByRole("spinbutton", { name: /1 USD =/ });
+      await userEvent.clear(rate);
+      await userEvent.type(rate, "17.5");
+      expect(await screen.findByText("MX$175.00 each · MX$350.00")).toBeInTheDocument();
+      expect(JSON.parse(localStorage.getItem("mtg-vault.currency")!)).toEqual({ currency: "MXN", rate: 17.5 });
+    });
+
+    it("keeps the last valid rate and says so when the typed one is not usable", async () => {
+      fetchCollection.mockResolvedValue([aStack({ id: "i1", quantity: 1, unitPrice: 10 })]);
+      renderPage(<CollectionPage />, { path: "/collection" });
+      await userEvent.click(await screen.findByRole("button", { name: "Mexican pesos" }));
+      const rate = screen.getByRole("spinbutton", { name: /1 USD =/ });
+      await userEvent.clear(rate);
+      await userEvent.type(rate, "0");
+      expect(screen.getByText(/Use a rate between/)).toBeInTheDocument();
+      expect(screen.getByText("MX$180.00 each · MX$180.00")).toBeInTheDocument(); // still the last valid rate
+    });
+  });
+  describe("high-resolution art", () => {
+    const PRINTING = "bba5ea18-4e58-42a8-b613-2178706476a6";
+
+    it("links each stack to its art page, opening in a new window", async () => {
+      fetchCollection.mockResolvedValue([aStack({ id: "i1", printingId: PRINTING })]);
+      renderPage(<CollectionPage />, { path: "/collection" });
+      const link = await screen.findByRole("link", { name: "Lightning Bolt: high-resolution art (opens in a new window)" });
+      expect(link).toHaveAttribute("href", `#/art/${PRINTING}`);
+      expect(link).toHaveAttribute("target", "_blank");
+      expect(link).toHaveAttribute("rel", "noopener noreferrer");
+    });
+
+    it("has an art view: a gallery of the art of what the filters leave, each linking to its art page", async () => {
+      fetchCollection.mockResolvedValue([
+        aStack({ id: "i1", printingId: PRINTING, name: "Lightning Bolt" }),
+        aStack({ id: "i2", printingId: "11111111-1111-4111-8111-111111111111", name: "Counterspell", colorIdentity: ["U"] }),
+      ]);
+      renderPage(<CollectionPage />, { path: "/collection" });
+      await userEvent.click(await screen.findByRole("button", { name: "Art" }));
+      const gallery = document.querySelector(".art-gallery")!;
+      expect(within(gallery as HTMLElement).getAllByRole("link")).toHaveLength(2);
+      expect(within(gallery as HTMLElement).getByRole("link", { name: /Lightning Bolt/ })).toHaveAttribute("href", `#/art/${PRINTING}`);
+
+      await userEvent.type(screen.getByLabelText("Search your collection"), "counter");
+      expect(within(gallery as HTMLElement).getAllByRole("link")).toHaveLength(1);
     });
   });
 });
