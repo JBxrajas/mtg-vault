@@ -35,3 +35,18 @@ We measured two signals on five real, mostly blurry photos (spike, 2026-11-04):
 
 ## Automatic capture (revised)
 The first version captured after three sharp readings and re-armed only when the focus fell below a low level (the card was "taken away"). On a textured table or a hand the focus never falls, and a high focus level was reached rarely, so in practice the user pressed the button for each card. It now decides from the fingerprint it already computes: capture when the view is steady (few bits change between readings), sharp enough and not flat; arm again when the view differs a lot from the last card taken. The limits (`FOCUS_TAKE` 0.6, `STEADY_DISTANCE` 28, `NEW_CARD_DISTANCE` 64 bits) are provisional and, like the focus limits, were reasoned from the 5-photo test and unit tests, not measured on a real camera.
+
+## Recognition measured in a simulation, and the search around the guide
+The first scanner compared one fingerprint, taken from where the guide says the art is. A simulation (`pnpm --filter @mtg-vault/jobs scan-eval`: 120 random cards from Scryfall placed on a textured table in a 1280×720 frame, spoiled one factor at a time, against the full index of 55,837 illustrations) showed what breaks it. Share of cards recognised as the top match:
+
+| Shot | One fingerprint | Search around the guide |
+|---|---|---|
+| Card exactly in the guide | 84 % | 95 % |
+| Shifted about 1.5 % | 28 % | 89 % |
+| Tilted about 3° | 58 % | 91 % |
+| Typical shot (scale, shift, tilt, blur, light, grain, sleeve haze) | 16 % | 87 % |
+| Hard shot (twice the shift and tilt, blur, glare) | 3 % | 25 % |
+
+Blur, uneven light, grain and a sleeve's haze barely changed the result; the fingerprint is made of fixed blocks, so what breaks it is geometry: a card a little off the guide. The capture now looks for the card around the guide (the guide as it is, then 10 % smaller and bigger, each shifted by two steps either way in both directions; 75 positions at most) and keeps the closest match, stopping early when one is clearly right (`src/scan/search.ts`). With the thresholds of `matchConfidence` unchanged, "sure" and wrong happened for 2 % of the typical shots and "sure" and right for 81 %. The worst case (no early stop) took 0.5 s on this machine; a phone is slower and it runs on the page's main thread, so a worker is a possible next step.
+
+This is a **simulation** with synthetic framing: it says which shots break the matching, not the rate on a real phone. Not covered yet: tilt beyond about 5°, cards seen strongly from the side, double-faced and full-art cards, and real lenses. Photos uploaded from a file still use the three framings of `matchPhoto`.

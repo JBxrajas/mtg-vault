@@ -1,5 +1,6 @@
 import { artHash, grayGridFromRgba, isBlankHash, nearestArt, type ArtIndexEntry, type ArtMatch } from "@mtg-vault/shared";
 import { artRegion, CARD_ASPECT, guideRect, type Rect } from "./frame";
+import type { Frame } from "./search";
 import { focusLevel, grayFromRgba, laplacianVariance } from "./sharpness";
 
 export type Picture = CanvasImageSource & { width: number; height: number };
@@ -37,6 +38,17 @@ export function focusOf(video: HTMLVideoElement): number {
   const { ctx } = canvasOf(160, 224);
   ctx.drawImage(video, g.x * w, g.y * h, g.w * w, g.h * h, 0, 0, 160, 224);
   return focusLevel(laplacianVariance(grayFromRgba(ctx.getImageData(0, 0, 160, 224).data), 160, 224));
+}
+
+/** The whole live picture, at most `maxWidth` wide, for the search around the guide. */
+export function frameOf(video: HTMLVideoElement, maxWidth = 960): Frame {
+  const scale = Math.min(1, maxWidth / video.videoWidth);
+  const w = Math.max(1, Math.round(video.videoWidth * scale));
+  const h = Math.max(1, Math.round(video.videoHeight * scale));
+  const { ctx } = canvasOf(w, h);
+  ctx.imageSmoothingQuality = "high";
+  ctx.drawImage(video, 0, 0, w, h);
+  return { data: ctx.getImageData(0, 0, w, h).data, width: w, height: h };
 }
 
 /** The art of the card inside the guide of a live picture. */

@@ -20,7 +20,7 @@ vi.mock("./decksApi", () => ({ fetchDecks: m.fetchDecks, addDeckCard: m.addDeckC
 vi.mock("./collectionApi", () => ({ addToCollection: m.addToCollection }));
 vi.mock("./api", async (original) => ({ ...(await original<typeof import("./api")>()), fetchPrintings: m.fetchPrintings, lookupCards: m.lookupCards }));
 vi.mock("./scan/artIndex", () => ({ loadArtIndex: m.loadArtIndex }));
-vi.mock("./scan/capture", () => ({ matchPhoto: m.matchPhoto, focusOf: vi.fn(() => 0), hashGuide: vi.fn(() => new Uint8Array(32)) }));
+vi.mock("./scan/capture", () => ({ matchPhoto: m.matchPhoto, focusOf: vi.fn(() => 0), hashGuide: vi.fn(() => new Uint8Array(32)), frameOf: vi.fn() }));
 vi.mock("./scan/sound", () => ({ beep: m.beep, primeSound: m.primeSound }));
 
 import { ScanPage } from "./ScanPage";
