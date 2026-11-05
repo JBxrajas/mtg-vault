@@ -43,3 +43,26 @@ DATABASE_URL_UNPOOLED=postgres://... pnpm --filter @mtg-vault/jobs import:scryfa
 The first workflow run failed with `numeric field overflow`: a few cards have a mana value of 1,000,000, which did not fit `cards.cmc` (`numeric(6,1)`). Migration `0001` widens it to `numeric(10,1)`; apply migrations before the job runs (`pnpm --filter @mtg-vault/db migrate`). The job now prints the Postgres error and detail on failure.
 
 After the fix, a full `default_cards` import was run from a local machine against Neon: 1066 sets, 39,287 cards and 120,024 printings, 0 skipped. Fuzzy search for "lightnin bolt" returns "Lightning Bolt" first. The workflow was then re-run from GitHub Actions on 2026-11-04 and succeeded with the same numbers (120,024 printings, 0 skipped).
+
+## art-index
+
+Builds the art-fingerprint index the card scanner will use ([ADR 0014](../../docs/adr/0014-card-scanning-with-art-fingerprints.md)). It does not touch the database.
+
+1. Downloads (or reuses) the `default_cards` bulk file and lists every illustration of every paper printing: one entry per illustration, one per face of double-faced cards, first printing wins. Digital-only cards and missing or placeholder scans are skipped.
+2. Loads the previous index if there is one and keeps its entries; only illustrations not in it are downloaded (`art_crop`, 6 at a time, retrying on 429 and 5xx).
+3. Shrinks each image to 17×16 grey pixels with `sharp`, computes the 256-bit hash (`artHash` in `packages/shared`) and writes `art-index.bin` (64 bytes per entry, about 3.6 MB for the whole catalog) through a temporary file.
+4. Fails, keeping the previous file, when more than 2% of the downloads fail.
+
+```bash
+pnpm --filter @mtg-vault/jobs art-index
+```
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `DATA_DIR` | `data` | Where the bulk file and the index are kept |
+| `OUT` | `$DATA_DIR/art-index.bin` | Index file |
+| `CONCURRENCY` | `6` | Parallel image downloads |
+| `LIMIT` | unlimited | Fingerprint at most N new illustrations (testing) |
+| `SKIP_DOWNLOAD` | unset | Reuse the bulk file already in `DATA_DIR` |
+
+`.github/workflows/art-index.yml` runs it every Monday at 06:43 UTC (after the catalog import) and on demand. It downloads the previous index from the `art-index` GitHub release, builds, and uploads the new file to that release. No secrets are needed. The first full run fingerprints about 56,000 images (a run of 300 took about 10 seconds, so expect 30 to 40 minutes); later runs only add new art.

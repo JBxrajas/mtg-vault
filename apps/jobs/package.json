@@ -5,12 +5,15 @@
   "type": "module",
   "scripts": {
     "import:scryfall": "tsx src/import-scryfall.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "art-index": "tsx src/art-index.ts"
   },
   "dependencies": {
     "@mtg-vault/db": "workspace:*",
+    "@mtg-vault/shared": "workspace:*",
     "drizzle-orm": "^0.45.4",
-    "kysely": "0.29.8"
+    "kysely": "0.29.8",
+    "sharp": "^0.34"
   },
   "devDependencies": {
     "@types/node": "^26.6.6",
