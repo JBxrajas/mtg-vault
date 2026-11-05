@@ -1,5 +1,6 @@
 import type { Color } from "./index.js";
 import { cardCategory, deckCount, type DeckCardEntry } from "./decks.js";
+import { canPartner, commanderRole } from "./commander.js";
 import { ADVICE_MIN_CARDS, LAND_FORMULA, LAND_TOLERANCE, ROLES, ROLE_TARGETS, recommendedLands, type Role } from "./knowledge.js";
 
 /** What the analysis reads from a deck card. */
@@ -56,6 +57,8 @@ export type WarningCode =
   | "size"
   | "no-commander"
   | "many-commanders"
+  | "commander-invalid"
+  | "commander-pair"
   | "colors"
   | "copies"
   | "lands-low"
@@ -141,6 +144,12 @@ export function analyzeCommanderDeck(cards: AnalyzedCard[]): DeckAnalysis {
   if (commanderCards.length === 0) rule("no-commander");
   else if (commanderCards.length > 2) rule("many-commanders", { count: commanderCards.length });
 
+  const badCommanders = commanderCards.filter((c) => commanderRole(c) === null);
+  if (badCommanders.length) rule("commander-invalid", { count: badCommanders.length, names: names(badCommanders.map((c) => c.name)) });
+  if (commanderCards.length === 2 && !canPartner(commanderCards[0]!, commanderCards[1]!)) {
+    rule("commander-pair", { names: commanderCards.map((c) => c.name).join(" + ") });
+  }
+
   if (commanderCards.length > 0) {
     const outside = main.filter((c) => c.colorIdentity.some((color) => !identitySet.has(color)));
     if (outside.length) rule("colors", { count: outside.length, names: names(outside.map((c) => c.name)) });
@@ -171,4 +180,38 @@ export function analyzeCommanderDeck(cards: AnalyzedCard[]): DeckAnalysis {
     suggestedLands,
     warnings,
   };
+}
+
+export type CardProblemCode = "bad-commander" | "outside-identity" | "copies" | "duplicates-commander";
+
+export interface CardProblem {
+  code: CardProblemCode;
+  params: Record<string, string | number>;
+}
+
+/** Key of a card in the map `cardProblems` returns. */
+export const problemKey = (card: Pick<DeckCardEntry, "oracleId" | "board">) => `${card.board}:${card.oracleId}`;
+
+/**
+ * What is wrong with each card of a Commander deck, for highlighting it in the list: a commander that cannot lead,
+ * a card outside the commander's colors, repeated copies, or the commander itself also in the main board. Cards
+ * without a problem are not in the map.
+ */
+export function cardProblems(cards: (AnalyzedCard & Pick<DeckCardEntry, "oracleId">)[]): Map<string, CardProblem[]> {
+  const result = new Map<string, CardProblem[]>();
+  const add = (card: Pick<DeckCardEntry, "oracleId" | "board">, problem: CardProblem) =>
+    result.set(problemKey(card), [...(result.get(problemKey(card)) ?? []), problem]);
+
+  const commanderCards = cards.filter((c) => c.board === "commander");
+  const identity = new Set(commanderCards.flatMap((c) => c.colorIdentity));
+  const commanderIds = new Set(commanderCards.map((c) => c.oracleId));
+
+  for (const c of commanderCards) if (commanderRole(c) === null) add(c, { code: "bad-commander", params: {} });
+  for (const c of cards.filter((x) => x.board === "main")) {
+    if (commanderIds.has(c.oracleId)) add(c, { code: "duplicates-commander", params: {} });
+    const outside = commanderCards.length > 0 ? COLOR_ORDER.filter((color) => c.colorIdentity.includes(color) && !identity.has(color)) : [];
+    if (outside.length) add(c, { code: "outside-identity", params: { colors: outside.join(" ") } });
+    if (c.quantity > 1 && !mayRepeat(c)) add(c, { code: "copies", params: { count: c.quantity } });
+  }
+  return result;
 }

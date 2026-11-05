@@ -60,13 +60,24 @@ The palette icon in the top bar opens `#/appearance` (`src/AppearancePage.tsx`):
 
 After choosing a card, a *Printing* section lists its other printings by art (printings that share a picture appear once, under the first) so a different artwork can be picked; the card's id is kept with the choice for that (`oracleId` in `Art`, only accepted when it is a UUID). The art URL ends up inside CSS, so only `https://cards.scryfall.io/…` addresses made of safe characters are accepted, both when picking and when reading what was stored (`isArtUrl`). Not done yet: saving the choice in the account so it follows the user across devices, and showing the artist's name for the chosen art.
 
+## Commander-first deck flow
+
+A Commander deck starts with its commander, because everything else is checked against it.
+- **Guided start** (`src/NewCommanderDeck.tsx`, on the decks page): name, then commander, then "the 99" (a pasted text list, as Moxfield exports it, or "I'll choose them later"). The deck is created with the commander on the commander board and the chosen printing saved on it. A list that repeats the commander does not add it twice (`dropCommanderRows` in `packages/shared`).
+- **Commander chooser** (`src/CommanderChooser.tsx`, also on a Commander deck that has no commander): a search limited to legendary cards, a grid of images (cards that cannot lead are greyed out and say why: not legendary, not a creature, cannot partner), then the chosen card large with every printing to pick its art from. Rules in `packages/shared/src/commander.ts`: legendary creature, "can be your commander" text, Backgrounds, and Partner / Partner with / Friends forever / Choose a Background / Doctor's companion pairs. Legendary Vehicles and Spacecraft count only when their text says so (we do not hold power and toughness).
+- **Order enforced**: on a Commander deck with no commander, the list import waits ("Choose the commander first"); adding single cards is still possible. A second commander can be added from the bar when the first can have a partner.
+- **Colors**: the identity shows as pips and as its common name (Temur, Azorius, Five-color…).
+- **Problems highlighted** on the card itself (red border and a note): outside the commander's colors (with the colors), repeated copies, the commander also in the main board, a commander that cannot lead (`cardProblems` in `packages/shared`).
+- **Groups fold** (button with `aria-expanded`, "Collapse all" / "Expand all"); a folded group still says how many of its cards have a problem.
+- **Bigger card**: hovering a thumbnail on a computer floats the large image beside it; on a phone an *Enlarge* button under the image opens it in a dialog (`src/CardPreview.tsx`). The button also works by keyboard.
+
 ## Commander analysis
 
 A Commander deck page keeps the **commander in a bar** under the top bar (`src/CommanderBar.tsx`: artwork, name, color identity; sticky while the page scrolls, whichever board tab is open; it says so when no commander is chosen yet). It also shows an analysis panel (`src/DeckAnalysis.tsx`, only when the deck's format is Commander): the commander and its color identity, **lands against the suggested count**, average mana value, copies of **ramp, card draw, removal and board wipes** next to their usual range, a **mana curve** (bars from 0 to 7+ with a text label per bar), **warnings**, a **brackets guide** and the list of sources with how much to trust each. Warnings come in two kinds, *Format rules* (100 cards, one or two commanders, colors inside the commander's identity, one copy of each card) and *Suggestions* (lands and role counts outside the usual range, only once the deck has 60 cards); none of them blocks anything. The figures, their sources and what was and was not verified are in [docs/knowledge/commander.md](../../docs/knowledge/commander.md); the decision is [ADR 0013](../../docs/adr/0013-commander-knowledge-and-analysis.md). The calculation is `analyzeCommanderDeck` in `packages/shared` (roles are guessed from the card text, so they are estimates).
 
 **EDHREC** is linked, not used as data. Each commander gets a link to its EDHREC page (new tab, `rel="noopener noreferrer"`) and a *Side window* button that opens the same page in a small window (`src/edhrec.ts`, `window.open` with `popup,noopener,noreferrer`). EDHREC refuses to be embedded in a page and its terms forbid automated access, so nothing is fetched, proxied or copied. The page slug rule was checked against one commander.
 
-Tests: the panel (counts, links, side window, curve labels, warnings, brackets, sources, Spanish) and the slug and window helpers; the analysis itself is tested in `packages/shared`. Not checked in a real browser by automation.
+Tests: the panel (counts, links, side window, curve labels, warnings, brackets, sources, Spanish) and the slug and window helpers; the analysis itself is tested in `packages/shared`. Layout is checked in a real browser (see `e2e/` in the repository root: sticky bar, hover preview, enlarge button, folded groups, the guided start, no horizontal overflow, phone and desktop width).
 
 ## Tests
 

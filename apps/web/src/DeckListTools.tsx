@@ -1,4 +1,4 @@
-import { formatDeckList, parseDeckList, type DeckCardEntry } from "@mtg-vault/shared";
+import { dropCommanderRows, formatDeckList, parseDeckList, type DeckCardEntry } from "@mtg-vault/shared";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { importDeck } from "./decksApi";
@@ -8,17 +8,31 @@ import { useI18n } from "./i18n";
 import { Problems } from "./ImportCollection";
 
 /** Export the deck as a text list, and import a list into it. */
-export function DeckListTools({ deckId, deckName, cards }: { deckId: string; deckName: string; cards: DeckCardEntry[] }) {
+export function DeckListTools({
+  deckId,
+  deckName,
+  cards,
+  needsCommander = false,
+}: {
+  deckId: string;
+  deckName: string;
+  cards: DeckCardEntry[];
+  /** A Commander deck with no commander yet: importing waits until one is chosen. */
+  needsCommander?: boolean;
+}) {
   const { t } = useI18n();
   const queryClient = useQueryClient();
   const list = useMemo(() => formatDeckList(cards), [cards]);
   const [copy, setCopy] = useState<"copied" | "error" | null>(null);
   const [text, setText] = useState("");
   const parsed = useMemo(() => parseDeckList(text), [text]);
+  // The commander is already in the deck: a list that repeats it must not add a second copy.
+  const commanders = useMemo(() => cards.filter((c) => c.board === "commander").map((c) => c.name), [cards]);
+  const { rows, skipped } = useMemo(() => dropCommanderRows(parsed.rows, commanders), [parsed.rows, commanders]);
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
 
   const run = useMutation({
-    mutationFn: () => importDeck(deckId, parsed.rows, (done, total) => setProgress({ done, total })),
+    mutationFn: () => importDeck(deckId, rows, (done, total) => setProgress({ done, total })),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["deck", deckId] });
       await queryClient.invalidateQueries({ queryKey: ["decks"] });
@@ -64,22 +78,33 @@ export function DeckListTools({ deckId, deckName, cards }: { deckId: string; dec
       )}
 
       <h3>{t("decklist.import")}</h3>
-      <DeckListInput
-        text={text}
-        onText={(next) => {
-          setText(next);
-          run.reset();
-        }}
-      />
+      {needsCommander ? (
+        <p className="hint" role="status">
+          {t("decklist.needsCommander")}
+        </p>
+      ) : (
+        <DeckListInput
+          text={text}
+          onText={(next) => {
+            setText(next);
+            run.reset();
+          }}
+        />
+      )}
+      {skipped > 0 && (
+        <p className="hint" role="status">
+          {t("decklist.skippedCommander", { count: skipped })}
+        </p>
+      )}
       <button
         type="button"
         className="btn-primary"
-        disabled={run.isPending || parsed.rows.length === 0}
+        disabled={needsCommander || run.isPending || rows.length === 0}
         onClick={() => run.mutate()}
       >
         {run.isPending && progress
           ? t("import.progress", { done: progress.done, total: progress.total })
-          : t("decklist.button", { count: parsed.totalCards })}
+          : t("decklist.button", { count: rows.reduce((n, r) => n + r.quantity, 0) })}
       </button>
       {run.error && (
         <p className="error" role="alert">

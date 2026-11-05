@@ -35,11 +35,13 @@ export async function searchCards({ q, limit, type, colors }: CardSearchQuery) {
     name: string;
     mana_cost: string | null;
     type_line: string;
+    oracle_text: string | null;
+    color_identity: string[] | null;
     similarity: number;
     image_uris: unknown;
   }>(sql`
     with matches as (
-      select oracle_id, name, mana_cost, type_line, similarity(name, ${q}) as similarity
+      select oracle_id, name, mana_cost, type_line, oracle_text, color_identity, similarity(name, ${q}) as similarity
       from cards
       where ${sql.join(filters, sql` and `)}
       order by lower(name) = lower(${q}) desc,
@@ -70,6 +72,8 @@ export async function searchCards({ q, limit, type, colors }: CardSearchQuery) {
       name: r.name,
       manaCost: r.mana_cost,
       typeLine: r.type_line,
+      oracleText: r.oracle_text,
+      colorIdentity: (r.color_identity ?? []) as CardSearchResult["colorIdentity"],
       similarity: Number(r.similarity),
       image: toCardImage(r.image_uris),
     }),

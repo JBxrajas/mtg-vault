@@ -6,6 +6,7 @@ import { fetchMe } from "./auth";
 import { createDeck, fetchDecks } from "./decksApi";
 import { useI18n } from "./i18n";
 import { ImportDeck } from "./ImportDeck";
+import { NewCommanderDeck } from "./NewCommanderDeck";
 import { Tip } from "./Tip";
 
 export const formatLabel = (f: DeckFormat) => f.charAt(0).toUpperCase() + f.slice(1);
@@ -74,6 +75,7 @@ export function DecksPage() {
           </button>
         </form>
       )}
+      {me && <NewCommanderDeck />}
       {me && <ImportDeck />}
       {create.error && <p className="error">{create.error.message}</p>}
       {me && isLoading && <p className="hint">{t("common.loading")}</p>}

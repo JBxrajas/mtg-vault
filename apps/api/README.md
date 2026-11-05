@@ -104,11 +104,11 @@ Fuzzy search of oracle cards by name, backed by the `pg_trgm` index on `cards.na
 
 Ordering: exact name, then names starting with `q`, then trigram similarity.
 
-Each result carries `image`: the `small`, `normal` and `artCrop` URLs of the **most recent printing that has an image** (or `null`). They are Scryfall URLs hotlinked by the clients, not files we store. The printing is picked with a `lateral` join that runs only for the rows kept by `limit`.
+Each result carries `oracleText` and `colorIdentity` (the web app checks with them whether a card can be a commander and shows its colors) and `image`: the `small`, `normal` and `artCrop` URLs of the **most recent printing that has an image** (or `null`). They are Scryfall URLs hotlinked by the clients, not files we store. The printing is picked with a `lateral` join that runs only for the rows kept by `limit`.
 
 ```json
 { "results": [
-  { "oracleId": "4457ed35-…", "name": "Lightning Bolt", "manaCost": "{R}", "typeLine": "Instant", "similarity": 0.81,
+  { "oracleId": "4457ed35-…", "name": "Lightning Bolt", "manaCost": "{R}", "typeLine": "Instant", "oracleText": "Lightning Bolt deals 3 damage to any target.", "colorIdentity": ["R"], "similarity": 0.81,
     "image": { "small": "https://cards.scryfall.io/small/…", "normal": "https://cards.scryfall.io/normal/…", "artCrop": "https://cards.scryfall.io/art_crop/…" } }
 ] }
 ```

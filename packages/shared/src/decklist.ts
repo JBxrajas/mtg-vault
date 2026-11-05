@@ -101,6 +101,26 @@ export function parseDeckList(text: string): ParsedDeckList {
   return { rows, problems, totalCards: rows.reduce((n, r) => n + r.quantity, 0) };
 }
 
+/** Name for comparing cards: lower case, front face only, accents and extra spaces ignored. */
+const sameName = (name: string) =>
+  (name.split("//")[0] ?? name).normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, " ").trim().toLowerCase();
+
+/**
+ * Takes the commander out of a pasted list: a deck holds the commander once, on the commander board, so a list that
+ * repeats it (in its main board, or as its own Commander section) must not add a second copy. Returns the remaining
+ * rows and how many copies were left out.
+ */
+export function dropCommanderRows(rows: DeckListRow[], commanderNames: string[]): { rows: DeckListRow[]; skipped: number } {
+  const names = new Set(commanderNames.map(sameName));
+  let skipped = 0;
+  const kept = rows.filter((r) => {
+    if (!names.has(sameName(r.name))) return true;
+    skipped += r.quantity;
+    return false;
+  });
+  return { rows: kept, skipped };
+}
+
 const SECTIONS: { board: DeckBoard; title: string }[] = [
   { board: "commander", title: "Commander" },
   { board: "main", title: "Deck" },
