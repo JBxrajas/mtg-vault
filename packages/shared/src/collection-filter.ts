@@ -37,8 +37,9 @@ export const emptyFilters = (): CollectionFilters => ({
 export const normalizeText = (text: string) =>
   text.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/\s+/g, " ").trim().toLowerCase();
 
+// The type line, mana value and colors may be missing while an older API is still answering (during a deploy).
 const haystack = (i: CollectionItem) =>
-  normalizeText([i.name, i.typeLine, i.setName, i.setCode, i.collectorNumber, i.notes ?? ""].join(" "));
+  normalizeText([i.name, i.typeLine ?? "", i.setName, i.setCode, i.collectorNumber, i.notes ?? ""].join(" "));
 
 /** How many filters are set (a text, or each facet with something chosen), for a badge and a "clear" button. */
 export function activeFilterCount(f: CollectionFilters): number {
@@ -64,16 +65,17 @@ export function filterCollection(items: CollectionItem[], f: CollectionFilters):
       if (!words.every((w) => text.includes(w))) return false;
     }
     if (f.colors.length > 0) {
-      const ok = i.colorIdentity.length === 0 ? f.colors.includes("C") : i.colorIdentity.some((c) => f.colors.includes(c));
+      const identity = i.colorIdentity ?? [];
+      const ok = identity.length === 0 ? f.colors.includes("C") : identity.some((c) => f.colors.includes(c));
       if (!ok) return false;
     }
-    if (f.types.length > 0 && !f.types.includes(cardCategory(i.typeLine))) return false;
+    if (f.types.length > 0 && !f.types.includes(cardCategory(i.typeLine ?? ""))) return false;
     if (f.rarities.length > 0 && !f.rarities.includes(i.rarity)) return false;
     if (f.sets.length > 0 && !f.sets.includes(i.setCode)) return false;
     if (f.finishes.length > 0 && !f.finishes.includes(i.finish)) return false;
     if (f.conditions.length > 0 && !f.conditions.includes(i.condition)) return false;
-    if (f.mvMin !== null && i.cmc < f.mvMin) return false;
-    if (f.mvMax !== null && i.cmc > f.mvMax) return false;
+    if (f.mvMin !== null && (i.cmc ?? 0) < f.mvMin) return false;
+    if (f.mvMax !== null && (i.cmc ?? 0) > f.mvMax) return false;
     return true;
   });
 }
@@ -93,7 +95,7 @@ export function sortCollection(items: CollectionItem[], sort: CollectionSort, de
     quantity: (i) => i.quantity,
     price: (i) => i.unitPrice ?? 0,
     value,
-    mv: (i) => i.cmc,
+    mv: (i) => i.cmc ?? 0,
   };
   const dir = desc ? -1 : 1;
   return [...items].sort((a, b) => {

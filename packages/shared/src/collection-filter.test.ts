@@ -86,6 +86,14 @@ describe("filterCollection", () => {
   });
 });
 
+describe("an older API answer", () => {
+  it("does not break on stacks without the type line, mana value or colors", () => {
+    const old = [{ ...items[0]!, typeLine: undefined, cmc: undefined, colorIdentity: undefined } as unknown as CollectionItem];
+    expect(filterCollection(old, { ...emptyFilters(), text: "bolt", colors: ["C"], types: ["Other"], mvMax: 0 })).toHaveLength(1);
+    expect(sortCollection(old, "mv")).toHaveLength(1);
+  });
+});
+
 describe("activeFilterCount", () => {
   it("counts each filter that is set, a text of only spaces not included", () => {
     expect(activeFilterCount(emptyFilters())).toBe(0);
