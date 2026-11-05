@@ -75,6 +75,7 @@ export interface CardSearchResult {
 }
 
 export * from "./analysis.js";
+export * from "./collection-filter.js";
 export * from "./commander.js";
 export * from "./csv.js";
 export * from "./decklist.js";
@@ -151,6 +152,11 @@ export interface CollectionItem {
   printingId: string;
   oracleId: string;
   name: string;
+  /** Type line of the card, for example "Legendary Creature — Elf". */
+  typeLine: string;
+  /** Mana value. */
+  cmc: number;
+  colorIdentity: Color[];
   setCode: string;
   setName: string;
   collectorNumber: string;

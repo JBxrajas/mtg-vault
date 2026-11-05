@@ -72,7 +72,7 @@ describe("CollectionPage", () => {
     expect(stat("market value")).toHaveTextContent("$20.00");
     expect(screen.getByText(/3 copies without a price/)).toBeInTheDocument();
 
-    const [bolt, counter] = rows();
+    const [counter, bolt] = rows(); // the list is sorted by name
     expect(within(bolt!).getByText("Lightning Bolt")).toBeInTheDocument();
     expect(within(bolt!).getByText(/Limited Edition Alpha \(LEA\) #161 · nonfoil · NM/)).toBeInTheDocument();
     expect(within(bolt!).getByText("$10.00 each · $20.00")).toBeInTheDocument();
@@ -85,7 +85,7 @@ describe("CollectionPage", () => {
     updateCollectionItem.mockResolvedValue(aStack());
     renderPage(<CollectionPage />, { path: "/collection" });
     await screen.findByText("Island");
-    const [bolt, island] = rows();
+    const [island, bolt] = rows(); // the list is sorted by name
 
     expect(within(island!).getByRole("button", { name: "One less" })).toBeDisabled();
     await userEvent.click(within(bolt!).getByRole("button", { name: "One more" }));
@@ -190,5 +190,61 @@ describe("CollectionPage", () => {
     fetchCollection.mockRejectedValue(new Error("Request failed (500)"));
     renderPage(<CollectionPage />, { path: "/collection" });
     expect(await screen.findByText("Request failed (500)")).toBeInTheDocument();
+  });
+  describe("search, sorting and filters", () => {
+    const stacks = () => [
+      aStack({ id: "a", name: "Lightning Bolt", typeLine: "Instant", cmc: 1, colorIdentity: ["R"], rarity: "common", quantity: 4, unitPrice: 2 }),
+      aStack({ id: "b", name: "Llanowar Elves", typeLine: "Creature — Elf Druid", cmc: 1, colorIdentity: ["G"], rarity: "common", setCode: "m19", setName: "Core Set 2019", quantity: 1, unitPrice: 0.5 }),
+      aStack({ id: "c", name: "Sol Ring", typeLine: "Artifact", cmc: 1, colorIdentity: [], rarity: "uncommon", setCode: "cmm", setName: "Commander Masters", quantity: 1, unitPrice: 30 }),
+    ];
+    const names = () => rows().map((r) => within(r).getByText(/^(Lightning Bolt|Llanowar Elves|Sol Ring)$/).textContent);
+
+    it("searches by name and says what is shown out of what there is", async () => {
+      fetchCollection.mockResolvedValue(stacks());
+      renderPage(<CollectionPage />, { path: "/collection" });
+      await userEvent.type(await screen.findByLabelText("Search your collection"), "llan");
+      expect(names()).toEqual(["Llanowar Elves"]);
+      expect(screen.getByText(/Showing 1 of 3 stacks/)).toHaveTextContent("Showing 1 of 3 stacks · 1 card · $0.50");
+    });
+
+    it("filters by color, type and rarity, and clears them all", async () => {
+      fetchCollection.mockResolvedValue(stacks());
+      renderPage(<CollectionPage />, { path: "/collection" });
+      await userEvent.click(await screen.findByText("Filters"));
+      await userEvent.click(screen.getByRole("button", { name: "Colorless" }));
+      expect(names()).toEqual(["Sol Ring"]);
+      await userEvent.click(screen.getByRole("button", { name: "Red" }));
+      expect(names()).toEqual(["Lightning Bolt", "Sol Ring"]);
+      await userEvent.click(screen.getByRole("button", { name: "Uncommon" }));
+      expect(names()).toEqual(["Sol Ring"]);
+      await userEvent.click(screen.getByRole("button", { name: "Clear filters" }));
+      expect(names()).toHaveLength(3);
+      expect(screen.queryByText(/Showing \d+ of/)).not.toBeInTheDocument();
+    });
+
+    it("filters by set and by mana value, and says when nothing matches", async () => {
+      fetchCollection.mockResolvedValue(stacks());
+      renderPage(<CollectionPage />, { path: "/collection" });
+      await userEvent.click(await screen.findByText("Filters"));
+      await userEvent.selectOptions(screen.getByLabelText("Set"), "m19");
+      expect(names()).toEqual(["Llanowar Elves"]);
+      await userEvent.type(screen.getByLabelText("Mana value from"), "3");
+      expect(await screen.findByText(/No card in your collection matches/)).toBeInTheDocument();
+    });
+
+    it("sorts by total value, highest first", async () => {
+      fetchCollection.mockResolvedValue(stacks());
+      renderPage(<CollectionPage />, { path: "/collection" });
+      await userEvent.selectOptions(await screen.findByLabelText("Sort by"), "value");
+      await userEvent.click(screen.getByRole("button", { name: "Descending" }));
+      expect(names()).toEqual(["Sol Ring", "Lightning Bolt", "Llanowar Elves"]); // 30, 4 × 2 = 8, 0.5
+    });
+
+    it("has no search or filters for an empty collection", async () => {
+      fetchCollection.mockResolvedValue([]);
+      renderPage(<CollectionPage />, { path: "/collection" });
+      await screen.findByText(/Nothing here yet/);
+      expect(screen.queryByLabelText("Search your collection")).not.toBeInTheDocument();
+    });
   });
 });

@@ -43,6 +43,15 @@ for (const language of LANGUAGES) {
         expect(await fits(page)).toEqual({ scrolls: false, wide: [] });
       });
 
+      test("collection with the filters open", async ({ page }) => {
+        await mockApi(page, commanderDeck());
+        await page.goto("/#/collection");
+        await page.locator(".filters > summary").click();
+        await page.locator(".filter-row input[type=number]").first().fill("2");
+        await expect(page.locator(".filter-bar")).toBeVisible();
+        expect(await fits(page)).toEqual({ scrolls: false, wide: [] });
+      });
+
       test("deck tools open", async ({ page }) => {
         await mockApi(page, commanderDeck());
         await page.goto("/#/decks/d1");
