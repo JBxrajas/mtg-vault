@@ -54,7 +54,9 @@ pnpm install
 pnpm dev:api                          # API on http://localhost:3001 (/health, /cards/search)
 pnpm --filter @mtg-vault/web dev      # web on http://localhost:5173
 pnpm typecheck                        # typecheck every package
-pnpm test                             # unit tests (Vitest)
+pnpm test                             # unit and component tests (Vitest)
+pnpm test:e2e                         # layout checks in a real browser (Playwright)
+pnpm test:coverage                    # coverage report
 ```
 
 ## Documentation

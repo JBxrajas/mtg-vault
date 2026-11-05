@@ -18,7 +18,7 @@
   --radius: 14px;
   --radius-sm: 10px;
   --nav-h: 3.5rem;
-  --topbar-h: 3.1rem;
+  --topbar-h: 3.75rem; /* fallback; Layout publishes the measured height */
   font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   line-height: 1.45;
 }
@@ -176,8 +176,6 @@ button.link {
   position: sticky;
   top: 0;
   z-index: 5;
-  box-sizing: border-box;
-  min-height: var(--topbar-h);
   display: flex;
   align-items: center;
   justify-content: space-between;
