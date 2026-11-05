@@ -61,7 +61,7 @@ A user has many decks ([ADR 0008](../../docs/adr/0008-users-collection-binders-d
 
 | Endpoint | Body | Result |
 |---|---|---|
-| `GET /decks` | none | `{ decks: DeckSummary[] }`, most recently changed first; `cardCount` is the main plus commander boards |
+| `GET /decks` | none | `{ decks: DeckSummary[] }`, most recently changed first; `cardCount` is the main plus commander boards; `commander` is the first card of the commander board (name, colors and the newest picture of the printing chosen, else of the card), or null |
 | `POST /decks` | `{ name, format?, description?, isPublic? }` | `201 { deck }`. Defaults: `casual`, private |
 | `GET /decks/:id` | none | `{ deck, cards }`; each card has name, mana cost, type line, cmc, `oracleText`, `colorIdentity`, `board`, `quantity`, image and `owned` (the web app's Commander analysis reads the text and the colors) |
 | `PATCH /decks/:id` | any of `{ name, format, description, isPublic }` | `200 { deck }` |

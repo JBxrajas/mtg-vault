@@ -23,6 +23,8 @@ import { addDeckCard, deleteDeck, fetchDeck, setDeckCard, updateDeck } from "./d
 import { CardPreview } from "./CardPreview";
 import { CommanderBar } from "./CommanderBar";
 import { DeckAnalysis } from "./DeckAnalysis";
+import { DeckHero } from "./DeckHero";
+import { FoldOnPhone } from "./FoldOnPhone";
 import { DeckListTools } from "./DeckListTools";
 import { formatLabel } from "./DecksPage";
 import { useI18n } from "./i18n";
@@ -113,19 +115,8 @@ export function DeckPage() {
   const flat = (board: DeckBoard) => cards.filter((c) => c.board === board);
 
   return (
-    <main className="page">
-      <p>
-        <Link to="/decks">{t("deck.back")}</Link>
-      </p>
-      <h1>{deck.name}</h1>
-      <p className="deck-meta">
-        <span className="badge">{formatLabel(deck.format)}</span>
-        <span className={target && count > target ? "count over" : "count"}>
-          {t("decks.cardCount", { count, target: target ? ` / ${target}` : "" })}
-        </span>
-        {deck.isPublic && <span className="badge">{t("deck.public")}</span>}
-      </p>
-      {deck.description && <p className="subtitle">{deck.description}</p>}
+    <main className="page wide">
+      <DeckHero deck={deck} cards={cards} count={count} issues={problems.size} />
       {mutationError && <p className="error">{mutationError.message}</p>}
 
       {isCommander && (
@@ -136,12 +127,20 @@ export function DeckPage() {
         />
       )}
 
-      <DeckSettings deckId={deckId} deck={deck} onDelete={() => remove.mutate()} deleting={remove.isPending} />
+      <div className="deck-tools">
+        <DeckSettings deckId={deckId} deck={deck} onDelete={() => remove.mutate()} deleting={remove.isPending} />
+        <DeckListTools deckId={deckId} deckName={deck.name} cards={cards} needsCommander={needsCommander} />
+      </div>
 
-      <DeckListTools deckId={deckId} deckName={deck.name} cards={cards} needsCommander={needsCommander} />
-
-      {deck.format === "commander" && <DeckAnalysis cards={cards} />}
-
+      <div className="deck-layout">
+      {deck.format === "commander" && (
+        <aside className="deck-side">
+          <FoldOnPhone title={t("deck.analysis")}>
+            <DeckAnalysis cards={cards} />
+          </FoldOnPhone>
+        </aside>
+      )}
+      <div className="deck-main">
       <AddCards
         formats={deckBoards(deck.format)}
         busy={busy}
@@ -170,6 +169,8 @@ export function DeckPage() {
           {flat(tab).length === 0 && <p className="hint">{t("deck.nothing", { board: t(BOARD_KEY[tab]).toLowerCase() })}</p>}
         </ul>
       )}
+      </div>
+      </div>
     </main>
   );
 }

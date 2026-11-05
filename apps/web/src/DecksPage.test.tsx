@@ -51,6 +51,32 @@ describe("DecksPage", () => {
     expect(within(screen.getByRole("link", { name: /Pile/ })).getByText("12 cards")).toBeInTheDocument();
   });
 
+  it("puts the commander's art behind the deck, with its colors and a bar for the size", async () => {
+    const image = { small: "s.jpg", normal: "n.jpg", artCrop: "https://img.example/iroh-art.jpg" };
+    fetchDecks.mockResolvedValue([
+      aDeck({ id: "d2", name: "Avatar", format: "commander", cardCount: 100, commander: { name: "Iroh, Grand Lotus", colorIdentity: ["U", "R", "G"], image } }),
+      aDeck({ id: "d3", name: "Over", format: "commander", cardCount: 103, commander: null }),
+      aDeck({ id: "d4", name: "Pile", format: "casual", cardCount: 12 }),
+    ]);
+    renderPage(<DecksPage />, { path: "/decks" });
+
+    const avatar = await screen.findByRole("link", { name: /Avatar/ });
+    expect(avatar).toHaveClass("has-art");
+    expect(avatar.getAttribute("style")).toContain("https://img.example/iroh-art.jpg");
+    expect(within(avatar).getByText("Iroh, Grand Lotus")).toBeInTheDocument();
+    expect(within(avatar).getByLabelText("Blue, Red, Green")).toBeInTheDocument();
+    const full = within(avatar).getByRole("progressbar", { name: "Deck size" });
+    expect(full).toHaveAttribute("aria-valuenow", "100");
+    expect(full).toHaveAttribute("aria-valuemax", "100");
+    expect(full).toHaveClass("done");
+
+    const over = screen.getByRole("link", { name: /Over/ });
+    expect(over).not.toHaveClass("has-art");
+    expect(within(over).getByRole("progressbar")).toHaveClass("over");
+    // A format without a target size has nothing to fill.
+    expect(within(screen.getByRole("link", { name: /Pile/ })).queryByRole("progressbar")).not.toBeInTheDocument();
+  });
+
   it("does not create a deck without a name", async () => {
     fetchDecks.mockResolvedValue([]);
     renderPage(<DecksPage />, { path: "/decks" });

@@ -89,6 +89,26 @@ describe("DeckPage", () => {
     expect(await screen.findByText("61 / 60 cards")).toHaveClass("over");
   });
 
+  it("shows a bar of how the cards divide among types, and how many cards have warnings", async () => {
+    fetchDeck.mockResolvedValue(
+      detail(
+        [
+          aDeckCard({ oracleId: "c", name: "Iroh", board: "commander", quantity: 1, typeLine: "Legendary Creature", colorIdentity: ["U"] }),
+          aDeckCard({ oracleId: "a", name: "Bear", typeLine: "Creature — Bear", quantity: 3 }),
+          aDeckCard({ oracleId: "b", name: "Bolt", typeLine: "Instant", quantity: 2 }),
+        ],
+        aDeck({ format: "commander" }),
+      ),
+    );
+    render();
+    const legend = await screen.findByRole("list", { name: "Cards by type" });
+    expect(within(legend).getByText("Creature").closest("li")).toHaveTextContent("Creature 3");
+    expect(within(legend).getByText("Instant").closest("li")).toHaveTextContent("Instant 2");
+    expect(screen.getByRole("progressbar", { name: "Deck size" })).toHaveAttribute("aria-valuenow", "6");
+    // Iroh has colors the other cards do not follow, so some cards carry a warning and the header counts them.
+    expect(screen.getByText(/to check/)).toBeInTheDocument();
+  });
+
   it("puts the commander board first and counts it towards the size", async () => {
     fetchDeck.mockResolvedValue(
       detail(

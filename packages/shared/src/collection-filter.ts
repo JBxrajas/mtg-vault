@@ -17,9 +17,13 @@ export interface CollectionFilters {
   sets: string[];
   finishes: Finish[];
   conditions: Condition[];
-  mvMin: number | null;
-  mvMax: number | null;
+  /** Mana values to show; `MANA_VALUE_CAP` stands for that value or more. Empty means any. */
+  manaValues: number[];
 }
+
+/** The last mana value bucket: 7 means "7 or more". */
+export const MANA_VALUE_CAP = 7;
+export const manaValueBucket = (cmc: number | null | undefined) => Math.min(MANA_VALUE_CAP, Math.floor(cmc ?? 0));
 
 export const emptyFilters = (): CollectionFilters => ({
   text: "",
@@ -29,8 +33,7 @@ export const emptyFilters = (): CollectionFilters => ({
   sets: [],
   finishes: [],
   conditions: [],
-  mvMin: null,
-  mvMax: null,
+  manaValues: [],
 });
 
 /** Lower case, without accents or extra spaces, so "Lim-Dûl" is found by "lim-dul". */
@@ -51,8 +54,7 @@ export function activeFilterCount(f: CollectionFilters): number {
     f.sets.length > 0,
     f.finishes.length > 0,
     f.conditions.length > 0,
-    f.mvMin !== null,
-    f.mvMax !== null,
+    f.manaValues.length > 0,
   ].filter(Boolean).length;
 }
 
@@ -74,8 +76,7 @@ export function filterCollection(items: CollectionItem[], f: CollectionFilters):
     if (f.sets.length > 0 && !f.sets.includes(i.setCode)) return false;
     if (f.finishes.length > 0 && !f.finishes.includes(i.finish)) return false;
     if (f.conditions.length > 0 && !f.conditions.includes(i.condition)) return false;
-    if (f.mvMin !== null && (i.cmc ?? 0) < f.mvMin) return false;
-    if (f.mvMax !== null && (i.cmc ?? 0) > f.mvMax) return false;
+    if (f.manaValues.length > 0 && !f.manaValues.includes(manaValueBucket(i.cmc))) return false;
     return true;
   });
 }

@@ -3,6 +3,7 @@ import type {
   DeckCard,
   DeckCardEntry,
   DeckCardSet,
+  DeckCommander,
   DeckDetail,
   DeckFormat,
   DeckImportResult,
@@ -31,6 +32,13 @@ export function toDeckSummary(r: Row): DeckSummary {
     isPublic: Boolean(r.is_public),
     cardCount: Number(r.card_count ?? 0),
     updatedAt: iso(r.updated_at),
+    commander: r.commander_name
+      ? {
+          name: r.commander_name as string,
+          colorIdentity: ((r.commander_colors as string[] | null) ?? []) as DeckCommander["colorIdentity"],
+          image: toCardImage(r.commander_image),
+        }
+      : null,
   };
 }
 
@@ -51,17 +59,37 @@ export function toDeckCardEntry(r: Row): DeckCardEntry {
   };
 }
 
+/** Each deck with its size and its commander (the first card of the commander board) and that card's newest picture. */
 const summarySelect = (where: ReturnType<typeof sql>) => sql`
-  select d.id, d.name, d.format, d.description, d.is_public, d.updated_at,
-         coalesce(sum(dc.quantity) filter (where dc.board in ('main', 'commander')), 0)::int as card_count
-  from decks d
-  left join deck_cards dc on dc.deck_id = d.id
-  where ${where}
-  group by d.id
+  select s.*, cmd.commander_name, cmd.commander_colors, cmd.commander_image
+  from (
+    select d.id, d.name, d.format, d.description, d.is_public, d.updated_at,
+           coalesce(sum(dc.quantity) filter (where dc.board in ('main', 'commander')), 0)::int as card_count
+    from decks d
+    left join deck_cards dc on dc.deck_id = d.id
+    where ${where}
+    group by d.id
+  ) s
+  left join lateral (
+    select c.name as commander_name, c.color_identity as commander_colors, img.image_uris as commander_image
+    from deck_cards cc
+    join cards c on c.oracle_id = cc.oracle_id
+    left join lateral (
+      select p.image_uris
+      from printings p
+      where p.image_uris is not null
+        and (p.id = cc.printing_id or (cc.printing_id is null and p.oracle_id = cc.oracle_id))
+      order by (p.id = cc.printing_id) desc, p.released_at desc nulls last
+      limit 1
+    ) img on true
+    where cc.deck_id = s.id and cc.board = 'commander'
+    order by c.name
+    limit 1
+  ) cmd on true
 `;
 
 export async function listDecks(userId: string): Promise<DeckSummary[]> {
-  const rows = await exec(sql`${summarySelect(sql`d.user_id = ${userId}`)} order by d.updated_at desc, d.name`);
+  const rows = await exec(sql`${summarySelect(sql`d.user_id = ${userId}`)} order by s.updated_at desc, s.name`);
   return rows.map(toDeckSummary);
 }
 

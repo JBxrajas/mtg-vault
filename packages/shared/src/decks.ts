@@ -146,6 +146,13 @@ export function deckCount(cards: Pick<DeckListEntry, "quantity" | "board">[]): n
   return cards.reduce((n, c) => (c.board === "main" || c.board === "commander" ? n + c.quantity : n), 0);
 }
 
+/** The commander of a deck, for its card in the list: name, colors and picture. */
+export interface DeckCommander {
+  name: string;
+  colorIdentity: import("./index.js").Color[];
+  image: import("./index.js").CardImage | null;
+}
+
 export interface DeckSummary {
   id: string;
   name: string;
@@ -156,6 +163,8 @@ export interface DeckSummary {
   cardCount: number;
   /** ISO timestamp of the last change. */
   updatedAt: string;
+  /** The first card on the commander board, when there is one (absent while an older API is answering). */
+  commander?: DeckCommander | null;
 }
 
 /** A card in a deck with what the lists need to show it. */

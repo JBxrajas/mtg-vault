@@ -12,7 +12,7 @@ import {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { CollectionFilterBar } from "./CollectionFilters";
+import { CollectionFilterBar, type CollectionView } from "./CollectionFilters";
 import { CardPreview } from "./CardPreview";
 import { fetchMe } from "./auth";
 import { fetchCollection, removeFromCollection, updateCollectionItem } from "./collectionApi";
@@ -62,7 +62,7 @@ export function CollectionPage() {
   const [filters, setFilters] = useState<CollectionFilters>(emptyFilters);
   const [sort, setSort] = useState<CollectionSort>("name");
   const [desc, setDesc] = useState(false);
-  const [view, setView] = useState<"list" | "art">("list");
+  const [view, setView] = useState<CollectionView>("list");
   const shown = useMemo(() => (items ? sortCollection(filterCollection(items, filters), sort, desc) : []), [items, filters, sort, desc]);
   const filtered = activeFilterCount(filters) > 0;
   const shownTotals = collectionTotals(shown);
@@ -152,17 +152,9 @@ export function CollectionPage() {
                 setSort(next);
                 setDesc(descending);
               }}
+              view={view}
+              onView={setView}
             />
-          )}
-          {items.length > 0 && (
-            <div className="chips" role="group" aria-label={t("collection.view")}>
-              <span className="filter-title">{t("collection.view")}</span>
-              {(["list", "art"] as const).map((v) => (
-                <button key={v} type="button" className={view === v ? "chip on" : "chip"} aria-pressed={view === v} onClick={() => setView(v)}>
-                  {t(`collection.view.${v}`)}
-                </button>
-              ))}
-            </div>
           )}
           {filtered && items.length > 0 && (
             <p className="hint" role="status">
@@ -175,6 +167,22 @@ export function CollectionPage() {
             </p>
           )}
           {filtered && items.length > 0 && shown.length === 0 && <p className="hint">{t("collection.noMatches")}</p>}
+          {view === "cards" && (
+            <ul className="card-grid">
+              {shown.map((item) => (
+                <li key={item.id}>
+                  <CardPreview name={item.name} image={item.image} className="thumb-wrap grid" />
+                  <span className="card-meta">
+                    <strong>{item.name}</strong>
+                    <small>
+                      {item.setCode.toUpperCase()} · ×{item.quantity}
+                      {item.unitPrice != null ? ` · ${fmt(item.unitPrice)}` : ""}
+                    </small>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
           {view === "art" && (
             <ul className="art-gallery">
               {shown
@@ -194,7 +202,7 @@ export function CollectionPage() {
                 ))}
             </ul>
           )}
-          <ul className="stacks" hidden={view === "art"}>
+          <ul className="stacks" hidden={view !== "list"}>
             {shown.map((item) => (
               <StackRow
                 key={item.id}

@@ -9,7 +9,7 @@ async function fits(page: Page) {
   return page.evaluate(() => {
     const wide = [...document.querySelectorAll("body *")]
       .filter((el) => el.getBoundingClientRect().right > window.innerWidth + 1 && !el.closest("[hidden]"))
-      .filter((el) => getComputedStyle(el).position !== "fixed" && !el.closest(".printing-strip, .tabs, .curve, pre"))
+      .filter((el) => getComputedStyle(el).position !== "fixed" && !el.closest(".printing-strip, .tabs, .quick, .curve, pre"))
       .slice(0, 3)
       .map((el) => `${el.tagName.toLowerCase()}.${el.className}`.slice(0, 60));
     return { scrolls: document.documentElement.scrollWidth > window.innerWidth, wide };
@@ -46,9 +46,10 @@ for (const language of LANGUAGES) {
       test("collection with the filters open", async ({ page }) => {
         await mockApi(page, commanderDeck());
         await page.goto("/#/collection");
-        await page.locator(".filters > summary").click();
-        await page.locator(".filter-row input[type=number]").first().fill("2");
-        await expect(page.locator(".filter-bar")).toBeVisible();
+        await page.locator(".filters-toggle").click();
+        await page.locator(".chips.mv .chip").nth(2).click();
+        await expect(page.locator(".filter-panel")).toBeVisible();
+        await expect(page.locator(".active-filters")).toBeVisible();
         expect(await fits(page)).toEqual({ scrolls: false, wide: [] });
       });
 
@@ -56,7 +57,7 @@ for (const language of LANGUAGES) {
         await mockApi(page, commanderDeck());
         await page.goto("/#/collection");
         await page.locator(".currency .chip").nth(1).click();
-        await page.locator(".chips .chip", { hasText: /^(Art|Arte)$/ }).click();
+        await page.locator(".segmented button", { hasText: /^(Art|Arte)$/ }).click();
         await expect(page.locator(".art-gallery")).toBeVisible();
         expect(await fits(page)).toEqual({ scrolls: false, wide: [] });
       });
