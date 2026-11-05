@@ -1,4 +1,5 @@
 import { Link, Outlet } from "@tanstack/react-router";
+import { useLayoutEffect, useRef } from "react";
 import { AuthBar } from "./AuthBar";
 import { LOCALE_NAME, LOCALES, setLocale, useI18n } from "./i18n";
 
@@ -11,10 +12,23 @@ const NAV = [
 /** App frame: brand and account on top, navigation at the bottom on phones and on top on wide screens. */
 export function Layout() {
   const { t, locale } = useI18n();
+  const bar = useRef<HTMLElement>(null);
+  // Sticky things under the top bar (the commander bar) need its real height, which changes with the language,
+  // the font and the screen. Publish it as `--topbar-h`.
+  useLayoutEffect(() => {
+    const el = bar.current;
+    if (!el) return;
+    const publish = () => document.documentElement.style.setProperty("--topbar-h", `${el.getBoundingClientRect().height}px`);
+    publish();
+    if (typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(publish);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
   const other = LOCALES.find((l) => l !== locale)!;
   return (
     <div className="app">
-      <header className="topbar">
+      <header className="topbar" ref={bar}>
         <div className="topbar-left">
           <Link to="/" className="brand">
             mtg<span>·</span>vault
