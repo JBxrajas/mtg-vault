@@ -3,7 +3,7 @@ import { getLocale, t } from "./i18n";
 
 const formats = new Map<string, Intl.NumberFormat>();
 /** Currency format for the page language: "$1,234.50" in English, "1234,50 US$" in Spanish. */
-function money(currency: "USD" | "EUR", v: number) {
+export function money(currency: "USD" | "EUR" | "MXN", v: number) {
   const locale = getLocale() === "es" ? "es-ES" : "en-US";
   const key = `${locale}/${currency}`;
   let f = formats.get(key);

@@ -40,7 +40,7 @@ export function commanderDeck(): DeckDetail {
 /** Signs in and answers the deck endpoints from memory. Everything else gets an empty answer. */
 const base = {
   id: "s1",
-  printingId: "p1",
+  printingId: "bba5ea18-4e58-42a8-b613-2178706476a6",
   oracleId: "bolt",
   name: "Lightning Bolt",
   setCode: "lea",
@@ -64,8 +64,8 @@ const base = {
 export const stack = base;
 export const stacks = [
   base,
-  { ...base, id: "s2", oracleId: "elves", name: "Llanowar Elves", typeLine: "Creature — Elf Druid", colorIdentity: ["G"], setCode: "m19", setName: "Core Set 2019", rarity: "common" },
-  { ...base, id: "s3", oracleId: "ring", name: "Sol Ring", typeLine: "Artifact", colorIdentity: [], setCode: "cmm", setName: "Commander Masters", rarity: "uncommon", unitPrice: 30 },
+  { ...base, id: "s2", printingId: "22222222-2222-4222-8222-222222222222", oracleId: "elves", name: "Llanowar Elves", typeLine: "Creature — Elf Druid", colorIdentity: ["G"], setCode: "m19", setName: "Core Set 2019", rarity: "common" },
+  { ...base, id: "s3", printingId: "33333333-3333-4333-8333-333333333333", oracleId: "ring", name: "Sol Ring", typeLine: "Artifact", colorIdentity: [], setCode: "cmm", setName: "Commander Masters", rarity: "uncommon", unitPrice: 30 },
 ];
 
 export const iroh = {
@@ -93,8 +93,9 @@ export const printing = (id: string, setCode: string) => ({
 });
 
 export async function mockApi(page: Page, deck: DeckDetail) {
-  await page.addInitScript(() => localStorage.setItem("mtg-vault.token", "test"));
-  await page.route(`${API}/**`, (route) => {
+  // On the context, not the page: a window the page opens (target=_blank) shares the sign-in and the mocked network.
+  await page.context().addInitScript(() => localStorage.setItem("mtg-vault.token", "test"));
+  await page.context().route(`${API}/**`, (route) => {
     const request = route.request();
     if (request.method() === "OPTIONS") return route.fulfill({ status: 204, headers: cors });
     const path = new URL(request.url()).pathname;
@@ -114,4 +115,32 @@ export async function mockApi(page: Page, deck: DeckDetail) {
                 : {};
     return route.fulfill({ status: 200, contentType: "application/json", headers: cors, body: JSON.stringify(body) });
   });
+}
+
+/** Answers what the art page asks Scryfall for, and serves a card-shaped picture for its images. */
+export async function mockScryfall(page: Page) {
+  await page.context().route("https://api.scryfall.com/cards/*", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      headers: { "access-control-allow-origin": "*" },
+      body: JSON.stringify({
+        name: "Lightning Bolt",
+        set_name: "Secret Lair",
+        set: "slc",
+        collector_number: "83",
+        released_at: "2025-01-02",
+        scryfall_uri: "https://scryfall.com/card/slc/83/lightning-bolt",
+        artist: "Christopher Moeller",
+        flavor_text: "The sparkmage shrieked, calling on the rage of the storms.",
+        image_uris: {
+          art_crop: "https://cards.scryfall.io/art_crop/front/x.jpg",
+          png: "https://cards.scryfall.io/png/front/x.png",
+        },
+      }),
+    }),
+  );
+  await page.context().route("https://cards.scryfall.io/**", (route) =>
+    route.fulfill({ status: 200, contentType: "image/svg+xml", body: decodeURIComponent(picture.normal.split(",")[1]!) }),
+  );
 }

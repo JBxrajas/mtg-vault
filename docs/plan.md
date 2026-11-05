@@ -38,8 +38,11 @@ Status: ☐ pending · ◐ in progress · ☑ done
 ## Phase 4 — Prices ◐
 - ◐ Price snapshots in `price_snapshots`: the Scryfall import writes a row when a printing's price changes ([apps/jobs](../apps/jobs/README.md)); latest prices shown per printing in the web app. Runs weekly for now; a daily run needs the storage plan checked first
 - ☑ Printings list per card with set name and price (`GET /cards/:oracleId/printings`)
+- ☑ Collection prices in Mexican pesos with a rate set by the user
 - Price history charts and total collection value
 - Price rise and drop alerts
+
+- ☑ High-resolution art page and art view in the collection, with the artist (from Scryfall, on demand)
 
 ## Phase 5 — Scanning ☐
 - Photo upload with OCR (name and collector number) and fuzzy lookup on Scryfall

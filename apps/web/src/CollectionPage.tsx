@@ -17,7 +17,9 @@ import { CardPreview } from "./CardPreview";
 import { fetchMe } from "./auth";
 import { fetchCollection, removeFromCollection, updateCollectionItem } from "./collectionApi";
 import { downloadText } from "./download";
-import { formatUsd } from "./format";
+import { artHref } from "./art";
+import { CurrencyControl } from "./CurrencyControl";
+import { formatMoney, useCurrency } from "./currency";
 import { useI18n } from "./i18n";
 import { ImportCollection } from "./ImportCollection";
 import { Tip } from "./Tip";
@@ -60,10 +62,13 @@ export function CollectionPage() {
   const [filters, setFilters] = useState<CollectionFilters>(emptyFilters);
   const [sort, setSort] = useState<CollectionSort>("name");
   const [desc, setDesc] = useState(false);
+  const [view, setView] = useState<"list" | "art">("list");
   const shown = useMemo(() => (items ? sortCollection(filterCollection(items, filters), sort, desc) : []), [items, filters, sort, desc]);
   const filtered = activeFilterCount(filters) > 0;
   const shownTotals = collectionTotals(shown);
 
+  const prefs = useCurrency();
+  const fmt = (usd: number) => formatMoney(usd, prefs);
   const totals = collectionTotals(items ?? []);
   const actionError = setQuantity.error ?? remove.error;
 
@@ -121,13 +126,14 @@ export function CollectionPage() {
               </span>
             </div>
             <div className="stat">
-              <b>{formatUsd(totals.valueUsd)}</b>
+              <b>{fmt(totals.valueUsd)}</b>
               <span>
                 {t("collection.value")}
                 <Tip label={t("collection.value.tip.label")}>{t("collection.value.tip.text")}</Tip>
               </span>
             </div>
           </div>
+          <CurrencyControl />
           {totals.unpriced > 0 && <p className="hint">{t("collection.unpriced", { count: totals.unpriced })}</p>}
           {items.length === 0 && (
             <p className="hint">
@@ -148,21 +154,51 @@ export function CollectionPage() {
               }}
             />
           )}
+          {items.length > 0 && (
+            <div className="chips" role="group" aria-label={t("collection.view")}>
+              <span className="filter-title">{t("collection.view")}</span>
+              {(["list", "art"] as const).map((v) => (
+                <button key={v} type="button" className={view === v ? "chip on" : "chip"} aria-pressed={view === v} onClick={() => setView(v)}>
+                  {t(`collection.view.${v}`)}
+                </button>
+              ))}
+            </div>
+          )}
           {filtered && items.length > 0 && (
             <p className="hint" role="status">
               {t("collection.showing", {
                 shown: shown.length,
                 total: items.length,
                 cards: `${shownTotals.copies} ${t("collection.cards", { count: shownTotals.copies })}`,
-                value: formatUsd(shownTotals.valueUsd)!,
+                value: fmt(shownTotals.valueUsd),
               })}
             </p>
           )}
           {filtered && items.length > 0 && shown.length === 0 && <p className="hint">{t("collection.noMatches")}</p>}
-          <ul className="stacks">
+          {view === "art" && (
+            <ul className="art-gallery">
+              {shown
+                .filter((item) => item.image)
+                .map((item) => (
+                  <li key={item.id}>
+                    <a href={artHref(item.printingId)} target="_blank" rel="noopener noreferrer" aria-label={t("collection.artLinkLabel", { name: item.name })}>
+                      <img src={item.image!.artCrop} alt="" loading="lazy" />
+                      <span className="art-caption">
+                        <strong>{item.name}</strong>
+                        <small>
+                          {item.setName} · ×{item.quantity}
+                        </small>
+                      </span>
+                    </a>
+                  </li>
+                ))}
+            </ul>
+          )}
+          <ul className="stacks" hidden={view === "art"}>
             {shown.map((item) => (
               <StackRow
                 key={item.id}
+                fmt={fmt}
                 item={item}
                 busy={remove.isPending}
                 onQuantity={(quantity) => setQuantity.mutate({ id: item.id, quantity })}
@@ -177,6 +213,7 @@ export function CollectionPage() {
 }
 
 function StackRow(props: {
+  fmt: (usd: number) => string;
   item: CollectionItem;
   busy: boolean;
   onQuantity: (quantity: number) => void;
@@ -195,7 +232,7 @@ function StackRow(props: {
         </div>
         <div className="sub">
           {item.unitPrice != null
-            ? t("collection.each", { price: formatUsd(item.unitPrice)!, total: formatUsd(item.unitPrice * item.quantity)! })
+            ? t("collection.each", { price: props.fmt(item.unitPrice), total: props.fmt(item.unitPrice * item.quantity) })
             : t("price.none")}
         </div>
       </div>
@@ -208,6 +245,11 @@ function StackRow(props: {
           +
         </button>
         <span className="spacer" />
+        {item.image && (
+          <a className="link" href={artHref(item.printingId)} target="_blank" rel="noopener noreferrer" aria-label={t("collection.artLinkLabel", { name: item.name })}>
+            {t("collection.artLink")} ↗
+          </a>
+        )}
         <button type="button" className="link" disabled={props.busy} onClick={props.onRemove}>
           {t("common.remove")}
         </button>

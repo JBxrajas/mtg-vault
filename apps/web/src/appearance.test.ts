@@ -45,6 +45,13 @@ describe("parseAppearance", () => {
     expect(parseAppearance({ art: { ...base, oracleId: 7 } }).art).toEqual(base);
   });
 
+  it("keeps the printing id of the art only when it is a UUID", () => {
+    const base = { url: ART, name: "Black Lotus" };
+    const id = "bba5ea18-4e58-42a8-b613-2178706476a6";
+    expect(parseAppearance({ art: { ...base, printingId: id } }).art).toEqual({ ...base, printingId: id });
+    expect(parseAppearance({ art: { ...base, printingId: "../x" } }).art).toEqual(base);
+  });
+
   it("keeps valid parts and clamps the dimming", () => {
     const a = parseAppearance({ mode: "dark", background: "blue", art: { url: ART, name: "Black Lotus" }, dimming: 5 });
     expect(a).toEqual({ mode: "dark", background: "blue", art: { url: ART, name: "Black Lotus" }, dimming: 50 });
