@@ -91,6 +91,10 @@ Formats: standard, pioneer, modern, legacy, vintage, commander, oathbreaker, bra
 - Rows that land on the same stack, even from different lines, are added together.
 - A 3000-line file takes about 5 seconds in 6 requests, the slowest about 1.1 s (measured locally against Neon); a second import of the same file takes about the same.
 
+### `GET /art-index`
+
+The art-fingerprint index the card scanner matches photos against ([ADR 0014](../../docs/adr/0014-card-scanning-with-art-fingerprints.md)): a binary file of about 3.6 MB (format in `packages/shared/src/art-hash.ts`, built by the `art-index` job). No login. The API streams the `art-index.bin` asset of the repository's `art-index` GitHub release (a browser cannot fetch release downloads itself, they send no CORS headers) with `Cache-Control: public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800`, so the CDN serves it and GitHub is hit about once a day. Streaming also keeps it clear of Vercel's 4.5 MB limit for ordinary responses. `503` until the first index is published, `502` if GitHub fails. `ART_INDEX_URL` overrides the source (for a fork or tests).
+
 ### `GET /cards/search`
 
 Fuzzy search of oracle cards by name, backed by the `pg_trgm` index on `cards.name`.

@@ -35,10 +35,7 @@ A deck list is one card per line: `4 Lightning Bolt`, `4x Lightning Bolt`, `4 Li
 - We start with Scryfall and MTGJSON prices.
 
 ## Card scanning
-No API solves this. It is built on the client by combining:
-1. OCR (Tesseract.js) of the name and collector number, then fuzzy lookup on Scryfall.
-2. Perceptual hash (pHash) of the image against Scryfall images, to tell printings apart.
-OpenCV.js handles cropping and perspective correction.
+No API solves this. It is built on the client, designed in [ADR 0014](adr/0014-card-scanning-with-art-fingerprints.md): a 256-bit art fingerprint of the photo is matched against an index of every illustration in Scryfall, built weekly from Scryfall's `art_crop` images by the `art-index` job and published as an asset of this repository's `art-index` GitHub release. The API streams it at `GET /art-index`. Reading the card's text (Tesseract.js) was tested and is only a possible refinement for the printing, not the way a card is identified: it failed on blurry photos and would need a model per language.
 
 ## EDHREC
 No official API, and not a data source for us. Its terms allow personal, non-commercial use only and forbid scripts that make automated requests, copying its content and building a competing site; its pages also refuse to be framed (`X-Frame-Options: SAMEORIGIN`). The app only links to a commander's EDHREC page, in a new tab or in a side window the user's browser opens. Nothing is fetched, cached or copied, and rankings derived from EDHREC (such as Scryfall's `edhrec_rank`) are not used either. See [ADR 0013](adr/0013-commander-knowledge-and-analysis.md).
