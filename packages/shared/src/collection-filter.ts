@@ -8,7 +8,7 @@ export type ColorFilter = Color | "C";
 export interface CollectionFilters {
   /** Words that must all appear in the card name, type, set, collector number or notes. */
   text: string;
-  /** Any of these colors (or colorless). Empty means any. */
+  /** Cards that have all of these colors (more are fine); `C` alone means colorless. Empty means any. */
   colors: ColorFilter[];
   /** Card types, by the first one that applies (an Artifact Creature is a Creature). */
   types: CardCategory[];
@@ -68,7 +68,7 @@ export function filterCollection(items: CollectionItem[], f: CollectionFilters):
     }
     if (f.colors.length > 0) {
       const identity = i.colorIdentity ?? [];
-      const ok = identity.length === 0 ? f.colors.includes("C") : identity.some((c) => f.colors.includes(c));
+      const ok = f.colors.includes("C") ? identity.length === 0 : f.colors.every((c) => identity.includes(c as Color));
       if (!ok) return false;
     }
     if (f.types.length > 0 && !f.types.includes(cardCategory(i.typeLine ?? ""))) return false;

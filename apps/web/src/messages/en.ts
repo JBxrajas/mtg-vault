@@ -371,7 +371,7 @@ export const en = {
   "filters.region": "Search and filters",
   "filters.title": "Filters",
   "filters.tip.label": "How filters work",
-  "filters.tip.text": "Inside one filter any choice matches (red or blue); the filters add up (red or blue AND a creature). The search box needs every word to appear in the name, type, set or your notes.",
+  "filters.tip.text": "Inside most filters any choice matches (common or rare); colors are the exception: a card needs every color you pick (red + green finds red-green cards). The filters add up (rare AND a creature). The search box needs every word to appear in the name, type, set or your notes.",
   "filters.colors": "Colors",
   "filters.type": "Type",
   "filters.rarity": "Rarity",

@@ -373,7 +373,7 @@ export const es = {
   "filters.region": "Búsqueda y filtros",
   "filters.title": "Filtros",
   "filters.tip.label": "Cómo funcionan los filtros",
-  "filters.tip.text": "Dentro de un filtro vale cualquier opción (rojo o azul); los filtros se suman (rojo o azul Y criatura). El buscador pide que cada palabra aparezca en el nombre, el tipo, la edición o tus notas.",
+  "filters.tip.text": "Dentro de la mayoría de filtros vale cualquier opción (común o rara); los colores son la excepción: la carta debe tener todos los que elijas (rojo + verde encuentra cartas rojo-verdes). Los filtros se suman (rara Y criatura). El buscador pide que cada palabra aparezca en el nombre, el tipo, la edición o tus notas.",
   "filters.colors": "Colores",
   "filters.type": "Tipo",
   "filters.rarity": "Rareza",

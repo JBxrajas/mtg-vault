@@ -53,12 +53,14 @@ describe("filterCollection", () => {
     expect(find("   ")).toHaveLength(6);
   });
 
-  it("filters by color as alternatives, and colorless on its own", () => {
+  it("filters by color: a card needs all the colors picked, and colorless is on its own", () => {
     const by = (colors: ("W" | "U" | "B" | "R" | "G" | "C")[]) => names(filterCollection(items, { ...emptyFilters(), colors }));
     expect(by(["G"])).toEqual(["Llanowar Elves", "Kitchen Finks"]);
-    expect(by(["U", "R"])).toEqual(["Lightning Bolt", "Lim-Dûl's Vault"]);
+    expect(by(["U", "R"])).toEqual([]);
+    expect(by(["U", "B"])).toEqual(["Lim-Dûl's Vault"]);
+    expect(by(["W", "G"])).toEqual(["Kitchen Finks"]);
     expect(by(["C"])).toEqual(["Sol Ring", "Black Lotus"]);
-    expect(by(["C", "W"])).toEqual(["Sol Ring", "Black Lotus", "Kitchen Finks"]);
+    expect(by(["C", "W"])).toEqual(["Sol Ring", "Black Lotus"]);
   });
 
   it("filters by type with the card's main type, so an Artifact Creature is a Creature", () => {
