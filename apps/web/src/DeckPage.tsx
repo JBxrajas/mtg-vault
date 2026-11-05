@@ -1,9 +1,14 @@
 import {
+  cardProblems,
+  colorWords,
   deckBoards,
   deckCount,
   deckFormatSchema,
   deckTargetSize,
   groupByCategory,
+  problemKey,
+  type CardProblem,
+  type Color,
   type DeckBoard,
   type DeckCardEntry,
   type DeckDetail,
@@ -15,6 +20,7 @@ import { useState } from "react";
 import { searchCards } from "./api";
 import { fetchMe } from "./auth";
 import { addDeckCard, deleteDeck, fetchDeck, setDeckCard, updateDeck } from "./decksApi";
+import { CardPreview } from "./CardPreview";
 import { CommanderBar } from "./CommanderBar";
 import { DeckAnalysis } from "./DeckAnalysis";
 import { DeckListTools } from "./DeckListTools";
@@ -62,6 +68,11 @@ export function DeckPage() {
     mutationFn: (v: { oracleId: string; board: DeckBoard }) => addDeckCard(deckId, { ...v, quantity: 1 }),
     onSuccess: store,
   });
+  const chooseCommander = useMutation({
+    mutationFn: (v: { oracleId: string; printingId: string | null }) =>
+      addDeckCard(deckId, { oracleId: v.oracleId, board: "commander", quantity: 1, ...(v.printingId ? { printingId: v.printingId } : {}) }),
+    onSuccess: store,
+  });
   const remove = useMutation({
     mutationFn: () => deleteDeck(deckId),
     onSuccess: async () => {
@@ -94,8 +105,11 @@ export function DeckPage() {
   const { deck, cards } = data;
   const target = deckTargetSize(deck.format);
   const count = deckCount(cards);
-  const mutationError = setCard.error ?? addCard.error;
-  const busy = setCard.isPending || addCard.isPending;
+  const mutationError = setCard.error ?? addCard.error ?? chooseCommander.error;
+  const busy = setCard.isPending || addCard.isPending || chooseCommander.isPending;
+  const isCommander = deck.format === "commander";
+  const needsCommander = isCommander && !cards.some((c) => c.board === "commander");
+  const problems = isCommander ? cardProblems(cards) : new Map<string, CardProblem[]>();
   const flat = (board: DeckBoard) => cards.filter((c) => c.board === board);
 
   return (
@@ -114,11 +128,17 @@ export function DeckPage() {
       {deck.description && <p className="subtitle">{deck.description}</p>}
       {mutationError && <p className="error">{mutationError.message}</p>}
 
-      {deck.format === "commander" && <CommanderBar cards={cards} />}
+      {isCommander && (
+        <CommanderBar
+          cards={cards}
+          busy={busy}
+          onChoose={(choice) => chooseCommander.mutate({ oracleId: choice.card.oracleId, printingId: choice.printingId })}
+        />
+      )}
 
       <DeckSettings deckId={deckId} deck={deck} onDelete={() => remove.mutate()} deleting={remove.isPending} />
 
-      <DeckListTools deckId={deckId} deckName={deck.name} cards={cards} />
+      <DeckListTools deckId={deckId} deckName={deck.name} cards={cards} needsCommander={needsCommander} />
 
       {deck.format === "commander" && <DeckAnalysis cards={cards} />}
 
@@ -141,7 +161,7 @@ export function DeckPage() {
       </div>
 
       {tab === "main" ? (
-        <MainBoard cards={cards} busy={busy} onSet={(c, quantity) => setCard.mutate({ oracleId: c.oracleId, board: c.board, quantity })} />
+        <MainBoard cards={cards} busy={busy} problems={problems} onSet={(c, quantity) => setCard.mutate({ oracleId: c.oracleId, board: c.board, quantity })} />
       ) : (
         <ul className="deck-rows">
           {flat(tab).map((c) => (
@@ -154,39 +174,73 @@ export function DeckPage() {
   );
 }
 
-function MainBoard(props: { cards: DeckCardEntry[]; busy: boolean; onSet: (card: DeckCardEntry, quantity: number) => void }) {
+function MainBoard(props: {
+  cards: DeckCardEntry[];
+  busy: boolean;
+  problems: Map<string, CardProblem[]>;
+  onSet: (card: DeckCardEntry, quantity: number) => void;
+}) {
   const { t } = useI18n();
   const groups = groupByCategory(props.cards);
+  const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
   if (groups.length === 0) return <p className="hint">{t("deck.empty")}</p>;
+  const toggle = (category: string) =>
+    setCollapsed((prev) => {
+      const next = new Set(prev);
+      if (!next.delete(category)) next.add(category);
+      return next;
+    });
+  const allCollapsed = groups.every((g) => collapsed.has(g.category));
   return (
     <div>
-      {groups.map((g) => (
-        <section key={g.category} aria-label={t(`category.${g.category}`)}>
-          <h2 className="group-title">
-            {t(`category.${g.category}`)} <span className="count">({g.count})</span>
-          </h2>
-          <ul className="deck-rows">
-            {g.items.map((c) => (
-              <DeckRow key={`${c.oracleId}-${c.board}`} card={c} busy={props.busy} onSet={(quantity) => props.onSet(c, quantity)} />
-            ))}
-          </ul>
-        </section>
-      ))}
+      {groups.length > 1 && (
+        <button type="button" className="link" onClick={() => setCollapsed(allCollapsed ? new Set() : new Set(groups.map((g) => g.category)))}>
+          {allCollapsed ? t("deck.expandAll") : t("deck.collapseAll")}
+        </button>
+      )}
+      {groups.map((g) => {
+        const open = !collapsed.has(g.category);
+        const bad = g.items.filter((c) => props.problems.has(problemKey(c))).length;
+        return (
+          <section key={g.category} aria-label={t(`category.${g.category}`)}>
+            <h2 className="group-title">
+              <button type="button" className={open ? "group-toggle open" : "group-toggle"} aria-expanded={open} onClick={() => toggle(g.category)}>
+                {t(`category.${g.category}`)} <span className="count">({g.count})</span>
+              </button>
+              {bad > 0 && !open && <span className="problem-count">{t("deck.problemsIn", { count: bad })}</span>}
+            </h2>
+            <ul className="deck-rows" hidden={!open}>
+              {g.items.map((c) => (
+                <DeckRow key={`${c.oracleId}-${c.board}`} card={c} busy={props.busy} problems={props.problems.get(problemKey(c))} onSet={(quantity) => props.onSet(c, quantity)} />
+              ))}
+            </ul>
+          </section>
+        );
+      })}
     </div>
   );
 }
 
-function DeckRow(props: { card: DeckCardEntry; busy: boolean; onSet: (quantity: number) => void }) {
+/** Problem parameters for the text: color letters become words ("R" → "Red"). */
+const readable = (p: CardProblem) =>
+  typeof p.params.colors === "string" ? { ...p.params, colors: colorWords(p.params.colors.split(" ") as Color[]).join(", ") } : p.params;
+
+function DeckRow(props: { card: DeckCardEntry; busy: boolean; problems?: CardProblem[] | undefined; onSet: (quantity: number) => void }) {
   const { card } = props;
   const { t } = useI18n();
   const owned = ownedBadge(card, t);
   return (
-    <li className="deck-row">
-      {card.image ? <img src={card.image.small} alt="" loading="lazy" /> : <div className="thumb-ph" aria-hidden="true" />}
+    <li className={props.problems?.length ? "deck-row has-problem" : "deck-row"}>
+      <CardPreview name={card.name} image={card.image} />
       <div className="deck-row-info">
         <div className="name">{card.name}</div>
         <ManaCost cost={card.manaCost} />
         <span className={owned.enough ? "owned yes" : "owned no"}>{owned.text}</span>
+        {props.problems?.map((p) => (
+          <span key={p.code} className="problem" role="note">
+            ⚠ {t(`problem.${p.code}`, readable(p))}
+          </span>
+        ))}
       </div>
       <div className="qty">
         <button type="button" aria-label={t("deck.less", { name: card.name })} disabled={props.busy} onClick={() => props.onSet(card.quantity - 1)}>
@@ -237,7 +291,7 @@ function AddCards(props: { formats: DeckBoard[]; busy: boolean; onAdd: (oracleId
         {q.length >= 2 &&
           data?.map((c) => (
             <li key={c.oracleId} className="deck-row">
-              {c.image ? <img src={c.image.small} alt="" loading="lazy" /> : <div className="thumb-ph" aria-hidden="true" />}
+              <CardPreview name={c.name} image={c.image} />
               <div className="deck-row-info">
                 <div className="name">{c.name}</div>
                 <ManaCost cost={c.manaCost} />

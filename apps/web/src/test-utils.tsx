@@ -46,6 +46,8 @@ export const aCard = (over: Partial<import("@mtg-vault/shared").CardSearchResult
   name: "Lightning Bolt",
   manaCost: "{R}",
   typeLine: "Instant",
+  oracleText: null,
+  colorIdentity: [] as import("@mtg-vault/shared").Color[],
   similarity: 1,
   image: { small: "https://img.example/small.jpg", normal: "https://img.example/normal.jpg", artCrop: "https://img.example/art.jpg" },
   ...over,

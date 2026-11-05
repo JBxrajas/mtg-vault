@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { analyzeCommanderDeck, cardRoles, type AnalyzedCard } from "./analysis.js";
+import { analyzeCommanderDeck, cardProblems, cardRoles, type AnalyzedCard } from "./analysis.js";
 import { LAND_FORMULA, recommendedLands } from "./knowledge.js";
 
 describe("cardRoles", () => {
@@ -202,5 +202,41 @@ describe("recommendedLands", () => {
 
   it("keeps the threshold for cheap spells where the docs say it is", () => {
     expect(LAND_FORMULA.cheapMaxMv).toBe(2);
+  });
+});
+
+describe("commander warnings", () => {
+  it("flags a commander that cannot lead, and two commanders that cannot pair", () => {
+    const bad = analyzeCommanderDeck(deck({ commander: card({ name: "Bolt", typeLine: "Instant", board: "commander" }) }));
+    expect(bad.warnings.find((w) => w.code === "commander-invalid")?.params).toEqual({ count: 1, names: "Bolt" });
+    const pair = analyzeCommanderDeck([
+      ...deck({ commander: card({ name: "A", board: "commander", typeLine: "Legendary Creature — Elf" }) }),
+      card({ name: "B", board: "commander", typeLine: "Legendary Creature — Elf" }),
+    ]);
+    expect(pair.warnings.find((w) => w.code === "commander-pair")?.params).toEqual({ names: "A + B" });
+  });
+});
+
+describe("cardProblems", () => {
+  const withId = (c: AnalyzedCard) => ({ ...c, oracleId: c.name });
+  const problems = (cards: AnalyzedCard[]) => cardProblems(cards.map(withId));
+
+  it("marks a card outside the commander's colors with the colors that are not allowed", () => {
+    const list = deck({ commander: card({ name: "Cmd", board: "commander", colorIdentity: ["G"], typeLine: "Legendary Creature — Elf" }), extra: [card({ name: "Bolt", typeLine: "Instant", colorIdentity: ["R", "G"] })] });
+    expect(problems(list).get("main:Bolt")).toEqual([{ code: "outside-identity", params: { colors: "R" } }]);
+    expect(problems(list).has("main:Bear 0")).toBe(false);
+  });
+
+  it("marks repeated copies, the commander repeated in the main board, and a commander that cannot lead", () => {
+    const cmd = card({ name: "Cmd", board: "commander", colorIdentity: ["G"], typeLine: "Legendary Creature — Elf" });
+    const list = [cmd, card({ name: "Cmd", colorIdentity: ["G"], typeLine: "Legendary Creature — Elf" }), card({ name: "Twice", quantity: 2, colorIdentity: ["G"] })];
+    const found = problems(list);
+    expect(found.get("main:Cmd")?.map((p) => p.code)).toEqual(["duplicates-commander"]);
+    expect(found.get("main:Twice")).toEqual([{ code: "copies", params: { count: 2 } }]);
+    expect(problems([card({ name: "Bolt", typeLine: "Instant", board: "commander" })]).get("commander:Bolt")?.[0]?.code).toBe("bad-commander");
+  });
+
+  it("says nothing about colors while there is no commander", () => {
+    expect(problems([card({ name: "Bolt", typeLine: "Instant", colorIdentity: ["R"] })]).size).toBe(0);
   });
 });

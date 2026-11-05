@@ -810,8 +810,8 @@ button.danger {
   border-radius: var(--radius-sm);
   background: var(--surface);
 }
-.deck-row img,
-.deck-row .thumb-ph {
+.deck-row .thumb-wrap > img:not(.floating-preview),
+.deck-row .thumb-wrap > .thumb-ph {
   width: 2.75rem;
   aspect-ratio: 488 / 680;
   border-radius: 4.5% / 3.3%;
@@ -1355,4 +1355,291 @@ button.art-tile.on {
   display: block;
   font-weight: 400;
   color: var(--muted, inherit);
+}
+
+/* Card thumbnail with a bigger view: hover on a computer, an enlarge button under the image on a phone. */
+.thumb-wrap {
+  position: relative;
+  width: 2.75rem;
+  align-self: start;
+}
+.thumb-wrap .enlarge {
+  display: block;
+  width: 100%;
+  margin-top: 0.2rem;
+  padding: 0.2rem 0;
+  font-size: 1rem;
+  line-height: 1;
+}
+@media (hover: hover) {
+  .thumb-wrap .enlarge {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 1.5rem;
+    margin: 0;
+    padding: 0.15rem 0;
+    min-height: 0;
+    opacity: 0;
+  }
+  .thumb-wrap:hover .enlarge,
+  .thumb-wrap .enlarge:focus-visible {
+    opacity: 1;
+  }
+}
+.floating-preview {
+  position: fixed;
+  z-index: 30;
+  width: 300px;
+  aspect-ratio: 488 / 680;
+  border-radius: 4.5% / 3.3%;
+  box-shadow: 0 12px 40px rgb(8 7 20 / 55%);
+  pointer-events: none;
+}
+.overlay.center {
+  align-items: center;
+}
+.preview-dialog {
+  position: relative;
+  width: min(92vw, 24rem);
+}
+.preview-dialog img {
+  display: block;
+  width: 100%;
+  border-radius: 4.5% / 3.3%;
+}
+.preview-dialog .close {
+  position: absolute;
+  top: -0.6rem;
+  right: -0.6rem;
+  z-index: 1;
+}
+
+/* Commander chooser: a grid of cards, then the chosen one large with its printings. */
+.chooser {
+  display: grid;
+  gap: 0.8rem;
+}
+.chooser-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(7.5rem, 1fr));
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.chooser-card {
+  display: grid;
+  gap: 0.3rem;
+  width: 100%;
+  padding: 0.4rem;
+  text-align: left;
+}
+.chooser-card img,
+.chooser-card .thumb-ph {
+  width: 100%;
+  aspect-ratio: 488 / 680;
+  border-radius: 4.5% / 3.3%;
+  object-fit: cover;
+  background: var(--surface-2);
+}
+.chooser-card.on {
+  outline: 3px solid var(--primary);
+}
+.chooser-card:disabled {
+  opacity: 0.55;
+}
+.chooser-name {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+.chooser-refusal {
+  font-size: 0.75rem;
+  color: var(--danger);
+}
+.chooser-picked {
+  display: grid;
+  gap: 1rem;
+  padding: 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.chooser-big {
+  width: min(100%, 18rem);
+  aspect-ratio: 488 / 680;
+  justify-self: center;
+  border-radius: 4.5% / 3.3%;
+  box-shadow: var(--shadow);
+  background: var(--surface-2);
+}
+.chooser-side {
+  display: grid;
+  gap: 0.4rem;
+  align-content: start;
+  min-width: 0;
+}
+.chooser-side h3,
+.chooser-side h4,
+.chooser-side p {
+  margin: 0;
+}
+.printing-strip {
+  display: flex;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0.2rem 0 0.5rem;
+  overflow-x: auto;
+  list-style: none;
+}
+.strip-item {
+  display: grid;
+  gap: 0.15rem;
+  width: 4.2rem;
+  padding: 0.25rem;
+  font-size: 0.7rem;
+  text-align: center;
+}
+.strip-item img,
+.strip-item .thumb-ph {
+  width: 100%;
+  aspect-ratio: 488 / 680;
+  border-radius: 4.5% / 3.3%;
+  object-fit: cover;
+}
+.strip-item.on {
+  outline: 3px solid var(--primary);
+}
+@media (min-width: 720px) {
+  .chooser-picked {
+    grid-template-columns: 18rem 1fr;
+  }
+}
+
+.commander-identity {
+  display: grid;
+  justify-items: end;
+  gap: 0.1rem;
+  flex: none;
+}
+.commander-identity small {
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+.commander-setup {
+  margin: 1rem 0;
+  padding: 0.9rem 1rem;
+  border: 2px solid var(--primary);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.partner-chooser {
+  margin: 0.4rem 0 0.8rem;
+}
+
+/* Problems found in a deck, shown on the card itself. */
+.deck-row.has-problem {
+  border-color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 8%, var(--surface));
+}
+.problem {
+  justify-self: start;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--danger);
+}
+.problem-count {
+  margin-left: 0.6rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--danger);
+}
+.group-toggle {
+  display: inline-flex;
+  gap: 0.4rem;
+  align-items: center;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+.group-toggle::before {
+  /* A drawn arrow, not a text character: nothing for a screen reader to read into the button's name. */
+  content: "";
+  width: 0.45rem;
+  height: 0.45rem;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: translateY(-0.1rem) rotate(45deg);
+  transition: transform 0.15s;
+}
+.group-toggle:not(.open)::before {
+  transform: rotate(-45deg);
+}
+
+/* Guided new Commander deck */
+.wizard {
+  margin: 0.8rem 0;
+  padding: 0.7rem 1rem;
+  border: 2px solid var(--primary);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.wizard > summary {
+  font-weight: 700;
+  cursor: pointer;
+}
+.steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.2rem;
+  margin: 0.8rem 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+.steps .on {
+  color: var(--text);
+  font-weight: 700;
+}
+.step-n {
+  display: inline-grid;
+  place-items: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  background: var(--surface-2);
+}
+.steps .on .step-n,
+.steps .done .step-n {
+  background: var(--primary);
+  color: #fff;
+}
+.wizard-step {
+  display: grid;
+  gap: 0.8rem;
+}
+.wizard-commander {
+  display: grid;
+  grid-template-columns: minmax(8rem, 12rem) 1fr;
+  gap: 1rem;
+  align-items: start;
+}
+.wizard-commander img {
+  width: 100%;
+  aspect-ratio: 488 / 680;
+  border-radius: 4.5% / 3.3%;
+  box-shadow: var(--shadow);
+}
+.wizard-commander h3,
+.wizard-commander p {
+  margin: 0 0 0.4rem;
+}
+
+/* A folded group: the `hidden` attribute must beat the list's own display rule. */
+.deck-rows[hidden] {
+  display: none;
 }

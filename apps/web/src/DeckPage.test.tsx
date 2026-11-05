@@ -3,7 +3,7 @@ import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { fetchMe, fetchDeck, setDeckCard, addDeckCard, updateDeck, deleteDeck, searchCards } = vi.hoisted(() => ({
+const { fetchMe, fetchDeck, setDeckCard, addDeckCard, updateDeck, deleteDeck, searchCards, fetchPrintings, importDeck } = vi.hoisted(() => ({
   fetchMe: vi.fn(),
   fetchDeck: vi.fn(),
   setDeckCard: vi.fn(),
@@ -11,21 +11,23 @@ const { fetchMe, fetchDeck, setDeckCard, addDeckCard, updateDeck, deleteDeck, se
   updateDeck: vi.fn(),
   deleteDeck: vi.fn(),
   searchCards: vi.fn(),
+  fetchPrintings: vi.fn(),
+  importDeck: vi.fn(),
 }));
 vi.mock("./auth", () => ({ fetchMe }));
-vi.mock("./decksApi", () => ({ fetchDeck, setDeckCard, addDeckCard, updateDeck, deleteDeck }));
-vi.mock("./api", () => ({ searchCards }));
+vi.mock("./decksApi", () => ({ fetchDeck, setDeckCard, addDeckCard, updateDeck, deleteDeck, importDeck }));
+vi.mock("./api", () => ({ searchCards, fetchPrintings }));
 
 import { DeckPage, ownedBadge } from "./DeckPage";
 import { t } from "./i18n";
-import { aCard, aDeck, aDeckCard, aUser, renderPage } from "./test-utils";
+import { aCard, aDeck, aDeckCard, aPrinting, aUser, renderPage } from "./test-utils";
 
 const render = () => renderPage(<DeckPage />, { path: "/decks/d1", route: "/decks/$deckId" });
 
 const detail = (cards = [aDeckCard()], deck = aDeck()) => ({ deck, cards });
 
 beforeEach(() => {
-  for (const f of [fetchMe, fetchDeck, setDeckCard, addDeckCard, updateDeck, deleteDeck, searchCards]) f.mockReset();
+  for (const f of [fetchMe, fetchDeck, setDeckCard, addDeckCard, updateDeck, deleteDeck, searchCards, fetchPrintings, importDeck]) f.mockReset();
   fetchMe.mockResolvedValue(aUser);
 });
 
@@ -261,20 +263,105 @@ describe("DeckPage", () => {
     await screen.findByText("Lightning Bolt");
     expect(screen.queryByRole("region", { name: "Commander analysis" })).not.toBeInTheDocument();
   });
-  it("keeps the commander in a bar above the board tabs, and says so when there is none", async () => {
+  it("keeps the commander in a bar above the board tabs", async () => {
     fetchDeck.mockResolvedValue(
       detail([aDeckCard({ oracleId: "c1", name: "Atraxa", board: "commander", quantity: 1, colorIdentity: ["W", "U"] })], aDeck({ format: "commander" })),
     );
-    const first = render();
+    render();
     const bar = await screen.findByRole("region", { name: "Deck commander" });
     expect(within(bar).getByText("Atraxa")).toBeInTheDocument();
+    expect(within(bar).getByText("Azorius")).toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: /Sideboard/ }));
     expect(screen.getByRole("region", { name: "Deck commander" })).toBeInTheDocument();
-    first.unmount();
+  });
 
-    fetchDeck.mockResolvedValue(detail([aDeckCard()], aDeck({ format: "commander" })));
+  describe("choosing the commander first", () => {
+    const iroh = aCard({ oracleId: "iroh", name: "Iroh, Grand Lotus", typeLine: "Legendary Creature — Human Noble Ally", colorIdentity: ["U", "R", "G"] });
+    const urza = aCard({ oracleId: "urza", name: "Urza's Saga", typeLine: "Legendary Enchantment Land" });
+
+    beforeEach(() => {
+      fetchDeck.mockResolvedValue(detail([aDeckCard()], aDeck({ format: "commander" })));
+      searchCards.mockResolvedValue([iroh, urza]);
+      fetchPrintings.mockResolvedValue([aPrinting({ id: "p-new" }), aPrinting({ id: "p-old", setCode: "cmm", setName: "Commander Masters", collectorNumber: "7" })]);
+      addDeckCard.mockResolvedValue(detail([aDeckCard({ oracleId: "iroh", name: "Iroh, Grand Lotus", board: "commander", quantity: 1 })], aDeck({ format: "commander" })));
+    });
+
+    it("asks for the commander before anything else, and holds the list import until there is one", async () => {
+      render();
+      const step = await screen.findByRole("region", { name: "Deck commander" });
+      expect(within(step).getByText("Step 1 · Choose your commander")).toBeInTheDocument();
+      await userEvent.click(screen.getByText("Import / export list"));
+      expect(screen.getByText(/Choose the commander first/)).toBeInTheDocument();
+      expect(screen.queryByLabelText("Deck list", { exact: true })).not.toBeInTheDocument();
+    });
+
+    it("refuses cards that cannot lead, and saves the chosen printing with the commander", async () => {
+      render();
+      await userEvent.type(await screen.findByLabelText("Search for your commander"), "iroh");
+      const refused = await screen.findByRole("button", { name: /Urza's Saga/ });
+      expect(refused).toBeDisabled();
+      expect(within(refused).getByText("Legendary, but not a creature")).toBeInTheDocument();
+
+      await userEvent.click(screen.getByRole("button", { name: /Iroh, Grand Lotus/ }));
+      expect(await screen.findByText("Temur")).toBeInTheDocument();
+      await userEvent.click(await screen.findByRole("button", { name: /Commander Masters \(CMM\) #7/ }));
+      await userEvent.click(screen.getByRole("button", { name: "Use Iroh, Grand Lotus as commander" }));
+
+      await waitFor(() => expect(addDeckCard).toHaveBeenCalledWith("d1", { oracleId: "iroh", board: "commander", quantity: 1, printingId: "p-old" }));
+    });
+  });
+
+  it("leaves the commander out of a pasted list, since the deck already has it", async () => {
+    fetchDeck.mockResolvedValue(
+      detail([aDeckCard({ oracleId: "c1", name: "Atraxa", board: "commander", quantity: 1 }), aDeckCard({ oracleId: "m1", name: "Sol Ring", board: "main", quantity: 1 })], aDeck({ format: "commander" })),
+    );
+    importDeck.mockResolvedValue({ created: 1, updated: 0, unchanged: 0, problems: [] });
     render();
-    expect(within(await screen.findByRole("region", { name: "Deck commander" })).getByText(/No commander yet/)).toBeInTheDocument();
+    await userEvent.click(await screen.findByText("Import / export list"));
+    await userEvent.click(screen.getByLabelText("Deck list", { exact: true }));
+    await userEvent.paste("Commander\n1 Atraxa\n\nDeck\n1 Arcane Signet\n1 atraxa");
+    expect(await screen.findByText(/2 copies of your commander in the list are left out/)).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: /Import 1 card/ }));
+    await waitFor(() => expect(importDeck).toHaveBeenCalled());
+    expect(importDeck.mock.calls[0]![1].map((r: { name: string }) => r.name)).toEqual(["Arcane Signet"]);
+  });
+
+  it("highlights the cards with a problem and says what it is", async () => {
+    fetchDeck.mockResolvedValue(
+      detail(
+        [
+          aDeckCard({ oracleId: "c1", name: "Iroh", typeLine: "Legendary Creature — Human", board: "commander", quantity: 1, colorIdentity: ["G"] }),
+          aDeckCard({ oracleId: "b1", name: "Lightning Bolt", typeLine: "Instant", quantity: 1, colorIdentity: ["R"] }),
+          aDeckCard({ oracleId: "e1", name: "Llanowar Elves", typeLine: "Creature — Elf", quantity: 1, colorIdentity: ["G"] }),
+        ],
+        aDeck({ format: "commander" }),
+      ),
+    );
+    render();
+    const bolt = (await screen.findAllByText("Lightning Bolt")).map((n) => n.closest("li")).find(Boolean)!;
+    expect(bolt).toHaveClass("has-problem");
+    expect(within(bolt).getByText(/Outside the commander's colors \(Red\)/)).toBeInTheDocument();
+    expect(screen.getByText("Llanowar Elves").closest("li")).not.toHaveClass("has-problem");
+  });
+
+  it("folds and unfolds each group, and all of them at once", async () => {
+    fetchDeck.mockResolvedValue(
+      detail(
+        [aDeckCard({ oracleId: "bolt", name: "Lightning Bolt", typeLine: "Instant" }), aDeckCard({ oracleId: "elf", name: "Llanowar Elves", typeLine: "Creature — Elf" })],
+        aDeck({ format: "modern" }),
+      ),
+    );
+    render();
+    const creature = await screen.findByRole("button", { name: /Creature/ });
+    expect(creature).toHaveAttribute("aria-expanded", "true");
+    await userEvent.click(creature);
+    expect(creature).toHaveAttribute("aria-expanded", "false");
+    expect(screen.queryByText("Llanowar Elves")).not.toBeVisible();
+    expect(screen.getByText("Lightning Bolt")).toBeVisible();
+    await userEvent.click(screen.getByRole("button", { name: "Collapse all" }));
+    expect(screen.queryByText("Lightning Bolt")).not.toBeVisible();
+    await userEvent.click(screen.getByRole("button", { name: "Expand all" }));
+    expect(screen.getByText("Lightning Bolt")).toBeVisible();
   });
 
   it("has no commander bar in other formats", async () => {

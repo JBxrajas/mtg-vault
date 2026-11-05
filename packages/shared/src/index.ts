@@ -65,6 +65,9 @@ export interface CardSearchResult {
   name: string;
   manaCost: string | null;
   typeLine: string;
+  /** Rules text, for checks such as "can be your commander". */
+  oracleText: string | null;
+  colorIdentity: Color[];
   /** Trigram similarity to the query, 0 to 1. */
   similarity: number;
   /** Image of the most recent printing that has one, or null. */
@@ -72,6 +75,7 @@ export interface CardSearchResult {
 }
 
 export * from "./analysis.js";
+export * from "./commander.js";
 export * from "./csv.js";
 export * from "./decklist.js";
 export * from "./decks.js";

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { deckImportRequestSchema, formatDeckList, parseDeckList } from "./decklist.js";
+import { deckImportRequestSchema, dropCommanderRows, formatDeckList, parseDeckList } from "./decklist.js";
 
 const names = (text: string) => parseDeckList(text).rows.map((r) => `${r.board}:${r.quantity} ${r.name}`);
 
@@ -107,5 +107,20 @@ describe("deckImportRequestSchema", () => {
     expect(deckImportRequestSchema.safeParse({ rows: Array(1001).fill(row) }).success).toBe(false);
     expect(deckImportRequestSchema.safeParse({ rows: [{ ...row, quantity: 1000 }] }).success).toBe(false);
     expect(deckImportRequestSchema.safeParse({ rows: [{ ...row, board: "graveyard" }] }).success).toBe(false);
+  });
+});
+
+describe("dropCommanderRows", () => {
+  it("leaves the commander out wherever the list repeats it, ignoring case, accents and the back face", () => {
+    const { rows } = parseDeckList("Commander\n1 Iroh, Grand Lotus\n\nDeck\n1 iroh, grand lotus\n1 Sol Ring\n1 Lim-Dûl's Vault");
+    const out = dropCommanderRows(rows, ["Iroh, Grand Lotus // Iroh, Grand Lotus"]);
+    expect(out.rows.map((r) => r.name)).toEqual(["Sol Ring", "Lim-Dûl's Vault"]);
+    expect(out.skipped).toBe(2);
+    expect(dropCommanderRows(rows, ["Lim-Dul's Vault"]).skipped).toBe(1);
+  });
+
+  it("keeps everything when there is no commander", () => {
+    const { rows } = parseDeckList("1 Sol Ring");
+    expect(dropCommanderRows(rows, [])).toEqual({ rows, skipped: 0 });
   });
 });

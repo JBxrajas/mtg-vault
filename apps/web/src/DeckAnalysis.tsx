@@ -1,6 +1,7 @@
 import {
   analyzeCommanderDeck,
   BRACKETS,
+  colorIdentityName,
   LAND_FORMULA,
   ROLES,
   ROLE_TARGETS,
@@ -19,6 +20,8 @@ const WARNING_KEY = {
   size: "analysis.warn.size",
   "no-commander": "analysis.warn.no-commander",
   "many-commanders": "analysis.warn.many-commanders",
+  "commander-invalid": "analysis.warn.commander-invalid",
+  "commander-pair": "analysis.warn.commander-pair",
   colors: "analysis.warn.colors",
   copies: "analysis.warn.copies",
   "lands-low": "analysis.warn.lands-low",
@@ -89,7 +92,8 @@ export function DeckAnalysis({ cards }: { cards: DeckCardEntry[] }) {
             {t("analysis.commander", { names: a.commanders.join(" · ") })}
             <span className="identity">
               <span className="sub">{t("analysis.identity")}</span>{" "}
-              {a.identity.length ? <ManaCost cost={a.identity.map((c) => `{${c}}`).join("")} /> : <span className="sub">{t("analysis.colorless")}</span>}
+              {a.identity.length ? <ManaCost cost={a.identity.map((c) => `{${c}}`).join("")} /> : <span className="sub">{t("analysis.colorless")}</span>}{" "}
+              <b>{colorIdentityName(a.identity)}</b>
             </span>
           </p>
           <div className="analysis-links">
