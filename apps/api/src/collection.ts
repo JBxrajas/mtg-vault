@@ -32,6 +32,9 @@ export function toCollectionItem(r: Row): CollectionItem {
     printingId: r.printing_id as string,
     oracleId: r.oracle_id as string,
     name: r.name as string,
+    typeLine: (r.type_line as string | null) ?? "",
+    cmc: Number(r.cmc ?? 0),
+    colorIdentity: ((r.color_identity as string[] | null) ?? []) as CollectionItem["colorIdentity"],
     setCode: r.set_code as string,
     setName: r.set_name as string,
     collectorNumber: r.collector_number as string,
@@ -50,7 +53,7 @@ export function toCollectionItem(r: Row): CollectionItem {
 }
 
 const selectItems = (where: ReturnType<typeof sql>) => sql`
-  select ci.id, ci.printing_id, p.oracle_id, c.name, s.code as set_code, s.name as set_name,
+  select ci.id, ci.printing_id, p.oracle_id, c.name, c.type_line, c.cmc, c.color_identity, s.code as set_code, s.name as set_name,
          p.collector_number, p.rarity, p.image_uris,
          ci.finish, ci.condition, ci.language, ci.quantity, ci.purchase_price, ci.acquired_on, ci.notes,
          ps.captured_on as priced_on, ps.usd, ps.usd_foil, ps.usd_etched, ps.eur, ps.eur_foil, ps.tix

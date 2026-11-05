@@ -38,7 +38,7 @@ export function commanderDeck(): DeckDetail {
 }
 
 /** Signs in and answers the deck endpoints from memory. Everything else gets an empty answer. */
-export const stack = {
+const base = {
   id: "s1",
   printingId: "p1",
   oracleId: "bolt",
@@ -57,7 +57,16 @@ export const stack = {
   image: picture,
   unitPrice: 5,
   pricesOn: "2026-11-04",
+  typeLine: "Instant",
+  cmc: 1,
+  colorIdentity: ["R"],
 };
+export const stack = base;
+export const stacks = [
+  base,
+  { ...base, id: "s2", oracleId: "elves", name: "Llanowar Elves", typeLine: "Creature — Elf Druid", colorIdentity: ["G"], setCode: "m19", setName: "Core Set 2019", rarity: "common" },
+  { ...base, id: "s3", oracleId: "ring", name: "Sol Ring", typeLine: "Artifact", colorIdentity: [], setCode: "cmm", setName: "Commander Masters", rarity: "uncommon", unitPrice: 30 },
+];
 
 export const iroh = {
   oracleId: "iroh",
@@ -97,7 +106,7 @@ export async function mockApi(page: Page, deck: DeckDetail) {
           : path === "/decks"
             ? { decks: [] }
             : path === "/collection/items"
-              ? { items: [stack] }
+              ? { items: stacks }
               : path === "/cards/search"
               ? { results: [iroh] }
               : path.endsWith("/printings")

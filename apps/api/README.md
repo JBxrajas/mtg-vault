@@ -48,7 +48,7 @@ The signed-in user's single collection ([ADR 0008](../../docs/adr/0008-users-col
 
 | Endpoint | Body | Result |
 |---|---|---|
-| `GET /collection/items` | none | `{ items: CollectionItem[] }`: each stack with card name, set, collector number, rarity, image, `unitPrice` (latest market price in USD for that finish, or `null`) and `pricesOn` |
+| `GET /collection/items` | none | `{ items: CollectionItem[] }`: each stack with card name, type line, mana value (`cmc`), color identity, set, collector number, rarity, image, `unitPrice` (latest market price in USD for that finish, or `null`) and `pricesOn` |
 | `POST /collection/items` | `{ printingId, quantity, finish?, condition?, language?, purchasePrice?, acquiredOn?, notes? }` | `201 { item }`. Defaults: `nonfoil`, `NM`, `en`. Adding an existing stack **adds to its quantity** (a given purchase price, date or note replaces the stored one). `400` if the printing does not come in that finish or the stack would exceed 9999; `404` for an unknown printing |
 | `PATCH /collection/items/:id` | any of `{ quantity, purchasePrice, acquiredOn, notes }` (`null` clears the last three) | `200 { item }`; `404` if not yours; `409` if `quantity` is lower than the copies placed in binders |
 | `DELETE /collection/items/:id` | none | `204`; also removes the stack's binder placements; `404` if not yours |

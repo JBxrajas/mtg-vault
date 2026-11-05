@@ -23,3 +23,25 @@ test("a card in the collection can be enlarged, by hover on a computer and by bu
     await expect(floating).toBeHidden();
   }
 });
+
+test("the search and the filters narrow the list in the browser, and fit the screen", async ({ page }, info) => {
+  await mockApi(page, commanderDeck());
+  await page.goto("/#/collection");
+  await expect(page.locator(".stack")).toHaveCount(3);
+
+  await page.getByLabel("Search your collection").fill("llan");
+  await expect(page.locator(".stack")).toHaveCount(1);
+  await page.getByLabel("Search your collection").fill("");
+  await expect(page.locator(".stack")).toHaveCount(3);
+
+  await page.locator(".filters > summary").click();
+  await page.getByRole("button", { name: "Colorless" }).click();
+  await expect(page.locator(".stack")).toHaveCount(1);
+  await expect(page.locator(".stack")).toContainText("Sol Ring");
+
+  // Nothing sticks out of the window, and the toggles are big enough to tap.
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  const box = (await page.getByRole("button", { name: "Colorless" }).boundingBox())!;
+  expect(box.height).toBeGreaterThanOrEqual(36);
+  if (info.project.name === "phone") expect(box.x + box.width).toBeLessThanOrEqual(390);
+});

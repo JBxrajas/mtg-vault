@@ -1,6 +1,18 @@
-import { collectionToCsv, collectionTotals, type CollectionItem } from "@mtg-vault/shared";
+import {
+  collectionToCsv,
+  collectionTotals,
+  emptyFilters,
+  filterCollection,
+  sortCollection,
+  activeFilterCount,
+  type CollectionFilters,
+  type CollectionItem,
+  type CollectionSort,
+} from "@mtg-vault/shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
+import { useMemo, useState } from "react";
+import { CollectionFilterBar } from "./CollectionFilters";
 import { CardPreview } from "./CardPreview";
 import { fetchMe } from "./auth";
 import { fetchCollection, removeFromCollection, updateCollectionItem } from "./collectionApi";
@@ -44,6 +56,13 @@ export function CollectionPage() {
     },
   });
   const remove = useMutation({ mutationFn: removeFromCollection, onSuccess: refresh });
+
+  const [filters, setFilters] = useState<CollectionFilters>(emptyFilters);
+  const [sort, setSort] = useState<CollectionSort>("name");
+  const [desc, setDesc] = useState(false);
+  const shown = useMemo(() => (items ? sortCollection(filterCollection(items, filters), sort, desc) : []), [items, filters, sort, desc]);
+  const filtered = activeFilterCount(filters) > 0;
+  const shownTotals = collectionTotals(shown);
 
   const totals = collectionTotals(items ?? []);
   const actionError = setQuantity.error ?? remove.error;
@@ -116,8 +135,32 @@ export function CollectionPage() {
               {t("collection.empty.after")}
             </p>
           )}
+          {items.length > 0 && (
+            <CollectionFilterBar
+              items={items}
+              filters={filters}
+              onFilters={setFilters}
+              sort={sort}
+              desc={desc}
+              onSort={(next, descending) => {
+                setSort(next);
+                setDesc(descending);
+              }}
+            />
+          )}
+          {filtered && items.length > 0 && (
+            <p className="hint" role="status">
+              {t("collection.showing", {
+                shown: shown.length,
+                total: items.length,
+                cards: `${shownTotals.copies} ${t("collection.cards", { count: shownTotals.copies })}`,
+                value: formatUsd(shownTotals.valueUsd)!,
+              })}
+            </p>
+          )}
+          {filtered && items.length > 0 && shown.length === 0 && <p className="hint">{t("collection.noMatches")}</p>}
           <ul className="stacks">
-            {items.map((item) => (
+            {shown.map((item) => (
               <StackRow
                 key={item.id}
                 item={item}
