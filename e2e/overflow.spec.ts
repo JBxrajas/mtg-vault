@@ -62,6 +62,14 @@ for (const language of LANGUAGES) {
         expect(await fits(page)).toEqual({ scrolls: false, wide: [] });
       });
 
+      test("the landing page", async ({ page }) => {
+        await page.goto("/#/welcome");
+        await expect(page.locator(".l-hero h1")).toBeVisible();
+        await page.locator(".l-features").scrollIntoViewIfNeeded();
+        await page.locator(".l-faq summary").first().click();
+        expect(await fits(page)).toEqual({ scrolls: false, wide: [] });
+      });
+
       test("the art page", async ({ page }) => {
         await mockApi(page, commanderDeck());
         await mockScryfall(page);

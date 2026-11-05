@@ -10,7 +10,7 @@ import {
 import { render } from "@testing-library/react";
 import type { ReactElement } from "react";
 
-const PATHS = ["/", "/login", "/appearance", "/collection", "/art/$printingId", "/scan", "/decks", "/decks/$deckId"];
+const PATHS = ["/", "/search", "/welcome", "/login", "/appearance", "/collection", "/art/$printingId", "/scan", "/decks", "/decks/$deckId"];
 
 /**
  * Renders a page the way the app does (query client + router) with an in-memory history.

@@ -4,7 +4,7 @@ import { AuthBar } from "./AuthBar";
 import { LOCALE_NAME, LOCALES, setLocale, useI18n } from "./i18n";
 
 const NAV = [
-  { to: "/", label: "nav.search", hint: "nav.search.hint" },
+  { to: "/search", label: "nav.search", hint: "nav.search.hint" },
   { to: "/collection", label: "nav.collection", hint: "nav.collection.hint" },
   { to: "/decks", label: "nav.decks", hint: "nav.decks.hint" },
   { to: "/scan", label: "nav.scan", hint: "nav.scan.hint" },

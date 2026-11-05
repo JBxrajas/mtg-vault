@@ -73,6 +73,7 @@ Order matters: free space first, then add providers. Designs: [ADR 0015](adr/001
 
 ## Phase 5c — Interface and quality ◐
 - ✓ Collection: toolbar, quick filters, List / Cards / Art switch; decks list with the commander's art and size bars; deck page with a header, a type-split bar and the analysis in a side column
+- ✓ Landing page at `#/` for visitors and `#/welcome` (features, how it works, sample screens, FAQ); the card search moved to `#/search`
 - ☐ The same care for the search page, the scanner and the login screens; a design review on real phones
 - ☐ Search results named only "Card" or "Card // Card" are hidden or put last
 - ☐ After adding a card, a confirmation and the search box cleared and focused
