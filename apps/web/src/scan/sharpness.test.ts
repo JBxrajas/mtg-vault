@@ -61,34 +61,65 @@ describe("grayFromRgba", () => {
 
 describe("AutoCapture", () => {
   const sharp = FOCUS_OK + 0.05;
+  /** A fingerprint with `ones` bits set from the start, so two of them differ by the gap between their counts. */
+  const view = (ones: number, from = 0) => {
+    const h = new Uint8Array(32);
+    for (let i = 0; i < ones; i++) h[(from + i) >> 3]! |= 1 << ((from + i) & 7);
+    return h;
+  };
+  const cardA = view(120);
+  const cardB = view(120, 128); // the other half of the bits: far from A
+  const reading = (hash: Uint8Array, level = sharp) => ({ level, hash });
 
-  it("captures after enough steady readings in focus, not before", () => {
+  it("captures once the view has held still and sharp for enough readings, not before", () => {
     const auto = new AutoCapture(3);
-    expect([auto.update(sharp), auto.update(sharp), auto.update(sharp)]).toEqual([false, false, true]);
+    // The first reading has nothing to compare with, so it never counts.
+    expect([auto.update(reading(cardA)), auto.update(reading(cardA)), auto.update(reading(cardA)), auto.update(reading(cardA))]).toEqual([false, false, false, true]);
   });
 
-  it("starts over when focus drops", () => {
-    const auto = new AutoCapture(3);
-    auto.update(sharp);
-    auto.update(sharp);
-    auto.update(0.5);
-    expect([auto.update(sharp), auto.update(sharp), auto.update(sharp)]).toEqual([false, false, true]);
-  });
-
-  it("does not capture the same card twice, until the card is taken away", () => {
+  it("does not take a view that is moving, or blurred, or flat", () => {
     const auto = new AutoCapture(2);
-    auto.update(sharp);
-    expect(auto.update(sharp)).toBe(true);
-    for (let i = 0; i < 10; i++) expect(auto.update(sharp)).toBe(false);
-    auto.update(0.1);
-    auto.update(sharp);
-    expect(auto.update(sharp)).toBe(true);
+    for (const hash of [cardA, cardB, cardA, cardB, cardA]) expect(auto.update(reading(hash))).toBe(false);
+    const blurred = new AutoCapture(2);
+    for (let i = 0; i < 6; i++) expect(blurred.update(reading(cardA, 0.2))).toBe(false);
+    const flatView = new AutoCapture(2);
+    for (let i = 0; i < 6; i++) expect(flatView.update(reading(new Uint8Array(32)))).toBe(false);
+  });
+
+  it("accepts a hand that shakes a little", () => {
+    const auto = new AutoCapture(2);
+    const shaken = view(112); // 8 bits away from A
+    expect([auto.update(reading(cardA)), auto.update(reading(shaken)), auto.update(reading(cardA))]).toEqual([false, false, true]);
+  });
+
+  it("does not take the same card twice while it stays in view", () => {
+    const auto = new AutoCapture(2);
+    auto.update(reading(cardA));
+    auto.update(reading(cardA));
+    expect(auto.update(reading(cardA))).toBe(true);
+    for (let i = 0; i < 20; i++) expect(auto.update(reading(cardA))).toBe(false);
+  });
+
+  it("takes the next card straight away, without the view going blurred in between", () => {
+    const auto = new AutoCapture(2);
+    for (let i = 0; i < 3; i++) auto.update(reading(cardA));
+    const results = [auto.update(reading(cardB)), auto.update(reading(cardB)), auto.update(reading(cardB))];
+    expect(results).toEqual([false, false, true]);
+  });
+
+  it("takes a second copy of the same card once it was taken away and shown again", () => {
+    const auto = new AutoCapture(2);
+    for (let i = 0; i < 3; i++) auto.update(reading(cardA));
+    auto.update(reading(cardB, 0.2)); // the table, out of focus
+    const results = [auto.update(reading(cardA)), auto.update(reading(cardA)), auto.update(reading(cardA))];
+    expect(results).toEqual([false, false, true]);
   });
 
   it("can be re-armed by hand", () => {
     const auto = new AutoCapture(1);
-    expect(auto.update(sharp)).toBe(true);
+    auto.update(reading(cardA));
+    expect(auto.update(reading(cardA))).toBe(true);
     auto.rearm();
-    expect(auto.update(sharp)).toBe(true);
+    expect(auto.update(reading(cardA))).toBe(true);
   });
 });

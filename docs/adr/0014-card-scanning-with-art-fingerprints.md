@@ -32,3 +32,6 @@ We measured two signals on five real, mostly blurry photos (spike, 2026-11-04):
 - Cards with identical art in different printings cannot be told apart by this step alone.
 - A full first build downloads about 56,000 small images (2 minutes 15 seconds on GitHub, no failures) and runs weekly after that, mostly doing nothing.
 - The API serves the file (`GET /art-index`): GitHub release downloads send no CORS headers, so the API streams them with long cache headers (streamed, so Vercel's 4.5 MB limit for ordinary responses does not apply as the index grows).
+
+## Automatic capture (revised)
+The first version captured after three sharp readings and re-armed only when the focus fell below a low level (the card was "taken away"). On a textured table or a hand the focus never falls, and a high focus level was reached rarely, so in practice the user pressed the button for each card. It now decides from the fingerprint it already computes: capture when the view is steady (few bits change between readings), sharp enough and not flat; arm again when the view differs a lot from the last card taken. The limits (`FOCUS_TAKE` 0.6, `STEADY_DISTANCE` 28, `NEW_CARD_DISTANCE` 64 bits) are provisional and, like the focus limits, were reasoned from the 5-photo test and unit tests, not measured on a real camera.

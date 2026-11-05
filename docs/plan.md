@@ -48,7 +48,7 @@ Status: ☐ pending · ◐ in progress · ☑ done
 Design in [ADR 0014](adr/0014-card-scanning-with-art-fingerprints.md): identify the card by an art fingerprint, on the device, in English, Spanish, Japanese and Russian.
 - ✓ Fingerprint, index file format and nearest-match search (`packages/shared`), and the weekly job that builds the index (`apps/jobs`)
 - ✓ API route `GET /art-index` that streams the index with long cache headers
-- ✓ Scanner screen (`#/scan`): camera with an alignment frame, focus meter from red to green, automatic capture, capture sound, toast with name and price, photo upload, card-language choice
+- ✓ Scanner screen (`#/scan`): camera with an alignment frame, focus meter from red to green, automatic card-by-card capture (steady and sharp view, next card armed by a different view; [ADR 0014](adr/0014-card-scanning-with-art-fingerprints.md)), capture sound, toast with name and price, photo upload, card-language choice
 - ✓ Batch session: a list to confirm (printing, finish, quantity), added to the collection or to a deck; whole decks by scanning into a deck
 - ☐ Measure on the full index with sleeved and foil cards, with the real camera, and tune `matchConfidence` and the focus limits (`src/scan/sharpness.ts`)
 - ☐ Use the bottom-left line (set, number, language) to pick the exact printing when it can be read
