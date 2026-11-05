@@ -66,3 +66,7 @@ pnpm --filter @mtg-vault/jobs art-index
 | `SKIP_DOWNLOAD` | unset | Reuse the bulk file already in `DATA_DIR` |
 
 `.github/workflows/art-index.yml` runs it every Monday at 06:43 UTC (after the catalog import) and on demand. It downloads the previous index from the `art-index` GitHub release, builds, and uploads the new file to that release. No secrets are needed. The first full run fingerprints about 56,000 images (the first run on GitHub took about 2 minutes 15 seconds with no failures); later runs only add new art.
+
+## Scanner evaluation (`scan-eval`)
+
+`pnpm --filter @mtg-vault/jobs scan-eval` measures the scanner with simulated camera shots of real cards; it is a tool for tuning, not part of any workflow. It downloads random cards from Scryfall once (cached in `DATA_DIR/eval`), places each on a textured table in a 1280×720 frame, spoils the picture one factor at a time (scale, shift, tilt, blur, light, grain, glare, sleeve haze) and prints how many were recognised against an index file (`INDEX`, default `data/art-index.bin`; download the published one with `gh release download art-index`). `CARDS` sets how many cards (default 250, it takes minutes), `ONLY` picks conditions, `VARIANT=search` uses the search around the guide, `CAL` writes distance and gap per shot to a file. The results and their limits are in [ADR 0014](../../docs/adr/0014-card-scanning-with-art-fingerprints.md).

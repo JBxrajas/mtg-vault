@@ -12,7 +12,8 @@ import { useI18n } from "./i18n";
 import { ScanCamera } from "./ScanCamera";
 import { loadArtIndex } from "./scan/artIndex";
 import { matchPhoto } from "./scan/capture";
-import { candidateCards, candidatesFromMatches, pickPrinting, scanPrice, type Candidates } from "./scan/identify";
+import { searchAroundGuide } from "./scan/search";
+import { candidatesFromMatches, pickPrinting, scanPrice, type Candidates } from "./scan/identify";
 import { beep, primeSound } from "./scan/sound";
 
 /** Card languages Scryfall has, each written in itself. */
@@ -255,7 +256,7 @@ export function ScanPage() {
 
           <section className="scan-sources">
             {camera ? (
-              <ScanCamera auto={auto} onCapture={(hash) => state.current.index && void receive(candidateCards(state.current.index, hash))} onStop={() => setCamera(false)} />
+              <ScanCamera auto={auto} onCapture={(frame) => state.current.index && void receive(candidatesFromMatches(searchAroundGuide(frame, state.current.index).matches))} onStop={() => setCamera(false)} />
             ) : (
               <div className="scan-source-buttons">
                 <button type="button" className="btn-primary" onClick={() => { primeSound(); setCamera(true); }}>{t("scan.camera.start")}</button>

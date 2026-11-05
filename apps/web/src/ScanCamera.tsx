@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useI18n } from "./i18n";
-import { focusOf, hashGuide } from "./scan/capture";
+import { focusOf, frameOf, hashGuide } from "./scan/capture";
+import type { Frame } from "./scan/search";
 import { guideRect } from "./scan/frame";
 import { AutoCapture, focusColor, FOCUS_OK } from "./scan/sharpness";
 
@@ -9,9 +10,9 @@ const POLL_MS = 250;
 /**
  * Live camera with a card-shaped guide. The guide goes from red to green with the focus of what is
  * inside it; once a card is held still and sharp the picture is taken by itself, card after card (or with the button). The caller gets
- * the fingerprint of the card's art; the picture is never stored or sent.
+ * the picture to look for the card in; it is never stored or sent.
  */
-export function ScanCamera({ onCapture, onStop, auto }: { onCapture: (hash: Uint8Array) => void; onStop: () => void; auto: boolean }) {
+export function ScanCamera({ onCapture, onStop, auto }: { onCapture: (frame: Frame) => void; onStop: () => void; auto: boolean }) {
   const { t } = useI18n();
   const video = useRef<HTMLVideoElement>(null);
   const [size, setSize] = useState<{ w: number; h: number } | null>(null);
@@ -42,7 +43,7 @@ export function ScanCamera({ onCapture, onStop, auto }: { onCapture: (hash: Uint
           if (!v || v.readyState < 2) return;
           const next = focusOf(v);
           setLevel(next);
-          if (autoOn.current && autoCapture.current.update({ level: next, hash: hashGuide(v) })) callback.current(hashGuide(v));
+          if (autoOn.current && autoCapture.current.update({ level: next, hash: hashGuide(v) })) callback.current(frameOf(v));
         }, POLL_MS);
       } catch (e) {
         setError(e instanceof Error ? e.message : String(e));
@@ -74,7 +75,7 @@ export function ScanCamera({ onCapture, onStop, auto }: { onCapture: (hash: Uint
     const v = video.current;
     if (!v || !v.videoWidth) return;
     autoCapture.current.rearm();
-    callback.current(hashGuide(v));
+    callback.current(frameOf(v));
   };
 
   return (

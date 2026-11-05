@@ -50,7 +50,8 @@ Design in [ADR 0014](adr/0014-card-scanning-with-art-fingerprints.md): identify 
 - ✓ API route `GET /art-index` that streams the index with long cache headers
 - ✓ Scanner screen (`#/scan`): camera with an alignment frame, focus meter from red to green, automatic card-by-card capture (steady and sharp view, next card armed by a different view; [ADR 0014](adr/0014-card-scanning-with-art-fingerprints.md)), capture sound, toast with name and price, photo upload, card-language choice
 - ✓ Batch session: a list to confirm (printing, finish, quantity), added to the collection or to a deck; whole decks by scanning into a deck
-- ☐ Measure on the full index with sleeved and foil cards, with the real camera, and tune `matchConfidence` and the focus limits (`src/scan/sharpness.ts`)
+- ✓ Simulated evaluation on the full index (`scan-eval`) and a search around the guide: typical shot 16 % → 87 % recognised ([ADR 0014](adr/0014-card-scanning-with-art-fingerprints.md))
+- ☐ Measure with the real camera, sleeved and foil cards, and tune `matchConfidence` and the focus limits (`src/scan/sharpness.ts`)
 - ☐ Use the bottom-left line (set, number, language) to pick the exact printing when it can be read
 
 ## Phase 4b — Storage and price providers ☐
@@ -64,6 +65,7 @@ Order matters: free space first, then add providers. Designs: [ADR 0015](adr/001
 7. ☐ Daily price run, once the storage figure is known
 
 ## Phase 5b — Scanner on real devices ☐
+0. ☐ Run the search off the main thread (a worker), try rotation in the search, and a more shift-tolerant fingerprint (needs the index rebuilt)
 1. ☐ Try the automatic capture on a real phone with about 10 cards in the four languages; adjust `FOCUS_TAKE`, `STEADY_DISTANCE` and `NEW_CARD_DISTANCE`
 2. ☐ Check Safari / iOS (camera, sound)
 3. ☐ Tune `matchConfidence` on the full index, with sleeved and foil cards

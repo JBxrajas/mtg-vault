@@ -6,7 +6,8 @@
   "scripts": {
     "import:scryfall": "tsx src/import-scryfall.ts",
     "typecheck": "tsc --noEmit",
-    "art-index": "tsx src/art-index.ts"
+    "art-index": "tsx src/art-index.ts",
+    "scan-eval": "tsx src/scan-eval.ts"
   },
   "dependencies": {
     "@mtg-vault/db": "workspace:*",
