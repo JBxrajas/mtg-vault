@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.4.0](https://github.com/JBxrajas/mtg-vault/compare/v0.3.0...v0.4.0) (2026-11-05)
+
+
+### Features
+
+* **api:** serve the art-fingerprint index ([#60](https://github.com/JBxrajas/mtg-vault/issues/60)) ([a60f5b3](https://github.com/JBxrajas/mtg-vault/commit/a60f5b3d90874272439ca67dde893edf543089bd))
+* **jobs:** build an art-fingerprint index for card scanning ([#59](https://github.com/JBxrajas/mtg-vault/issues/59)) ([edf3ab7](https://github.com/JBxrajas/mtg-vault/commit/edf3ab72de2c0069d2fb678fabcfd3735d0810b5))
+* **web:** commander-first deck flow with a visual guided start ([#53](https://github.com/JBxrajas/mtg-vault/issues/53)) ([6a9ff34](https://github.com/JBxrajas/mtg-vault/commit/6a9ff345d0f491b9b509b6c7702b4dc08f3d22e2))
+* **web:** keep the commander in a sticky bar on the deck page ([#50](https://github.com/JBxrajas/mtg-vault/issues/50)) ([b18edd2](https://github.com/JBxrajas/mtg-vault/commit/b18edd2db1340171879408fe34dce5b1a43547cb))
+* **web:** prices in Mexican pesos and a high-resolution art view ([#57](https://github.com/JBxrajas/mtg-vault/issues/57)) ([8237946](https://github.com/JBxrajas/mtg-vault/commit/82379463f4cc759c9dcf8e8977713f80c64e61a4))
+* **web:** search, sorting and filters in the collection ([#56](https://github.com/JBxrajas/mtg-vault/issues/56)) ([e26582e](https://github.com/JBxrajas/mtg-vault/commit/e26582e7beda19bf40d3569774356955249a0e15))
+
+
+### Bug Fixes
+
+* **web:** keep the commander bar below the top bar, and add browser layout checks ([#52](https://github.com/JBxrajas/mtg-vault/issues/52)) ([78b4e7a](https://github.com/JBxrajas/mtg-vault/commit/78b4e7aa13e8f9ce0b988c52001d8a0e9f0469d1))
+* **web:** show one big card at a time, and add the card preview to the collection ([#55](https://github.com/JBxrajas/mtg-vault/issues/55)) ([0c0d33b](https://github.com/JBxrajas/mtg-vault/commit/0c0d33b062dd62a0449db85a185e3ce237f3abd7))
+* **web:** stop the guided deck step from stretching past a phone screen ([#54](https://github.com/JBxrajas/mtg-vault/issues/54)) ([85a27bd](https://github.com/JBxrajas/mtg-vault/commit/85a27bd531f4859bbd251fccab4a6d8dcba49625))
+
 ## [0.3.0](https://github.com/JBxrajas/mtg-vault/compare/v0.2.0...v0.3.0) (2026-11-04)
 
 
