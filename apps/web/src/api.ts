@@ -1,4 +1,4 @@
-import type { CardSearchResult, Color, PrintingSummary } from "@mtg-vault/shared";
+import type { CardLookup, CardSearchResult, Color, PrintingSummary } from "@mtg-vault/shared";
 
 export const API_URL: string =
   import.meta.env.VITE_API_URL ??
@@ -39,4 +39,12 @@ export async function fetchPrintings(oracleId: string, signal?: AbortSignal): Pr
   if (!res.ok) throw new Error(`Could not load printings (${res.status})`);
   const body = (await res.json()) as { printings: PrintingSummary[] };
   return body.printings;
+}
+
+export async function lookupCards(ids: string[], signal?: AbortSignal): Promise<CardLookup[]> {
+  const url = new URL("/cards/lookup", API_URL);
+  url.searchParams.set("ids", ids.join(","));
+  const res = await fetch(url, { signal });
+  if (!res.ok) throw new Error(`Could not look up the cards (${res.status})`);
+  return ((await res.json()) as { cards: CardLookup[] }).cards;
 }

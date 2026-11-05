@@ -5,6 +5,7 @@ import {
   decodeArtIndex,
   encodeArtIndex,
   hammingDistance,
+  isBlankHash,
   HASH_BYTES,
   matchConfidence,
   nearestArt,
@@ -35,6 +36,16 @@ describe("artHash", () => {
 
   it("rejects the wrong number of pixels", () => {
     expect(() => artHash([1, 2, 3])).toThrow(/Expected 272/);
+  });
+});
+
+describe("isBlankHash", () => {
+  it("flags a picture with almost no structure, and not a normal one", () => {
+    expect(isBlankHash(artHash(gray(() => 128)))).toBe(true);
+    expect(isBlankHash(artHash(gray((x) => x)))).toBe(true);
+    expect(isBlankHash(hashWith(128))).toBe(false);
+    expect(isBlankHash(hashWith(24))).toBe(false);
+    expect(isBlankHash(hashWith(23))).toBe(true);
   });
 });
 

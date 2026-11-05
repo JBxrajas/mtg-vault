@@ -1,5 +1,6 @@
 import { zValidator } from "@hono/zod-validator";
 import {
+  cardLookupQuerySchema,
   cardSearchQuerySchema,
   collectionEntrySchema,
   deckCardSchema,
@@ -20,7 +21,7 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { createMiddleware } from "hono/factory";
 import { getAuth } from "./auth.js";
-import { listPrintings, searchCards } from "./cards.js";
+import { listPrintings, lookupCards, searchCards } from "./cards.js";
 import { addDeckCard, createDeck, deleteDeck, getDeck, importDeckRows, listDecks, setDeckCard, updateDeck } from "./decks.js";
 import { HttpError, addItem, getCollectionId, listItems, removeItem, updateItem } from "./collection.js";
 import { importRows } from "./import.js";
@@ -51,6 +52,10 @@ app.get("/health", (c) => c.json({ ok: true }));
 app.get("/cards/search", zValidator("query", cardSearchQuerySchema), async (c) => {
   const results = await searchCards(c.req.valid("query"));
   return c.json({ results });
+});
+
+app.get("/cards/lookup", zValidator("query", cardLookupQuerySchema), async (c) => {
+  return c.json({ cards: await lookupCards(c.req.valid("query").ids) });
 });
 
 app.get("/cards/:oracleId/printings", zValidator("param", oracleIdParamSchema), async (c) => {

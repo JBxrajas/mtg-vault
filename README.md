@@ -4,7 +4,7 @@ A platform to track and manage Magic: The Gathering collections (Moxfield-style)
 
 ## Status
 
-Phases 1 to 3 are largely done: the monorepo, CI, the catalog imported from Scryfall into Neon, card search, accounts, the collection (with CSV import and export), decks (with deck list import and export), an interface in English and Spanish, and a personal look (mode, color or card art). The web app and the API run on Vercel with the database on Neon. Next: card scanning, then price history (binders were dropped). See [docs/plan.md](docs/plan.md) for what is done and what is pending.
+Phases 1 to 3 are largely done: the monorepo, CI, the catalog imported from Scryfall into Neon, card search, accounts, the collection (with CSV import and export), decks (with deck list import and export), an interface in English and Spanish, and a personal look (mode, color or card art). The web app and the API run on Vercel with the database on Neon. Card scanning is in place (art fingerprints, on the device; being tuned on real cameras). Next: price history (binders were dropped). See [docs/plan.md](docs/plan.md) for what is done and what is pending.
 
 ## What it does
 

@@ -51,6 +51,14 @@ export const cardSearchQuerySchema = z.object({
 });
 export type CardSearchQuery = z.infer<typeof cardSearchQuerySchema>;
 
+/** Look up a few cards by oracle id (the scanner has ids, not names). */
+export const cardLookupQuerySchema = z.object({
+  ids: z
+    .string()
+    .transform((v) => v.split(",").map((id) => id.trim()).filter(Boolean))
+    .pipe(z.array(z.string().uuid()).min(1).max(10)),
+});
+
 /** Scryfall image URLs for one printing; hotlinked, not stored by us. */
 export interface CardImage {
   /** Small card image, for lists. */
@@ -72,6 +80,14 @@ export interface CardSearchResult {
   /** Trigram similarity to the query, 0 to 1. */
   similarity: number;
   /** Image of the most recent printing that has one, or null. */
+  image: CardImage | null;
+}
+
+/** A card without search ranking: what the scanner shows once it knows which card it is. */
+export interface CardLookup {
+  oracleId: string;
+  name: string;
+  typeLine: string;
   image: CardImage | null;
 }
 
