@@ -53,6 +53,34 @@ Design in [ADR 0014](adr/0014-card-scanning-with-art-fingerprints.md): identify 
 - ☐ Measure on the full index with sleeved and foil cards, with the real camera, and tune `matchConfidence` and the focus limits (`src/scan/sharpness.ts`)
 - ☐ Use the bottom-left line (set, number, language) to pick the exact printing when it can be read
 
+## Phase 4b — Storage and price providers ☐
+Order matters: free space first, then add providers. Designs: [ADR 0015](adr/0015-compact-image-references.md) and [ADR 0016](adr/0016-price-providers.md).
+1. ☐ Measure (read-only): size of `printings.image_uris` per row and how many Scryfall image URLs follow the usual pattern
+2. ☐ Compact image references (add column, fill, switch the API, empty the old column, `VACUUM FULL`); production steps confirmed with the owner
+3. ☐ Check MTGJSON: terms, file size, how many printings match a Scryfall id
+4. ☐ Price provider setting and a job that stores the latest price per printing and provider (Card Kingdom first)
+5. ☐ Star City Games: only after SCG gives permission (or their terms are checked); the owner is contacting them
+6. ☐ Decide on buylist prices
+7. ☐ Daily price run, once the storage figure is known
+
+## Phase 5b — Scanner on real devices ☐
+1. ☐ Try the automatic capture on a real phone with about 10 cards in the four languages; adjust `FOCUS_TAKE`, `STEADY_DISTANCE` and `NEW_CARD_DISTANCE`
+2. ☐ Check Safari / iOS (camera, sound)
+3. ☐ Tune `matchConfidence` on the full index, with sleeved and foil cards
+4. ☐ Pick the exact printing from the bottom-left line
+
+## Phase 5c — Interface and quality ☐
+- ☐ Search results named only "Card" or "Card // Card" are hidden or put last
+- ☐ After adding a card, a confirmation and the search box cleared and focused
+- ☐ Rule warnings higher on the page; fold the deck analysis on phones
+- ☐ An e2e test per main flow; make `e2e` a required check on `main`
+- ☐ A friendlier message than "Failed to fetch"
+- ☐ Sample data for trying the app
+- ☐ API tests that run SQL against a real database
+
 ## Phase 6 — Electron and extras ☐
 - `apps/desktop` with Electron loading the `apps/web` build
 - Wishlist and public deck lists
+- Price history charts and alerts (Phase 4), once storage allows
+- Game Changers check and analysis of other formats
+- EDHREC: ask for permission before anything beyond the link; suggestions from the collection without EDHREC data
