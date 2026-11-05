@@ -77,7 +77,7 @@ A Commander deck page keeps the **commander in a bar** under the top bar (`src/C
 
 **EDHREC** is linked, not used as data. Each commander gets a link to its EDHREC page (new tab, `rel="noopener noreferrer"`) and a *Side window* button that opens the same page in a small window (`src/edhrec.ts`, `window.open` with `popup,noopener,noreferrer`). EDHREC refuses to be embedded in a page and its terms forbid automated access, so nothing is fetched, proxied or copied. The page slug rule was checked against one commander.
 
-Tests: the panel (counts, links, side window, curve labels, warnings, brackets, sources, Spanish) and the slug and window helpers; the analysis itself is tested in `packages/shared`. Layout is checked in a real browser (see `e2e/` in the repository root: sticky bar, hover preview, enlarge button, folded groups, the guided start, no horizontal overflow, phone and desktop width).
+Tests: the panel (counts, links, side window, curve labels, warnings, brackets, sources, Spanish) and the slug and window helpers; the analysis itself is tested in `packages/shared`. Layout is checked in a real browser (see `e2e/` in the repository root, including a sweep that opens the main screens at 360 and 390 px in English and Spanish and fails if anything is wider than the window: sticky bar, hover preview, enlarge button, folded groups, the guided start, no horizontal overflow, phone and desktop width).
 
 ## Tests
 
