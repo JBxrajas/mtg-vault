@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   artHash,
+  grayGridFromRgba,
   decodeArtIndex,
   encodeArtIndex,
   hammingDistance,
@@ -101,5 +102,44 @@ describe("matchConfidence", () => {
   });
   it("does not count other illustrations of the same card as competition", () => {
     expect(matchConfidence([m(50, 1), { entry: entry(9, 0, 1), distance: 52 }, m(120, 2)])).toBe("sure");
+  });
+});
+
+describe("grayGridFromRgba", () => {
+  const solid = (w: number, h: number, r: number, g: number, b: number) =>
+    Uint8Array.from({ length: w * h * 4 }, (_, i) => [r, g, b, 255][i % 4]!);
+
+  it("uses the luma of the colour (green counts most)", () => {
+    expect(grayGridFromRgba(solid(17, 16, 255, 0, 0), 17, 16)[0]).toBe(76);
+    expect(grayGridFromRgba(solid(17, 16, 0, 255, 0), 17, 16)[0]).toBe(150);
+    expect(grayGridFromRgba(solid(17, 16, 0, 0, 255), 17, 16)[0]).toBe(29);
+  });
+
+  it("averages each block, whatever the picture's size", () => {
+    // 34×32: left half black, right half white => dark up to column 7, half-way in column 8 (it straddles the edge), bright from column 9.
+    const w = 34, h = 32;
+    const rgba = Uint8Array.from({ length: w * h * 4 }, (_, i) => (i % 4 === 3 ? 255 : Math.floor(i / 4) % w < w / 2 ? 0 : 255));
+    const grid = grayGridFromRgba(rgba, w, h);
+    expect(grid[0]).toBe(0);
+    expect(grid[16]).toBe(255);
+    expect(grid[7]).toBe(0);
+    expect(grid[8]).toBe(128);
+    expect(grid[9]).toBe(255);
+  });
+
+  it("works on a picture smaller than the grid", () => {
+    expect(grayGridFromRgba(solid(2, 2, 10, 10, 10), 2, 2)).toHaveLength(17 * 16);
+  });
+
+  it("gives the same fingerprint for a picture and a copy twice as big", () => {
+    const small = Uint8Array.from({ length: 17 * 16 * 4 }, (_, i) => (i % 4 === 3 ? 255 : ((i >> 2) * 37) % 251));
+    const big = new Uint8Array(34 * 32 * 4);
+    for (let y = 0; y < 32; y++) for (let x = 0; x < 34; x++) big.set(small.subarray(((y >> 1) * 17 + (x >> 1)) * 4, ((y >> 1) * 17 + (x >> 1)) * 4 + 4), (y * 34 + x) * 4);
+    expect(artHash(grayGridFromRgba(big, 34, 32))).toEqual(artHash(grayGridFromRgba(small, 17, 16)));
+  });
+
+  it("rejects a buffer that does not match the size", () => {
+    expect(() => grayGridFromRgba(new Uint8Array(10), 17, 16)).toThrow(/Expected 17×16/);
+    expect(() => grayGridFromRgba(new Uint8Array(0), 0, 0)).toThrow();
   });
 });

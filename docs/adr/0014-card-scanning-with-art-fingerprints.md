@@ -26,7 +26,7 @@ We measured two signals on five real, mostly blurry photos (spike, 2026-11-04):
 
 ## Consequences
 - The 5-photo test is small. The thresholds in `matchConfidence` are provisional until measured on the full index, with sleeved and foil cards, and with the browser's own image shrinking (which differs slightly from the job's).
-- The browser's shrinking must reproduce the job's (grey, 17×16, stretched). The job's step is `fingerprint()` in `art-index.ts`; the scanner change will test the browser side against sample images.
+- The shrinking is one function, `grayGridFromRgba` in `packages/shared` (luma, then the average of each of the 17×16 blocks), called by both the job and the browser, so only decoding the picture differs. Changing it changes every hash: the index must be rebuilt from scratch. On the five photos it gave the same results as the first test, made with a different resize (correct card first, distance 39–76, runner-up 94 or more).
 - Cards with identical art in different printings cannot be told apart by this step alone.
-- A full first build downloads about 56,000 small images (roughly 30 minutes) and runs weekly after that, mostly doing nothing.
+- A full first build downloads about 56,000 small images (2 minutes 15 seconds on GitHub, no failures) and runs weekly after that, mostly doing nothing.
 - The API serves the file (`GET /art-index`): GitHub release downloads send no CORS headers, so the API streams them with long cache headers (streamed, so Vercel's 4.5 MB limit for ordinary responses does not apply as the index grows).

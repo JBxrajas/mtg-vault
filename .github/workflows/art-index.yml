@@ -29,9 +29,10 @@ jobs:
         run: gh release download art-index --pattern art-index.bin --dir data || true
         env:
           GH_TOKEN: ${{ github.token }}
+      # pnpm --filter runs inside apps/jobs, so the data folder must be an absolute path.
       - run: pnpm --filter @mtg-vault/jobs art-index
         env:
-          DATA_DIR: data
+          DATA_DIR: ${{ github.workspace }}/data
       - name: Publish the index
         run: |
           gh release view art-index >/dev/null 2>&1 || gh release create art-index --title "Art index" --notes "Card art fingerprints for the scanner. Rebuilt weekly by the art-index workflow; do not edit." --latest=false

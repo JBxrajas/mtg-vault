@@ -128,3 +128,35 @@ export function matchConfidence(matches: ArtMatch[]): MatchConfidence {
   const gap = second ? second.distance - best.distance : Infinity;
   return best.distance <= 80 && gap >= 15 ? "sure" : "maybe";
 }
+
+/**
+ * Shrinks a colour image to the 17×16 grey pixels `artHash` expects: luma of each pixel
+ * (0.299 R + 0.587 G + 0.114 B), then the average of each of the 17×16 blocks. The job that
+ * builds the index and the browser that reads a photo both call this, so the two fingerprints
+ * are made the same way; only decoding the picture differs.
+ *
+ * @param rgba four bytes per pixel, row by row
+ */
+export function grayGridFromRgba(rgba: ArrayLike<number>, width: number, height: number): Uint8Array {
+  if (width < 1 || height < 1 || rgba.length !== width * height * 4) {
+    throw new Error(`Expected ${width}×${height} RGBA pixels (${width * height * 4} bytes), got ${rgba.length}`);
+  }
+  const out = new Uint8Array(HASH_WIDTH * HASH_HEIGHT);
+  for (let gy = 0; gy < HASH_HEIGHT; gy++) {
+    const y0 = Math.floor((gy * height) / HASH_HEIGHT);
+    const y1 = Math.max(y0 + 1, Math.floor(((gy + 1) * height) / HASH_HEIGHT));
+    for (let gx = 0; gx < HASH_WIDTH; gx++) {
+      const x0 = Math.floor((gx * width) / HASH_WIDTH);
+      const x1 = Math.max(x0 + 1, Math.floor(((gx + 1) * width) / HASH_WIDTH));
+      let sum = 0;
+      for (let y = y0; y < y1; y++) {
+        for (let x = x0; x < x1; x++) {
+          const i = (y * width + x) * 4;
+          sum += 0.299 * rgba[i]! + 0.587 * rgba[i + 1]! + 0.114 * rgba[i + 2]!;
+        }
+      }
+      out[gy * HASH_WIDTH + gx] = Math.round(sum / ((y1 - y0) * (x1 - x0)));
+    }
+  }
+  return out;
+}
