@@ -2400,3 +2400,57 @@ button.art-tile.on {
     display: none;
   }
 }
+
+/* Editing a stack of the collection */
+.stack-editor {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 0.6rem;
+  padding-top: 0.7rem;
+  border-top: 1px solid var(--border);
+}
+.stack-editor label {
+  display: grid;
+  gap: 0.25rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+.stack-editor .wide-field,
+.stack-editor-actions,
+.stack-editor .hint,
+.stack-editor .error {
+  grid-column: 1 / -1;
+}
+.stack-editor select,
+.stack-editor input {
+  min-width: 0;
+  width: 100%;
+}
+.stack-editor-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Delete button on a deck card: sits in the corner, outside the link so it never opens the deck. */
+.deck-list > li {
+  position: relative;
+}
+.deck-delete {
+  position: absolute;
+  right: 0.6rem;
+  bottom: 0.6rem;
+  min-height: 2.25rem;
+  padding: 0.2rem 0.7rem;
+  font-size: 0.8rem;
+  border-color: transparent;
+  background: rgb(0 0 0 / 45%);
+  color: #fff;
+  opacity: 0.85;
+}
+.deck-delete:hover:not(:disabled) {
+  border-color: var(--danger);
+  background: var(--danger);
+  opacity: 1;
+}

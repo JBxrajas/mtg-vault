@@ -3,19 +3,20 @@ import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { fetchMe, fetchDecks, createDeck } = vi.hoisted(() => ({
+const { fetchMe, fetchDecks, createDeck, deleteDeck } = vi.hoisted(() => ({
   fetchMe: vi.fn(),
   fetchDecks: vi.fn(),
   createDeck: vi.fn(),
+  deleteDeck: vi.fn(),
 }));
 vi.mock("./auth", () => ({ fetchMe }));
-vi.mock("./decksApi", () => ({ fetchDecks, createDeck }));
+vi.mock("./decksApi", () => ({ fetchDecks, createDeck, deleteDeck }));
 
 import { DecksPage } from "./DecksPage";
 import { aDeck, aUser, renderPage } from "./test-utils";
 
 beforeEach(() => {
-  for (const f of [fetchMe, fetchDecks, createDeck]) f.mockReset();
+  for (const f of [fetchMe, fetchDecks, createDeck, deleteDeck]) f.mockReset();
   fetchMe.mockResolvedValue(aUser);
 });
 
@@ -26,6 +27,21 @@ describe("DecksPage", () => {
     expect(await screen.findByText(/to build decks/)).toBeInTheDocument();
     expect(fetchDecks).not.toHaveBeenCalled();
     expect(screen.queryByLabelText("Deck name")).not.toBeInTheDocument();
+  });
+
+  it("deletes a deck only after confirming", async () => {
+    fetchDecks.mockResolvedValueOnce([aDeck({ id: "d1", name: "Mono red" })]).mockResolvedValue([]);
+    deleteDeck.mockResolvedValue(undefined);
+    const confirm = vi.spyOn(window, "confirm").mockReturnValueOnce(false).mockReturnValueOnce(true);
+    renderPage(<DecksPage />, { path: "/decks" });
+    const button = await screen.findByRole("button", { name: "Delete Mono red" });
+    await userEvent.click(button);
+    expect(confirm).toHaveBeenCalledWith(expect.stringContaining("Mono red"));
+    expect(deleteDeck).not.toHaveBeenCalled();
+    await userEvent.click(button);
+    expect(deleteDeck).toHaveBeenCalledWith("d1", expect.anything());
+    expect(await screen.findByText(/No decks yet/)).toBeInTheDocument();
+    confirm.mockRestore();
   });
 
   it("invites to create the first deck", async () => {

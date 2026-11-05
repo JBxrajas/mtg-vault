@@ -115,7 +115,11 @@ export async function addItem(collectionId: string, entry: CollectionEntry): Pro
   return (await getItem(collectionId, rows[0].id as string))!;
 }
 
-/** Changes quantity, purchase data or notes. Returns null when the stack is not in this collection. */
+/**
+ * Changes quantity, purchase data, notes, and what the stack is (printing, finish, condition, language).
+ * A stack that becomes identical to another one joins it: copies are added up, binder placements move
+ * with them, and the answer is the stack that remains. Returns null when the stack is not in this collection.
+ */
 export async function updateItem(
   collectionId: string,
   id: string,
@@ -137,16 +141,64 @@ export async function updateItem(
     }
   }
 
+  const printingId = patch.printingId ?? current.printingId;
+  const finish = patch.finish ?? current.finish;
+  const condition = patch.condition ?? current.condition;
+  const language = patch.language ?? current.language;
+  const quantity = patch.quantity ?? current.quantity;
+  const moves = printingId !== current.printingId || finish !== current.finish || condition !== current.condition || language !== current.language;
+
+  let target = id;
+  if (moves) {
+    const printing = await exec(sql`select oracle_id, finishes from printings where id = ${printingId}`);
+    if (!printing[0]) throw new HttpError(404, "Printing not found");
+    if (printingId !== current.printingId && printing[0].oracle_id !== current.oracleId) {
+      throw new HttpError(400, "That printing is of another card");
+    }
+    const finishes = (printing[0].finishes as string[]) ?? [];
+    if (!finishes.includes(finish)) {
+      throw new HttpError(400, `This printing does not come in ${finish} (available: ${finishes.join(", ") || "none"})`);
+    }
+    const twin = await exec(sql`
+      select id, quantity, purchase_price, acquired_on, notes from collection_items
+      where collection_id = ${collectionId} and printing_id = ${printingId} and finish = ${finish}
+        and condition = ${condition} and language = ${language} and id <> ${id}
+    `);
+    if (twin[0]) {
+      const joined = Number(twin[0].quantity) + quantity;
+      if (joined > 9999) throw new HttpError(400, "A stack cannot hold more than 9999 copies");
+      target = twin[0].id as string;
+      const price = patch.purchasePrice !== undefined ? patch.purchasePrice : (num(twin[0].purchase_price) ?? current.purchasePrice);
+      const acquired = patch.acquiredOn !== undefined ? patch.acquiredOn : (str(twin[0].acquired_on)?.slice(0, 10) ?? current.acquiredOn);
+      const notes = patch.notes !== undefined ? patch.notes : (str(twin[0].notes) ?? current.notes);
+      await exec(sql`
+        insert into binder_items (binder_id, collection_item_id, quantity)
+        select binder_id, ${target}, quantity from binder_items where collection_item_id = ${id}
+        on conflict (binder_id, collection_item_id) do update set quantity = binder_items.quantity + excluded.quantity
+      `);
+      await exec(sql`
+        update collection_items set quantity = ${joined}, purchase_price = ${price}, acquired_on = ${acquired}, notes = ${notes}, updated_at = now()
+        where id = ${target} and collection_id = ${collectionId}
+      `);
+      await exec(sql`delete from collection_items where id = ${id} and collection_id = ${collectionId}`);
+      return getItem(collectionId, target);
+    }
+  }
+
   await exec(sql`
     update collection_items set
-      quantity = ${patch.quantity ?? current.quantity},
+      printing_id = ${printingId},
+      finish = ${finish},
+      condition = ${condition},
+      language = ${language},
+      quantity = ${quantity},
       purchase_price = ${patch.purchasePrice !== undefined ? patch.purchasePrice : current.purchasePrice},
       acquired_on = ${patch.acquiredOn !== undefined ? patch.acquiredOn : current.acquiredOn},
       notes = ${patch.notes !== undefined ? patch.notes : current.notes},
       updated_at = now()
-    where id = ${id} and collection_id = ${collectionId}
+    where id = ${target} and collection_id = ${collectionId}
   `);
-  return getItem(collectionId, id);
+  return getItem(collectionId, target);
 }
 
 /** Removes a stack (and its binder placements). False when it is not in this collection. */

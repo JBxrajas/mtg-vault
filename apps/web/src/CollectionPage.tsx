@@ -22,6 +22,7 @@ import { CurrencyControl } from "./CurrencyControl";
 import { formatMoney, useCurrency } from "./currency";
 import { useI18n } from "./i18n";
 import { ImportCollection } from "./ImportCollection";
+import { StackEditor } from "./StackEditor";
 import { Tip } from "./Tip";
 
 export function CollectionPage() {
@@ -229,6 +230,7 @@ function StackRow(props: {
 }) {
   const { item } = props;
   const { t } = useI18n();
+  const [editing, setEditing] = useState(false);
   return (
     <li className="stack">
       <CardPreview name={item.name} image={item.image} className="thumb-wrap wide" />
@@ -258,10 +260,14 @@ function StackRow(props: {
             {t("collection.artLink")} ↗
           </a>
         )}
+        <button type="button" className="link" aria-expanded={editing} aria-label={t("stack.editLabel", { name: item.name })} onClick={() => setEditing(!editing)}>
+          {t("stack.edit")}
+        </button>
         <button type="button" className="link" disabled={props.busy} onClick={props.onRemove}>
           {t("common.remove")}
         </button>
       </div>
+      {editing && <StackEditor item={item} onDone={() => setEditing(false)} />}
     </li>
   );
 }
