@@ -55,7 +55,7 @@ export function NewCommanderDeck() {
     onSettled: () => setProgress(null),
   });
 
-  const identity = choice?.card.colorIdentity ?? [];
+  const identity = choice?.card.colorIdentity ?? []; // may be missing from an older API during a deploy
 
   return (
     <details className="wizard">

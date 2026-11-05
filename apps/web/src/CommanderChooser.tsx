@@ -61,6 +61,8 @@ export function CommanderChooser(props: { existing?: CommanderCandidate[]; busy?
   const printing: PrintingSummary | undefined = printings?.find((p) => p.id === printingId) ?? printings?.find((p) => p.image) ?? printings?.[0];
   const image = printing?.image ?? picked?.image ?? null;
   const pickedRefusal = picked ? refusalFor(picked, existing) : null;
+  // An older API (during a deploy) may answer without colors: show none rather than fail.
+  const identity = picked?.colorIdentity ?? [];
 
   return (
     <div className="chooser">
@@ -108,9 +110,9 @@ export function CommanderChooser(props: { existing?: CommanderCandidate[]; busy?
             <ManaCost cost={picked.manaCost} />
             <p className="sub">{picked.typeLine}</p>
             <p className="identity-line">
-              <ManaCost cost={picked.colorIdentity.map((c) => `{${c}}`).join("")} />{" "}
-              <b>{colorIdentityName(picked.colorIdentity)}</b>
-              {picked.colorIdentity.length > 0 && <span className="sub"> — {colorWords(picked.colorIdentity).join(", ")}</span>}
+              <ManaCost cost={identity.map((c) => `{${c}}`).join("")} />{" "}
+              <b>{colorIdentityName(identity)}</b>
+              {identity.length > 0 && <span className="sub"> — {colorWords(identity).join(", ")}</span>}
             </p>
             <h4>{t("chooser.printings")}</h4>
             {!printings && <p className="hint">{t("detail.loading")}</p>}
