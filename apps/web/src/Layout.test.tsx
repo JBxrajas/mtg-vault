@@ -14,7 +14,7 @@ describe("Layout", () => {
     renderPage(<Layout />);
     expect(await screen.findByRole("link", { name: /mtg.*vault/ })).toHaveAttribute("href", "/");
     const nav = screen.getByRole("navigation", { name: "Main" });
-    expect(within(nav).getByRole("link", { name: "Search" })).toHaveAttribute("href", "/");
+    expect(within(nav).getByRole("link", { name: "Search" })).toHaveAttribute("href", "/search");
     expect(within(nav).getByRole("link", { name: "Collection" })).toHaveAttribute("href", "/collection");
   });
 
