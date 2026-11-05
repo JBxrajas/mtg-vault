@@ -34,14 +34,21 @@ test("the search and the filters narrow the list in the browser, and fit the scr
   await page.getByLabel("Search your collection").fill("");
   await expect(page.locator(".stack")).toHaveCount(3);
 
-  await page.locator(".filters > summary").click();
-  await page.getByRole("button", { name: "Colorless" }).click();
+  await page.getByRole("button", { name: "Filters", exact: true }).click();
+  await expect(page.locator(".filter-panel")).toBeVisible();
+  await page.getByRole("button", { name: "Colorless", exact: true }).click();
   await expect(page.locator(".stack")).toHaveCount(1);
   await expect(page.locator(".stack")).toContainText("Sol Ring");
 
   // Nothing sticks out of the window, and the toggles are big enough to tap.
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
-  const box = (await page.getByRole("button", { name: "Colorless" }).boundingBox())!;
+  const box = (await page.getByRole("button", { name: "Colorless", exact: true }).boundingBox())!;
   expect(box.height).toBeGreaterThanOrEqual(36);
   if (info.project.name === "phone") expect(box.x + box.width).toBeLessThanOrEqual(390);
+
+  // What is on can be turned off from its own chip, and the quick type chips are in view without opening anything.
+  await page.getByRole("button", { name: "Remove filter: Colorless" }).click();
+  await expect(page.locator(".stack")).toHaveCount(3);
+  await page.getByRole("group", { name: "Type" }).getByRole("button", { name: /^Artifact/ }).click();
+  await expect(page.locator(".stack")).toHaveCount(1);
 });

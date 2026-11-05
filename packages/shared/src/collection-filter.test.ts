@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { activeFilterCount, emptyFilters, filterCollection, normalizeText, setsIn, sortCollection } from "./collection-filter.js";
+import { activeFilterCount, emptyFilters, filterCollection, manaValueBucket, normalizeText, setsIn, sortCollection } from "./collection-filter.js";
 import type { CollectionItem } from "./index.js";
 
 const stack = (over: Partial<CollectionItem> & { name: string }): CollectionItem => ({
@@ -75,10 +75,11 @@ describe("filterCollection", () => {
     expect(names(filterCollection(items, { ...emptyFilters(), conditions: ["LP"] }))).toEqual(["Lim-Dûl's Vault"]);
   });
 
-  it("filters by mana value range, both ends included", () => {
-    expect(names(filterCollection(items, { ...emptyFilters(), mvMin: 2 }))).toEqual(["Lim-Dûl's Vault", "Kitchen Finks"]);
-    expect(names(filterCollection(items, { ...emptyFilters(), mvMax: 0 }))).toEqual(["Black Lotus"]);
-    expect(names(filterCollection(items, { ...emptyFilters(), mvMin: 1, mvMax: 2 }))).toHaveLength(4);
+  it("filters by mana value, with 7 standing for 7 or more", () => {
+    expect([0, 0.5, 3, 6, 7, 9, 16, null, undefined].map(manaValueBucket)).toEqual([0, 0, 3, 6, 7, 7, 7, 0, 0]);
+    expect(names(filterCollection(items, { ...emptyFilters(), manaValues: [2, 3, 4, 5, 6, 7] }))).toEqual(["Lim-Dûl's Vault", "Kitchen Finks"]);
+    expect(names(filterCollection(items, { ...emptyFilters(), manaValues: [0] }))).toEqual(["Black Lotus"]);
+    expect(names(filterCollection(items, { ...emptyFilters(), manaValues: [1, 2] }))).toHaveLength(4);
   });
 
   it("adds filters up: uncommon AND green", () => {
@@ -89,7 +90,7 @@ describe("filterCollection", () => {
 describe("an older API answer", () => {
   it("does not break on stacks without the type line, mana value or colors", () => {
     const old = [{ ...items[0]!, typeLine: undefined, cmc: undefined, colorIdentity: undefined } as unknown as CollectionItem];
-    expect(filterCollection(old, { ...emptyFilters(), text: "bolt", colors: ["C"], types: ["Other"], mvMax: 0 })).toHaveLength(1);
+    expect(filterCollection(old, { ...emptyFilters(), text: "bolt", colors: ["C"], types: ["Other"], manaValues: [0] })).toHaveLength(1);
     expect(sortCollection(old, "mv")).toHaveLength(1);
   });
 });
@@ -98,7 +99,7 @@ describe("activeFilterCount", () => {
   it("counts each filter that is set, a text of only spaces not included", () => {
     expect(activeFilterCount(emptyFilters())).toBe(0);
     expect(activeFilterCount({ ...emptyFilters(), text: "  " })).toBe(0);
-    expect(activeFilterCount({ ...emptyFilters(), text: "bolt", colors: ["R", "G"], mvMax: 0 })).toBe(3);
+    expect(activeFilterCount({ ...emptyFilters(), text: "bolt", colors: ["R", "G"], manaValues: [0] })).toBe(3);
   });
 });
 

@@ -230,8 +230,45 @@ describe("CollectionPage", () => {
       await userEvent.click(await screen.findByText("Filters"));
       await userEvent.selectOptions(screen.getByLabelText("Set"), "m19");
       expect(names()).toEqual(["Llanowar Elves"]);
-      await userEvent.type(screen.getByLabelText("Mana value from"), "3");
+      await userEvent.click(screen.getByRole("button", { name: "Mana value 3" }));
       expect(await screen.findByText(/No card in your collection matches/)).toBeInTheDocument();
+    });
+
+    it("has the card types always in view, with how many stacks each has, and shows what is on so it can be turned off", async () => {
+      fetchCollection.mockResolvedValue([
+        ...stacks(),
+        aStack({ id: "d", name: "Island", typeLine: "Basic Land — Island", cmc: 0, colorIdentity: ["U"] }),
+      ]);
+      renderPage(<CollectionPage />, { path: "/collection" });
+      const types = await screen.findByRole("group", { name: "Type" });
+      expect(within(types).getByRole("button", { name: /^All\s*4$/ })).toHaveAttribute("aria-pressed", "true");
+      expect(within(types).getByRole("button", { name: /^Creature\s*1$/ })).toBeInTheDocument();
+      expect(within(types).queryByRole("button", { name: /^Sorcery/ })).not.toBeInTheDocument(); // none in this collection
+
+      await userEvent.click(within(types).getByRole("button", { name: /^Land\s*1$/ }));
+      expect(rows()).toHaveLength(1);
+      expect(within(rows()[0]!).getByText("Island")).toBeInTheDocument();
+
+      // Mana value 0 matches the land; a chip for each filter that is on says how to turn it off.
+      await userEvent.click(screen.getByRole("button", { name: "Mana value 0" }));
+      const active = screen.getByRole("group", { name: "Active filters" });
+      expect(within(active).getAllByRole("button", { name: /^Remove filter/ })).toHaveLength(2);
+      await userEvent.click(within(active).getByRole("button", { name: "Remove filter: Land" }));
+      expect(rows()).toHaveLength(1); // mana value 0 is still on
+      await userEvent.click(screen.getByRole("button", { name: "Clear filters" }));
+      expect(rows()).toHaveLength(4);
+      expect(screen.queryByRole("group", { name: "Active filters" })).not.toBeInTheDocument();
+    });
+
+    it("has a card grid view next to the list and the art view", async () => {
+      fetchCollection.mockResolvedValue(stacks());
+      renderPage(<CollectionPage />, { path: "/collection" });
+      expect(await screen.findByRole("button", { name: "List" })).toHaveAttribute("aria-pressed", "true");
+      await userEvent.click(screen.getByRole("button", { name: "Cards" }));
+      const grid = document.querySelector(".card-grid") as HTMLElement;
+      expect(within(grid).getAllByRole("listitem")).toHaveLength(3);
+      expect(within(grid).getByText("Sol Ring")).toBeInTheDocument();
+      expect(document.querySelector(".stacks")).toHaveAttribute("hidden");
     });
 
     it("sorts by total value, highest first", async () => {

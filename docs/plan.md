@@ -33,7 +33,7 @@ Status: ☐ pending · ◐ in progress · ☑ done
 - ☑ Interface in English and Spanish, with a language button ([ADR 0010](adr/0010-interface-languages.md)); server error messages are still English
 - ☑ Appearance: light or dark mode, background color or card art with a choice of printing, saved on the device ([apps/web](../apps/web/README.md))
 - ◐ Deck analysis: done for Commander decks (lands against Karsten's formula, mana curve and what it means, ramp / card draw / removal / wipes, format rules as non-blocking warnings, brackets guide, link and side window to EDHREC; [ADR 0013](adr/0013-commander-knowledge-and-analysis.md), [knowledge](knowledge/commander.md)). Commander-first flow (guided start, visual commander chooser with printings, commander validation, problem highlighting, folding groups, enlargeable cards) done. Pending: other formats, colored sources per spell, Game Changers check, archetype guides, cards from your collection that fit a commander
-- ◐ Filters: done in the collection (search, sorting, color, type, rarity, finish, condition, set, mana value). Pending: the deck, the card search, and legality
+- ◐ Filters: done in the collection (toolbar with search, sorting and views; card types with counts, colors and mana value always in view; rarity, finish, condition and set in a panel; active filters shown as removable chips). Pending: the deck, the card search, and legality
 
 ## Phase 4 — Prices ◐
 - ◐ Price snapshots in `price_snapshots`: the Scryfall import writes a row when a printing's price changes ([apps/jobs](../apps/jobs/README.md)); latest prices shown per printing in the web app. Runs weekly for now; a daily run needs the storage plan checked first
@@ -71,7 +71,9 @@ Order matters: free space first, then add providers. Designs: [ADR 0015](adr/001
 3. ☐ Tune `matchConfidence` on the full index, with sleeved and foil cards
 4. ☐ Pick the exact printing from the bottom-left line
 
-## Phase 5c — Interface and quality ☐
+## Phase 5c — Interface and quality ◐
+- ✓ Collection: toolbar, quick filters, List / Cards / Art switch; decks list with the commander's art and size bars; deck page with a header, a type-split bar and the analysis in a side column
+- ☐ The same care for the search page, the scanner and the login screens; a design review on real phones
 - ☐ Search results named only "Card" or "Card // Card" are hidden or put last
 - ☐ After adding a card, a confirmation and the search box cleared and focused
 - ☐ Rule warnings higher on the page; fold the deck analysis on phones

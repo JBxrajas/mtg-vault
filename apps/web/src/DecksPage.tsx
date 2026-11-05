@@ -1,7 +1,7 @@
 import { deckFormatSchema, deckTargetSize, type DeckFormat } from "@mtg-vault/shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { useState, type FormEvent } from "react";
+import { useState, type CSSProperties, type FormEvent } from "react";
 import { fetchMe } from "./auth";
 import { createDeck, fetchDecks } from "./decksApi";
 import { useI18n } from "./i18n";
@@ -85,11 +85,31 @@ export function DecksPage() {
       <ul className="deck-list">
         {decks?.map((d) => {
           const target = deckTargetSize(d.format);
+          const art = d.commander?.image?.artCrop;
+          const share = target ? Math.min(1, d.cardCount / target) : 0;
+          const state = target && d.cardCount > target ? "over" : target && d.cardCount === target ? "done" : "";
           return (
             <li key={d.id}>
-              <Link to="/decks/$deckId" params={{ deckId: d.id }} className="deck-card">
+              <Link to="/decks/$deckId" params={{ deckId: d.id }} className={art ? "deck-card has-art" : "deck-card"} style={art ? ({ "--deck-art": `url("${art}")` } as CSSProperties) : undefined}>
+                <span className="deck-top">
+                  <span className="badge">{formatLabel(d.format)}</span>
+                  {d.commander && d.commander.colorIdentity.length > 0 && (
+                    <span className="pips" aria-label={d.commander.colorIdentity.map((c) => t(`color.${c}`)).join(", ")}>
+                      {d.commander.colorIdentity.map((c) => (
+                        <span key={c} className={`pip pip-${c.toLowerCase()}`} aria-hidden="true">
+                          {c}
+                        </span>
+                      ))}
+                    </span>
+                  )}
+                </span>
                 <span className="deck-name">{d.name}</span>
-                <span className="badge">{formatLabel(d.format)}</span>
+                {d.commander && <span className="deck-commander">{d.commander.name}</span>}
+                {target && (
+                  <span className={`deck-progress ${state}`} role="progressbar" aria-label={t("decks.progress")} aria-valuemin={0} aria-valuemax={target} aria-valuenow={d.cardCount}>
+                    <i style={{ width: `${share * 100}%` }} />
+                  </span>
+                )}
                 <span className="deck-count">{t("decks.cardCount", { count: d.cardCount, target: target ? ` / ${target}` : "" })}</span>
               </Link>
             </li>

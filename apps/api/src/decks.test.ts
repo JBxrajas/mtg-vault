@@ -21,7 +21,23 @@ describe("toDeckSummary", () => {
       isPublic: true,
       cardCount: 99,
       updatedAt: "2026-11-04T10:00:00.000Z",
+      commander: null,
     });
+  });
+
+  it("carries the commander with its colors and the sizes of its picture", () => {
+    const d = toDeckSummary({
+      id: "d1",
+      name: "Elves",
+      format: "commander",
+      is_public: false,
+      card_count: 100,
+      updated_at: "2026-11-04T10:00:00Z",
+      commander_name: "Iroh, Grand Lotus",
+      commander_colors: ["U", "R", "G"],
+      commander_image: { small: "s.jpg", normal: "n.jpg", art_crop: "a.jpg" },
+    });
+    expect(d.commander).toEqual({ name: "Iroh, Grand Lotus", colorIdentity: ["U", "R", "G"], image: { small: "s.jpg", normal: "n.jpg", artCrop: "a.jpg" } });
   });
 
   it("accepts a date that arrives as a string and an empty deck", () => {
