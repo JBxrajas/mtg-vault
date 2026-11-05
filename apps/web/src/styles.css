@@ -18,6 +18,7 @@
   --radius: 14px;
   --radius-sm: 10px;
   --nav-h: 3.5rem;
+  --topbar-h: 3.1rem;
   font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   line-height: 1.45;
 }
@@ -175,6 +176,8 @@ button.link {
   position: sticky;
   top: 0;
   z-index: 5;
+  box-sizing: border-box;
+  min-height: var(--topbar-h);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1319,4 +1322,39 @@ button.art-tile.on {
 }
 .sources .badge {
   display: inline-block;
+}
+
+/* Commander bar: the chosen commander stays in view under the top bar while the deck scrolls. */
+.commander-bar {
+  position: sticky;
+  top: var(--topbar-h);
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  margin: 0.6rem 0;
+  padding: 0.4rem 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.commander-bar img {
+  width: 2.6rem;
+  height: 2.6rem;
+  border-radius: 50%;
+  object-fit: cover;
+  flex: none;
+}
+.commander-bar .commander-names {
+  min-width: 0;
+  flex: 1;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.commander-bar .commander-names small {
+  display: block;
+  font-weight: 400;
+  color: var(--muted, inherit);
 }

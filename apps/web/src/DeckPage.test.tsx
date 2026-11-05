@@ -98,7 +98,7 @@ describe("DeckPage", () => {
       ),
     );
     render();
-    await screen.findByText("Atraxa");
+    await screen.findAllByText("Atraxa");
     expect(screen.getAllByRole("heading", { level: 2 }).filter((h) => !h.closest(".analysis")).map((h) => h.textContent)).toEqual(["Commander (1)", "Creature (1)"]);
     expect(screen.getByText("2 / 100 cards")).toBeInTheDocument();
   });
@@ -260,5 +260,27 @@ describe("DeckPage", () => {
     render();
     await screen.findByText("Lightning Bolt");
     expect(screen.queryByRole("region", { name: "Commander analysis" })).not.toBeInTheDocument();
+  });
+  it("keeps the commander in a bar above the board tabs, and says so when there is none", async () => {
+    fetchDeck.mockResolvedValue(
+      detail([aDeckCard({ oracleId: "c1", name: "Atraxa", board: "commander", quantity: 1, colorIdentity: ["W", "U"] })], aDeck({ format: "commander" })),
+    );
+    const first = render();
+    const bar = await screen.findByRole("region", { name: "Deck commander" });
+    expect(within(bar).getByText("Atraxa")).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: /Sideboard/ }));
+    expect(screen.getByRole("region", { name: "Deck commander" })).toBeInTheDocument();
+    first.unmount();
+
+    fetchDeck.mockResolvedValue(detail([aDeckCard()], aDeck({ format: "commander" })));
+    render();
+    expect(within(await screen.findByRole("region", { name: "Deck commander" })).getByText(/No commander yet/)).toBeInTheDocument();
+  });
+
+  it("has no commander bar in other formats", async () => {
+    fetchDeck.mockResolvedValue(detail([aDeckCard()], aDeck({ format: "modern" })));
+    render();
+    await screen.findByText("Lightning Bolt");
+    expect(screen.queryByRole("region", { name: "Deck commander" })).not.toBeInTheDocument();
   });
 });
