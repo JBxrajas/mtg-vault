@@ -15,6 +15,7 @@ import { useState } from "react";
 import { searchCards } from "./api";
 import { fetchMe } from "./auth";
 import { addDeckCard, deleteDeck, fetchDeck, setDeckCard, updateDeck } from "./decksApi";
+import { CommanderBar } from "./CommanderBar";
 import { DeckAnalysis } from "./DeckAnalysis";
 import { DeckListTools } from "./DeckListTools";
 import { formatLabel } from "./DecksPage";
@@ -112,6 +113,8 @@ export function DeckPage() {
       </p>
       {deck.description && <p className="subtitle">{deck.description}</p>}
       {mutationError && <p className="error">{mutationError.message}</p>}
+
+      {deck.format === "commander" && <CommanderBar cards={cards} />}
 
       <DeckSettings deckId={deckId} deck={deck} onDelete={() => remove.mutate()} deleting={remove.isPending} />
 

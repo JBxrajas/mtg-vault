@@ -257,6 +257,8 @@ export const en = {
   "analysis.title": "Commander analysis",
   "analysis.tip.label": "analysis",
   "analysis.tip.text": "These figures are guides, not rules. Roles (ramp, card draw, removal, board wipes) are guessed from each card's text, so some cards may be missed or counted wrongly, and one card can fill several roles.",
+  "commanderBar.label": "Deck commander",
+  "commanderBar.title": "Commander",
   "analysis.commander": "Commander: {names}",
   "analysis.noCommander": "No commander yet. Add one to the Commander board.",
   "analysis.identity": "Color identity",

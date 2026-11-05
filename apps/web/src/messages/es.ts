@@ -259,6 +259,8 @@ export const es = {
   "analysis.title": "Análisis del comandante",
   "analysis.tip.label": "análisis",
   "analysis.tip.text": "Estas cifras son orientativas, no reglas. Los roles (aceleración, robo, remoción, barridos) se deducen del texto de cada carta, así que alguna puede no detectarse o contarse mal, y una misma carta puede cumplir varios roles.",
+  "commanderBar.label": "Comandante del mazo",
+  "commanderBar.title": "Comandante",
   "analysis.commander": "Comandante: {names}",
   "analysis.noCommander": "Aún no hay comandante. Añade uno a la lista de comandante.",
   "analysis.identity": "Identidad de color",
