@@ -4,7 +4,7 @@ import { dirname } from "node:path";
 import { createInterface } from "node:readline";
 import { createGunzip } from "node:zlib";
 import sharp from "sharp";
-import { artHash, decodeArtIndex, encodeArtIndex, HASH_HEIGHT, HASH_WIDTH, type ArtIndexEntry } from "@mtg-vault/shared";
+import { artHash, decodeArtIndex, encodeArtIndex, grayGridFromRgba, type ArtIndexEntry } from "@mtg-vault/shared";
 import { artSources, type ArtSource, type ScryfallArtCard } from "./art-faces.js";
 import { downloadBulk, HEADERS } from "./bulk.js";
 
@@ -19,10 +19,10 @@ const MAX_FAILURE_RATE = 0.02;
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-/** Same shrinking the browser must reproduce: grey, 17×16, stretched to fit. */
+/** Decodes the image and shrinks it with the same function the browser uses (`grayGridFromRgba`). */
 async function fingerprint(image: Buffer): Promise<Uint8Array> {
-  const pixels = await sharp(image).grayscale().resize(HASH_WIDTH, HASH_HEIGHT, { fit: "fill" }).raw().toBuffer();
-  return artHash(pixels);
+  const { data, info } = await sharp(image).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+  return artHash(grayGridFromRgba(data, info.width, info.height));
 }
 
 async function download(url: string): Promise<Buffer> {
