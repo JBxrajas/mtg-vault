@@ -26,7 +26,7 @@ Status: ☐ pending · ◐ in progress · ☑ done
 - ☑ Data model: users, one collection per user (inventory with printings, finish, condition, language), binders, decks with formats and type groups ([ADR 0008](adr/0008-users-collection-binders-decks.md)); migration `0002` applied to production
 - ☑ Auth with username and password: register, sign in and out, `GET /me`, sign-in screen in the web app ([ADR 0009](adr/0009-username-login-with-bearer-tokens.md)); live in production, verified end to end (see [vercel.md](vercel.md))
 - ☑ Inventory: API (`/collection/items`) and screens to add, change and remove stacks, with market value ([apps/api](../apps/api/README.md), [apps/web](../apps/web/README.md))
-- ☐ Binders: API and screens to place copies of a stack in binders (the tables and the quantity rule exist)
+- ✗ Binders: dropped on 2026-11-04 (decision of the project owner). The `binders` and `binder_items` tables from migration `0002` stay in the database, unused; removing them would be a separate migration, not done
 - ☑ Decks: API and screens to build decks with formats, boards, type groups, deck size and an owned/missing badge from the collection ([apps/api](../apps/api/README.md), [apps/web](../apps/web/README.md)). Format rules (size limits, copy limits, legality) are not enforced yet
 - ☑ CSV import of a collection (Moxfield layout; other files with similar headers should work) ([apps/api](../apps/api/README.md), [docs/apis.md](apis.md#collection-files-csv-import))
 - ☑ Collection CSV export and deck list import and export ([docs/apis.md](apis.md#deck-lists-text-import-and-export)); a CSV export of decks is not done

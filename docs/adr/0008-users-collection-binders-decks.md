@@ -1,5 +1,7 @@
 # ADR 0008 — Users, collection, binders and decks
 
+> **Update 2026-11-04:** the binders part was dropped. The tables remain, unused, and no API or screen uses them.
+
 **Status:** accepted
 
 ## Context
