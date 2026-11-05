@@ -1,6 +1,6 @@
 # ADR 0014 — Card scanning with art fingerprints, on the device
 
-**Status:** accepted (the index and its job; the scanner screen comes in later changes)
+**Status:** accepted (index, job, API route and scanner screen built; tuning on real cameras pending)
 
 ## Context
 We want to register cards by pointing a phone or webcam at them: one by one in a batch, or a whole deck. The collection has cards in English, Spanish, Japanese and Russian, so reading the card's name would need a text-recognition model per language and a translation to the English names we store. The database is also close to the free Neon limit (475 MB of 0.5 GB, see [apps/jobs](../../apps/jobs/README.md)), so a large new table is not welcome.
@@ -16,6 +16,8 @@ We measured two signals on five real, mostly blurry photos (spike, 2026-11-04):
 - **Nothing is stored in Neon.** The scanner downloads the file once and keeps it on the device.
 - **Everything runs on the device.** Photos are never uploaded.
 - **The bottom-left line is a refinement, not the identifier.** When it can be read it will pick the exact printing; when it cannot, the user chooses among the card's printings, as in the rest of the app.
+- **The printing is chosen by language, then by the user.** The photo identifies the art. The scanner suggests the newest printing in the language the user chose (English, Spanish, Japanese, Russian and the other Scryfall languages), then English, and lets them change printing, finish and quantity before adding.
+- **Flat pictures never match.** A flat or empty picture hashes to almost all zeros and would sit close to some card; `isBlankHash` refuses it.
 - **The match is never silent.** `matchConfidence` says sure, maybe or none; the scanner will ask the user to confirm anything that is not sure.
 
 ## Alternatives considered

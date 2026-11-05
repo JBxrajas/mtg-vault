@@ -7,6 +7,7 @@ const NAV = [
   { to: "/", label: "nav.search", hint: "nav.search.hint" },
   { to: "/collection", label: "nav.collection", hint: "nav.collection.hint" },
   { to: "/decks", label: "nav.decks", hint: "nav.decks.hint" },
+  { to: "/scan", label: "nav.scan", hint: "nav.scan.hint" },
 ] as const;
 
 /** App frame: brand and account on top, navigation at the bottom on phones and on top on wide screens. */

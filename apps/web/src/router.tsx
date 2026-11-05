@@ -11,6 +11,7 @@ import { DeckPage } from "./DeckPage";
 import { DecksPage } from "./DecksPage";
 import { Layout } from "./Layout";
 import { LoginPage } from "./LoginPage";
+import { ScanPage } from "./ScanPage";
 import { SearchPage } from "./SearchPage";
 
 const rootRoute = createRootRoute({ component: Layout });
@@ -47,6 +48,12 @@ const artRoute = createRoute({
   component: ArtPage,
 });
 
+const scanRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/scan",
+  component: ScanPage,
+});
+
 const decksRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/decks",
@@ -61,7 +68,7 @@ const deckRoute = createRoute({
 
 // Hash history works both on the web and when loaded from file:// in Electron.
 export const router = createRouter({
-  routeTree: rootRoute.addChildren([indexRoute, loginRoute, appearanceRoute, collectionRoute, artRoute, decksRoute, deckRoute]),
+  routeTree: rootRoute.addChildren([indexRoute, loginRoute, appearanceRoute, collectionRoute, artRoute, scanRoute, decksRoute, deckRoute]),
   history: createHashHistory(),
 });
 

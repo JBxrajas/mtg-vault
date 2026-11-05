@@ -1,5 +1,6 @@
 import type {
   CardImage,
+  CardLookup,
   CardSearchQuery,
   CardSearchResult,
   PrintingPrices,
@@ -78,6 +79,27 @@ export async function searchCards({ q, limit, type, colors }: CardSearchQuery) {
       image: toCardImage(r.image_uris),
     }),
   );
+}
+
+/** The cards with these oracle ids, in the order asked; ids that do not exist are left out. */
+export async function lookupCards(ids: string[]): Promise<CardLookup[]> {
+  const rows = await getDb().execute<{ oracle_id: string; name: string; type_line: string; image_uris: unknown }>(sql`
+    select c.oracle_id, c.name, c.type_line, img.image_uris
+    from cards c
+    left join lateral (
+      select p.image_uris
+      from printings p
+      where p.oracle_id = c.oracle_id and p.image_uris is not null
+      order by p.released_at desc nulls last
+      limit 1
+    ) img on true
+    where c.oracle_id in (${sql.join(ids.map((id) => sql`${id}`), sql`, `)})
+  `);
+  const byId = new Map(rows.map((r) => [r.oracle_id, r]));
+  return ids.flatMap((id) => {
+    const r = byId.get(id);
+    return r ? [{ oracleId: r.oracle_id, name: r.name, typeLine: r.type_line, image: toCardImage(r.image_uris) }] : [];
+  });
 }
 
 /** numeric columns arrive as strings; null stays null. */

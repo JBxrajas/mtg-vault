@@ -117,6 +117,10 @@ Each result carries `oracleText` and `colorIdentity` (the web app checks with th
 ] }
 ```
 
+### `GET /cards/lookup`
+
+Looks up cards by oracle id: `?ids=<uuid>,<uuid>` (1 to 10). Answers `{ cards: [{ oracleId, name, typeLine, image }] }` in the order asked, leaving out ids that do not exist. `image` is the most recent printing's, as in the search. The scanner uses it to name the cards its fingerprint matched.
+
 ### `GET /cards/:oracleId/printings`
 
 Every printing of one oracle card (the `oracleId` from the search results), newest first. Each entry has the set name and code, collector number, language, rarity, release date, finishes, the `image` URLs (as in the search) and the **latest recorded price** with its date:

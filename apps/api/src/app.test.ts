@@ -2,10 +2,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const searchCards = vi.fn();
 const listPrintings = vi.fn();
+const lookupCards = vi.fn();
 vi.mock("./cards.js", async (original) => ({
   ...(await original<typeof import("./cards.js")>()),
   searchCards,
   listPrintings,
+  lookupCards,
 }));
 
 const deckFns = {
@@ -48,6 +50,7 @@ const { HttpError } = await import("./collection.js");
 beforeEach(() => {
   searchCards.mockReset();
   listPrintings.mockReset();
+  lookupCards.mockReset();
   getSession.mockReset();
   signUpEmail.mockReset();
   handler.mockReset();
@@ -60,6 +63,24 @@ describe("GET /health", () => {
     const res = await app.request("/health");
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ ok: true });
+  });
+});
+
+describe("GET /cards/lookup", () => {
+  const A = "11111111-1111-4111-8111-111111111111";
+  const B = "22222222-2222-4222-8222-222222222222";
+
+  it("looks up the cards with the given oracle ids", async () => {
+    lookupCards.mockResolvedValue([{ oracleId: A, name: "Lightning Bolt", typeLine: "Instant", image: null }]);
+    const res = await app.request(`/cards/lookup?ids=${A},${B}`);
+    expect(res.status).toBe(200);
+    expect(lookupCards).toHaveBeenCalledWith([A, B]);
+    expect(await res.json()).toEqual({ cards: [{ oracleId: A, name: "Lightning Bolt", typeLine: "Instant", image: null }] });
+  });
+
+  it.each(["", "ids=", "ids=not-a-uuid", `ids=${Array(11).fill(A).join(",")}`])("rejects %j", async (query) => {
+    expect((await app.request(`/cards/lookup?${query}`)).status).toBe(400);
+    expect(lookupCards).not.toHaveBeenCalled();
   });
 });
 

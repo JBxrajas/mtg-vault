@@ -41,6 +41,17 @@ export function hammingDistance(a: Uint8Array, b: Uint8Array): number {
   return d;
 }
 
+/**
+ * True for a fingerprint with almost no structure: a flat or empty picture (a table, a covered lens)
+ * hashes to nearly all zeros, and would sit close to any card whose art has few bright-to-dark steps.
+ * Real art has about half of its bits set.
+ */
+export function isBlankHash(hash: Uint8Array): boolean {
+  let ones = 0;
+  for (let i = 0; i < HASH_BYTES; i++) ones += POPCOUNT[hash[i]!]!;
+  return ones < 24 || ones > 232;
+}
+
 /** One illustration: which card it belongs to, and its fingerprint. */
 export interface ArtIndexEntry {
   illustrationId: string;
