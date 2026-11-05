@@ -15,6 +15,7 @@ describe("candidateCards", () => {
     const index = [entry(1, 60), entry(2, 61, 1), entry(3, 180), entry(4, 240)];
     const { cards, confidence } = candidateCards(index, hashWith(60), 3);
     expect(cards.map((c) => c.oracleId)).toEqual([id(1), id(3), id(4)]);
+    expect(cards.map((c) => c.illustrationId)).toEqual([id(1), id(3), id(4)]);
     expect(confidence).toBe("sure");
   });
 
@@ -58,6 +59,22 @@ describe("pickPrinting", () => {
     expect(pickPrinting(list, "ja")?.id).toBe("en-new");
     expect(pickPrinting([printing({ id: "ru", lang: "ru" })], "ja")?.id).toBe("ru");
     expect(pickPrinting([], "en")).toBeUndefined();
+  });
+  it("only considers the printings that have the art that was seen, when it is known", () => {
+    const art = id(7);
+    const withArt = [
+      printing({ id: "showcase-en", lang: "en", releasedAt: "2020-01-01", illustrationIds: [art] }),
+      printing({ id: "showcase-ja", lang: "ja", releasedAt: "2021-01-01", illustrationIds: [art] }),
+      printing({ id: "plain-new", lang: "en", releasedAt: "2024-01-01", illustrationIds: [id(8)] }),
+    ];
+    expect(pickPrinting(withArt, "en", art)?.id).toBe("showcase-en");
+    expect(pickPrinting(withArt, "ja", art)?.id).toBe("showcase-ja");
+    // The language wanted has no printing with this art: the art wins.
+    expect(pickPrinting(withArt, "es", art)?.id).toBe("showcase-en");
+    // Unknown art, or printings imported before the art was recorded: as before.
+    expect(pickPrinting(withArt, "en")?.id).toBe("plain-new");
+    expect(pickPrinting(withArt, "en", id(9))?.id).toBe("plain-new");
+    expect(pickPrinting(list, "en", art)?.id).toBe("en-new");
   });
   it("copes with a missing release date", () => {
     expect(pickPrinting([printing({ id: "a", releasedAt: null }), printing({ id: "b" })], "en")?.id).toBe("b");

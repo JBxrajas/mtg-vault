@@ -69,7 +69,14 @@ Order matters: free space first, then add providers. Designs: [ADR 0015](adr/001
 1. ☐ Try the automatic capture on a real phone with about 10 cards in the four languages; adjust `FOCUS_TAKE`, `STEADY_DISTANCE` and `NEW_CARD_DISTANCE`
 2. ☐ Check Safari / iOS (camera, sound)
 3. ☐ Tune `matchConfidence` on the full index, with sleeved and foil cards
-4. ☐ Pick the exact printing from the bottom-left line
+4. ◐ Pick the exact printing: done by art (the suggested printing is one that has the art that matched, `printings.illustration_ids`, needs a catalog re-import to fill); reading the bottom-left line still to do
+5. ◐ Japanese and other-language-only art: `art-index` accepts `BULK_TYPE=all_cards` and `INDEX_LANGS=ja`; the index has not been rebuilt with them yet, and no measurement exists. Phyrexian-language cards: the scanner compares art, not text, so they should work; the failures reported are unexplained until the cards are measured
+6. ☐ Build a test set from tester reports (cards that failed: Japanese showcase frames, Phyrexian, alternate art) and measure with `scan-eval`
+
+## Phase 5d — Reports from the first testers ◐
+- ◐ Cards printed under another name (Paradise Chocobo for Birds of Paradise, World at War, Battle of Olympus): `printings.flavor_name` (migration `0003`), filled by the catalog import; the deck-list import and the card search find the card by it. Needs migration `0003` applied **before** the API is deployed, and a catalog import run afterwards to fill the names
+- ✓ Change the art of a card inside a deck (a strip of printings per card, `PUT /decks/:id/cards` with `printingId`)
+- ☐ Importing a list that names a flavor-name card could also save that printing, so the deck shows its art
 
 ## Phase 5c — Interface and quality ◐
 - ✓ Collection: toolbar, quick filters, List / Cards / Art switch; decks list with the commander's art and size bars; deck page with a header, a type-split bar and the analysis in a side column

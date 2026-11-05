@@ -35,3 +35,10 @@ export function artSources(card: ScryfallArtCard): ArtSource[] {
   }
   return sources;
 }
+
+/** The illustration of each face of a printing (one for a single-faced card), without repeats; null when there is none. */
+export function illustrationIdsOf(card: { illustration_id?: string; card_faces?: { illustration_id?: string }[] }): string[] | null {
+  const ids = [card.illustration_id, ...(card.card_faces ?? []).map((f) => f.illustration_id)].filter((id): id is string => !!id);
+  const unique = [...new Set(ids)];
+  return unique.length > 0 ? unique : null;
+}

@@ -8,7 +8,13 @@ import { artHash, decodeArtIndex, encodeArtIndex, grayGridFromRgba, type ArtInde
 import { artSources, type ArtSource, type ScryfallArtCard } from "./art-faces.js";
 import { downloadBulk, HEADERS } from "./bulk.js";
 
-const BULK_TYPE = "default_cards";
+/**
+ * `default_cards` has one printing per card, so art that only exists in another language (a Japanese showcase
+ * frame) is missing. `BULK_TYPE=all_cards` has every language (a much bigger download); `INDEX_LANGS=ja,es`
+ * keeps only those languages (and English) so the index does not grow with art nobody scans.
+ */
+const BULK_TYPE = process.env.BULK_TYPE ?? "default_cards";
+const LANGS = process.env.INDEX_LANGS ? new Set(["en", ...process.env.INDEX_LANGS.split(",").map((l) => l.trim())]) : null;
 const DIR = process.env.DATA_DIR ?? "data";
 const OUT = process.env.OUT ?? `${DIR}/art-index.bin`;
 const CONCURRENCY = Number(process.env.CONCURRENCY ?? 6);
@@ -46,7 +52,9 @@ async function readSources(file: string): Promise<Map<string, ArtSource>> {
   const lines = createInterface({ input: createReadStream(file).pipe(createGunzip()), crlfDelay: Infinity });
   for await (const line of lines) {
     if (!line.trim() || line === "[" || line === "]") continue;
-    for (const source of artSources(JSON.parse(line.replace(/,$/, "")) as ScryfallArtCard)) {
+    const card = JSON.parse(line.replace(/,$/, "")) as ScryfallArtCard & { lang?: string };
+    if (LANGS && card.lang && !LANGS.has(card.lang)) continue;
+    for (const source of artSources(card)) {
       if (!found.has(source.illustrationId)) found.set(source.illustrationId, source);
     }
   }

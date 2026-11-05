@@ -134,6 +134,10 @@ export interface PrintingSummary {
   prices: PrintingPrices | null;
   /** Date of that snapshot (ISO), or null. */
   pricesOn: string | null;
+  /** The name printed instead of the card's own (Universes Beyond, Secret Lair), when there is one. */
+  flavorName?: string | null;
+  /** Illustrations of the printing's faces; the scanner uses them to find the printing with the art it saw. */
+  illustrationIds?: string[] | null;
 }
 
 export const oracleIdParamSchema = z.object({ oracleId: z.string().uuid() });

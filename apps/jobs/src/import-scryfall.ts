@@ -4,6 +4,7 @@ import { createInterface } from "node:readline";
 import { createGunzip } from "node:zlib";
 import { sql } from "drizzle-orm";
 import { cards, createDb, priceSnapshots, printings, sets } from "@mtg-vault/db";
+import { illustrationIdsOf } from "./art-faces.js";
 import { API, downloadBulk, getJson } from "./bulk.js";
 import { hasAnyPrice, parsePrices, priceKey, type PriceRow, type ScryfallPrices } from "./prices.js";
 const BATCH = 1000;
@@ -91,6 +92,8 @@ function toRows(card: ScryfallCard) {
       releasedAt: card.released_at ?? null,
       finishes: card.finishes ?? [],
       imageUris: card.image_uris ?? face?.image_uris ?? null,
+      flavorName: card.flavor_name ?? null,
+      illustrationIds: illustrationIdsOf(card),
     },
   };
 }
@@ -145,6 +148,8 @@ async function flush(
           "released_at",
           "finishes",
           "image_uris",
+          "flavor_name",
+          "illustration_ids",
         ]),
         set: {
           oracleId: sql`${excluded("oracle_id")}`,
@@ -155,6 +160,8 @@ async function flush(
           releasedAt: sql`${excluded("released_at")}`,
           finishes: sql`${excluded("finishes")}`,
           imageUris: sql`${excluded("image_uris")}`,
+          flavorName: sql`${excluded("flavor_name")}`,
+          illustrationIds: sql`${excluded("illustration_ids")}`,
         },
       });
   }
@@ -277,6 +284,7 @@ interface ScryfallSet {
 
 interface ScryfallFace {
   oracle_id?: string;
+  illustration_id?: string;
   mana_cost?: string;
   type_line?: string;
   oracle_text?: string;
@@ -286,6 +294,7 @@ interface ScryfallFace {
 
 interface ScryfallCard extends ScryfallFace {
   id: string;
+  flavor_name?: string;
   oracle_id?: string;
   name: string;
   set_id: string;

@@ -21,6 +21,8 @@ export const en = {
   "stack.edition": "Edition",
   "stack.language": "Language",
   "stack.mergeHint": "If you already own that edition, finish, condition and language, the copies join that stack.",
+  "deck.artButton": "Art",
+  "deck.art": "Change the art of {name}",
   "decks.delete": "Delete",
   "decks.deleteLabel": "Delete {name}",
   "tip.help": "Help: {label}",

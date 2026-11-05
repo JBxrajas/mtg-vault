@@ -112,12 +112,18 @@ export type DeckUpdate = z.infer<typeof deckUpdateSchema>;
 
 export const deckIdParamSchema = z.object({ id: z.string().uuid() });
 
-/** Sets the copies of one card on one board; 0 removes it. */
-export const deckCardSetSchema = z.object({
-  oracleId: z.string().uuid(),
-  board: deckBoardSchema.default("main"),
-  quantity: z.number().int().min(0).max(999),
-});
+/**
+ * Changes one card on one board: the copies (0 removes it), the printing shown for it (`null` goes back to the
+ * newest), or both. At least one of the two is needed.
+ */
+export const deckCardSetSchema = z
+  .object({
+    oracleId: z.string().uuid(),
+    board: deckBoardSchema.default("main"),
+    quantity: z.number().int().min(0).max(999).optional(),
+    printingId: z.string().uuid().nullable().optional(),
+  })
+  .refine((v) => v.quantity !== undefined || v.printingId !== undefined, "Send the copies, the printing or both");
 export type DeckCardSet = z.infer<typeof deckCardSetSchema>;
 
 /** Largest number of copies of one card in a deck. */

@@ -539,6 +539,11 @@ describe("/decks", () => {
     deckFns.getDeck.mockResolvedValue({ deck: { id: deckId }, cards: [] });
     expect((await send("PUT", `/decks/${deckId}/cards`, { oracleId, board: "sideboard", quantity: 0 })).status).toBe(200);
     expect(deckFns.setDeckCard).toHaveBeenCalledWith("u1", deckId, { oracleId, board: "sideboard", quantity: 0 });
+    deckFns.setDeckCard.mockClear();
+    const printingId = "5089ec1a-f881-4d55-af14-5d996171203b";
+    expect((await send("PUT", `/decks/${deckId}/cards`, { oracleId, printingId })).status).toBe(200);
+    expect(deckFns.setDeckCard).toHaveBeenCalledWith("u1", deckId, { oracleId, board: "main", printingId });
+    expect((await send("PUT", `/decks/${deckId}/cards`, { oracleId })).status).toBe(400);
     expect((await send("PUT", `/decks/${deckId}/cards`, { oracleId, quantity: -1 })).status).toBe(400);
     expect((await send("PUT", `/decks/${deckId}/cards`, { oracleId, quantity: 1000 })).status).toBe(400);
   });
