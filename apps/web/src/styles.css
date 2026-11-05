@@ -84,6 +84,9 @@
 }
 :root[data-art] body::before {
   background: var(--art-url) center / cover no-repeat;
+  /* Soft focus: the picture gives colour and mood without fighting the content. The overscan hides the blurred edges. */
+  filter: blur(10px) saturate(0.9);
+  transform: scale(1.06);
 }
 :root[data-art] body::after {
   background: var(--bg);
@@ -246,6 +249,24 @@ button.link {
   max-width: 64rem;
   margin: 0 auto;
   padding: 1.25rem 1rem 2rem;
+}
+/* With art behind, the content sits on a frosted sheet so labels and hints never land on the picture. */
+:root[data-art] .page {
+  margin-top: 0.75rem;
+  margin-bottom: 0.75rem;
+  background: color-mix(in srgb, var(--bg) 72%, transparent);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+@media (max-width: 40rem) {
+  :root[data-art] .page {
+    margin-top: 0;
+    margin-bottom: 0;
+    border-radius: 0;
+    border-width: 0;
+  }
 }
 .subtitle,
 .hint {
