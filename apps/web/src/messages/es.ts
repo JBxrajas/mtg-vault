@@ -160,6 +160,7 @@ export const es = {
   "deck.searchToAdd": "Busca una carta para añadir",
   "deck.addPlaceholder": "Añade una carta…",
   "deck.addToBoard": "Añadir a la sección",
+  "deck.added": "Añadida {name} a {board}",
   "deck.add": "Añadir {name}",
   "deck.settings": "Ajustes del mazo",
   "deck.name": "Nombre",

@@ -158,6 +158,7 @@ export const en = {
   "deck.searchToAdd": "Search a card to add",
   "deck.addPlaceholder": "Add a card…",
   "deck.addToBoard": "Add to board",
+  "deck.added": "Added {name} to {board}",
   "deck.add": "Add {name}",
   "deck.settings": "Deck settings",
   "deck.name": "Name",

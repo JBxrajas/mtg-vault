@@ -211,6 +211,25 @@ describe("DeckPage", () => {
     expect(await screen.findByRole("region", { name: "Commander" })).toBeInTheDocument();
   });
 
+  it("closes the results after adding a card, clears the box, keeps the focus there and says what was added", async () => {
+    fetchDeck.mockResolvedValue(detail([], aDeck({ format: "modern" })));
+    searchCards.mockResolvedValue([aCard({ oracleId: "o-sol", name: "Sol Ring", manaCost: "{1}", typeLine: "Artifact" })]);
+    addDeckCard.mockResolvedValue(detail([aDeckCard({ oracleId: "o-sol", name: "Sol Ring", typeLine: "Artifact", quantity: 1 })], aDeck({ format: "modern" })));
+    render();
+
+    const box = await screen.findByLabelText("Search a card to add");
+    await userEvent.type(box, "sol");
+    await userEvent.click(await screen.findByRole("button", { name: "Add Sol Ring" }));
+
+    expect(box).toHaveValue("");
+    expect(box).toHaveFocus();
+    expect(screen.queryByRole("button", { name: "Add Sol Ring" })).not.toBeInTheDocument();
+    expect(screen.getByText("Added Sol Ring to main")).toHaveAttribute("role", "status");
+    // The next search starts from an empty box.
+    await userEvent.type(box, "ring");
+    expect(await screen.findByRole("button", { name: "Add Sol Ring" })).toBeInTheDocument();
+  });
+
   it("offers the commander board only to commander-style formats", async () => {
     fetchDeck.mockResolvedValue(detail([], aDeck({ format: "modern" })));
     render();
