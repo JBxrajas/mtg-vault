@@ -55,6 +55,19 @@ describe("CardPreview", () => {
     expect(touch.container.querySelector(".floating-preview")).toBeNull();
   });
 
+  it("shows only the dialog, not also the hover preview, once the card is enlarged", async () => {
+    vi.stubGlobal("matchMedia", (query: string) => ({ matches: query === "(hover: hover)" }));
+    const { container } = render(<CardPreview name="Lightning Bolt" image={image} />);
+    await userEvent.hover(container.querySelector("img")!);
+    expect(container.querySelector(".floating-preview")).not.toBeNull();
+    await userEvent.click(screen.getByRole("button", { name: "Enlarge Lightning Bolt" }));
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    expect(container.querySelector(".floating-preview")).toBeNull();
+    // The pointer moving over the thumbnail again (the dialog is open) does not bring it back.
+    await userEvent.hover(container.querySelector("img")!);
+    expect(container.querySelector(".floating-preview")).toBeNull();
+  });
+
   it("has no enlarge button without an image", () => {
     render(<CardPreview name="Mystery" image={null} />);
     expect(screen.queryByRole("button")).not.toBeInTheDocument();

@@ -34,6 +34,13 @@ describe("CollectionPage", () => {
     expect(fetchCollection).not.toHaveBeenCalled();
   });
 
+  it("lets a card be enlarged from the list", async () => {
+    fetchCollection.mockResolvedValue([aStack({ name: "Lightning Bolt" })]);
+    renderPage(<CollectionPage />, { path: "/collection" });
+    await userEvent.click(await screen.findByRole("button", { name: "Enlarge Lightning Bolt" }));
+    expect(screen.getByRole("dialog", { name: "Lightning Bolt" })).toBeInTheDocument();
+  });
+
   it("hides the cached stacks as soon as nobody is signed in", async () => {
     fetchCollection.mockResolvedValue([aStack({ name: "Lightning Bolt" })]);
     const { queryClient } = renderPage(<CollectionPage />, { path: "/collection" });
