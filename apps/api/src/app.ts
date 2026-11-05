@@ -24,6 +24,7 @@ import { listPrintings, searchCards } from "./cards.js";
 import { addDeckCard, createDeck, deleteDeck, getDeck, importDeckRows, listDecks, setDeckCard, updateDeck } from "./decks.js";
 import { HttpError, addItem, getCollectionId, listItems, removeItem, updateItem } from "./collection.js";
 import { importRows } from "./import.js";
+import { artIndexUrl } from "./art-index.js";
 import { allowedOrigins } from "./origins.js";
 
 type Env = { Variables: { userId: string } };
@@ -56,6 +57,23 @@ app.get("/cards/:oracleId/printings", zValidator("param", oracleIdParamSchema), 
   const printings = await listPrintings(c.req.valid("param").oracleId);
   if (printings.length === 0) return c.json({ error: "Card not found" }, 404);
   return c.json({ printings });
+});
+
+/**
+ * The card scanner's art-fingerprint index (ADR 0014), a ~3.6 MB file built weekly by a GitHub
+ * Action and published as a release asset. A browser cannot fetch release downloads itself (no
+ * CORS), so it is streamed through here with long cache headers; the CDN keeps it for a day.
+ */
+app.get("/art-index", async (c) => {
+  const upstream = await fetch(artIndexUrl(), { redirect: "follow" });
+  if (upstream.status === 404) return c.json({ error: "The art index has not been published yet" }, 503);
+  if (!upstream.ok || !upstream.body) return c.json({ error: "Could not fetch the art index" }, 502);
+  return new Response(upstream.body, {
+    headers: {
+      "Content-Type": "application/octet-stream",
+      "Cache-Control": "public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800",
+    },
+  });
 });
 
 // Better Auth owns /api/auth/*. Email sign-up is closed: accounts are created through

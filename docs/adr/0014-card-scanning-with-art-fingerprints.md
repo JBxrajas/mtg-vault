@@ -29,4 +29,4 @@ We measured two signals on five real, mostly blurry photos (spike, 2026-11-04):
 - The browser's shrinking must reproduce the job's (grey, 17×16, stretched). The job's step is `fingerprint()` in `art-index.ts`; the scanner change will test the browser side against sample images.
 - Cards with identical art in different printings cannot be told apart by this step alone.
 - A full first build downloads about 56,000 small images (roughly 30 minutes) and runs weekly after that, mostly doing nothing.
-- The API has to serve the file. That is the next change: GitHub release downloads are not meant to be fetched from a browser directly, so the API will proxy it with long cache headers.
+- The API serves the file (`GET /art-index`): GitHub release downloads send no CORS headers, so the API streams them with long cache headers (streamed, so Vercel's 4.5 MB limit for ordinary responses does not apply as the index grows).

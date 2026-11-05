@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const searchCards = vi.fn();
 const listPrintings = vi.fn();
@@ -60,6 +60,43 @@ describe("GET /health", () => {
     const res = await app.request("/health");
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ ok: true });
+  });
+});
+
+describe("GET /art-index", () => {
+  const fetchMock = vi.fn();
+  beforeEach(() => {
+    fetchMock.mockReset();
+    vi.stubGlobal("fetch", fetchMock);
+  });
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("streams the published file with long cache headers and no login", async () => {
+    fetchMock.mockResolvedValue(new Response(new Uint8Array([77, 86, 65, 73])));
+    const res = await app.request("/art-index");
+    expect(res.status).toBe(200);
+    expect(new Uint8Array(await res.arrayBuffer())).toEqual(new Uint8Array([77, 86, 65, 73]));
+    expect(res.headers.get("content-type")).toBe("application/octet-stream");
+    expect(res.headers.get("cache-control")).toContain("s-maxage=86400");
+    expect(fetchMock).toHaveBeenCalledWith(expect.stringContaining("/releases/download/art-index/art-index.bin"), { redirect: "follow" });
+  });
+
+  it("allows the web origin to read it", async () => {
+    fetchMock.mockResolvedValue(new Response("x"));
+    const res = await app.request("/art-index", { headers: { Origin: "http://localhost:5173" } });
+    expect(res.headers.get("access-control-allow-origin")).toBe("http://localhost:5173");
+  });
+
+  it("says 503 before the first index is published", async () => {
+    fetchMock.mockResolvedValue(new Response("Not Found", { status: 404 }));
+    const res = await app.request("/art-index");
+    expect(res.status).toBe(503);
+    expect(await res.json()).toEqual({ error: "The art index has not been published yet" });
+  });
+
+  it("says 502 when GitHub fails", async () => {
+    fetchMock.mockResolvedValue(new Response("oops", { status: 500 }));
+    expect((await app.request("/art-index")).status).toBe(502);
   });
 });
 
