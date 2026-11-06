@@ -22,6 +22,10 @@ The hook only applies to commits made through Claude Code; the PR template check
 
 A second `PreToolUse` hook (`.claude/hooks/vercel-deploy-guard.sh`) runs before any `vercel deploy`, `vercel redeploy` or `vercel --prod` issued by Claude. The Hobby plan allows 100 deployments per 24 hours, cancelled ones included, so the hook counts the last 24 hours with the Vercel API and **blocks** the deploy at 99 or more, saying when the next slot opens; below that it only reports the count. It allows the deploy when it cannot count, and it can only be turned off with `VERCEL_DEPLOY_GUARD=off` in the environment Claude Code runs in, not from the command. It does not see the deploys that GitHub Actions makes after a merge, which only run when something the project uses changed ([ADR 0012](docs/adr/0012-deploy-from-github-actions.md)). See [ADR 0011](docs/adr/0011-vercel-deploy-guard-hook.md).
 
+### Project skills (Claude Code)
+
+`.claude/skills/` also holds the project's own workflows for Claude Code, one `SKILL.md` each: `ship-pr` (branch, Conventional Commit, PR, CI, squash-merge), `db-migration` (schema change, applying the migration to production before the API that needs it), `catalog-import` (the Scryfall import and the art index, and how to read their failures) and `new-ui-feature` (messages in both languages, tests, layout check, docs). The `neon-*` folders are vendored copies of Neon's skills. The skills restate the rules on this page; if they disagree, this page wins and the skill should be fixed.
+
 ## Branches
 
 | Prefix | Use |
