@@ -10,7 +10,7 @@ Imports the Scryfall catalog into `sets`, `cards` and `printings` (see [packages
 2. Reads `/bulk-data`, downloads the gzipped JSON Lines file for `default_cards` (one entry per printing) to `data/` (git-ignored).
 3. Streams it line by line and upserts cards (by `oracle_id`) and printings (by Scryfall id) in batches of 1000.
 
-It is idempotent: running it again updates rows in place. Cards without an `oracle_id`, and printings that would repeat a set, number and language, are skipped and counted.
+It is idempotent: running it again updates rows in place. Cards without an `oracle_id`, and printings that would repeat a set, number and language, are skipped and counted. A printing whose id is new but whose set, number and language already belong to a row with another id (Scryfall replaced a card; seen in *Arena New Player Experience* on 2026-11-06) is left out and counted as well, because the unique key would otherwise fail the whole run; the existing row is kept and nothing is deleted.
 
 It also records prices: Scryfall sends current prices with each card, and the job writes a row in `price_snapshots` (dated that UTC day) **only when a printing's prices differ from its latest snapshot**. The first run writes about one row per priced printing; later runs write only the changes. This keeps history without growing by ~120k rows a day (the free Neon plan has 0.5 GB). Prices are normalized to two decimals (`src/prices.ts`, unit tested).
 

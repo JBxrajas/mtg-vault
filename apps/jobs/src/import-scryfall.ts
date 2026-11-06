@@ -98,11 +98,37 @@ function toRows(card: ScryfallCard) {
   };
 }
 
+/** Printings left out because the database already has a different printing in their set, number and language. */
+let collisions = 0;
+
+/**
+ * Scryfall sometimes gives a new id to a printing that already has a row under another id (a replaced card in a
+ * digital set, for example). The unique key on set, number and language would then fail the whole import. The row
+ * we have is kept (nothing is deleted: it may have prices, copies or decks) and the newcomer is left out and counted.
+ */
+async function dropCollisions(
+  printingRows: Map<string, typeof printings.$inferInsert>,
+  priceRows: Map<string, PriceRow>,
+) {
+  if (printingRows.size === 0) return;
+  const tuples = [...printingRows.values()].map((p) => sql`(${p.id}::uuid, ${p.setId}::uuid, ${p.collectorNumber}::text, ${p.lang}::text)`);
+  const clashing = await db.execute<{ id: string }>(sql`
+    select v.id from (values ${sql.join(tuples, sql`, `)}) as v(id, set_id, collector_number, lang)
+    join printings p on p.set_id = v.set_id and p.collector_number = v.collector_number and p.lang = v.lang and p.id <> v.id
+  `);
+  for (const row of clashing) {
+    printingRows.delete(row.id);
+    priceRows.delete(row.id);
+    collisions++;
+  }
+}
+
 async function flush(
   cardRows: Map<string, typeof cards.$inferInsert>,
   printingRows: Map<string, typeof printings.$inferInsert>,
   priceRows: Map<string, PriceRow> = new Map(),
 ) {
+  await dropCollisions(printingRows, priceRows);
   if (cardRows.size) {
     await db
       .insert(cards)
@@ -269,7 +295,7 @@ async function importCards(path: string) {
   input.destroy();
   snapshots += priceRows.size;
   await flush(cardRows, printingRows, priceRows);
-  console.log(`printings: ${total} imported, ${skipped} skipped; price snapshots written: ${snapshots}`);
+  console.log(`printings: ${total} imported, ${skipped} skipped, ${collisions} left out for clashing with another printing of the same set, number and language; price snapshots written: ${snapshots}`);
 }
 
 interface ScryfallSet {
