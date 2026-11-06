@@ -74,6 +74,8 @@ export interface CardImage {
   normal: string;
   /** Just the artwork, cropped by Scryfall. */
   artCrop: string;
+  /** The other side of a card that transforms or flips (double-faced cards); absent for single-faced ones. */
+  back?: { small: string; normal: string };
 }
 
 export interface CardSearchResult {

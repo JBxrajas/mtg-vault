@@ -28,6 +28,8 @@ DATABASE_URL_UNPOOLED=postgres://... pnpm --filter @mtg-vault/jobs import:scryfa
 | `BULK_TYPE` | `default_cards` | Any Scryfall bulk type, for example `oracle_cards` |
 
 The import also stores, per printing, the **flavor name** (`flavor_name`: the name printed instead of the card's own, such as "Paradise Chocobo") and the **illustration ids** of its faces (`illustration_ids`). The first is how a deck list or a search finds those cards; the second is how the scanner suggests the printing that has the art it saw. They are filled on the next import after migration `0003` (existing rows stay empty until then).
+
+For a card that transforms or flips, `image_uris` also holds a `back` key with the small and normal pictures of the other face, so the web app can turn the card over. No migration: it is the same JSON column, filled by the next import (only the double-faced rows change).
 | `LIMIT` | unlimited | Stop after N printings (testing) |
 | `DATA_DIR` | `data` (relative to `apps/jobs` when run with `pnpm --filter`; the workflow passes an absolute path) | Where the bulk file is stored |
 | `SKIP_DOWNLOAD` | unset | Reuse the file already in `DATA_DIR` |

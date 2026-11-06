@@ -1504,6 +1504,21 @@ button.art-tile.on {
   width: 100%;
   border-radius: 4.5% / 3.3%;
 }
+.flip {
+  display: block;
+  margin: 0.6rem auto 0;
+  padding: 0.35rem 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+.flip[aria-pressed="true"] {
+  border-color: var(--accent);
+}
 .preview-dialog .close {
   position: absolute;
   top: -0.6rem;
