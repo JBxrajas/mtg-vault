@@ -338,6 +338,8 @@ export const en = {
   "analysis.confidence.community": "community advice",
   "analysis.confidence.assumption": "our assumption",
   "preview.enlarge": "Enlarge {name}",
+  "preview.flip": "Turn {name} over",
+  "preview.flipFront": "Show the front",
   "chooser.search": "Search for your commander",
   "chooser.placeholder": "Type the name of a legendary creature…",
   "chooser.refusal.not-legendary": "Not legendary: it can't be a commander",

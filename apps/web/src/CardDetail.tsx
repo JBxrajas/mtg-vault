@@ -2,6 +2,7 @@ import type { CardSearchResult } from "@mtg-vault/shared";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { AddToCollection } from "./AddToCollection";
+import { FlipButton } from "./CardPreview";
 import { fetchPrintings } from "./api";
 import { priceLine, printingLabel, releaseYear } from "./format";
 import { useI18n } from "./i18n";
@@ -10,6 +11,7 @@ import { useI18n } from "./i18n";
 export function CardDetail({ card, onClose }: { card: CardSearchResult; onClose: () => void }) {
   const { t } = useI18n();
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [back, setBack] = useState(false);
   const { data: printings, isLoading, error } = useQuery({
     queryKey: ["cards", card.oracleId, "printings"],
     queryFn: ({ signal }) => fetchPrintings(card.oracleId, signal),
@@ -28,7 +30,12 @@ export function CardDetail({ card, onClose }: { card: CardSearchResult; onClose:
           </button>
         </header>
         <div className="detail-body">
-          {image && <img className="detail-image" src={image.normal} alt={card.name} />}
+          {image && (
+            <div className="detail-face">
+              <img className="detail-image" src={back && image.back ? image.back.normal : image.normal} alt={card.name} />
+              {image.back && <FlipButton name={card.name} back={back} onClick={() => setBack(!back)} />}
+            </div>
+          )}
           <div className="printings">
             {isLoading && <p className="hint">{t("detail.loading")}</p>}
             {error && <p className="error">{error.message}</p>}

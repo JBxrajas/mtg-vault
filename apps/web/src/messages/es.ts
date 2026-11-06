@@ -340,6 +340,8 @@ export const es = {
   "analysis.confidence.community": "consejo de la comunidad",
   "analysis.confidence.assumption": "suposición nuestra",
   "preview.enlarge": "Ampliar {name}",
+  "preview.flip": "Girar {name}",
+  "preview.flipFront": "Ver el frente",
   "chooser.search": "Busca a tu comandante",
   "chooser.placeholder": "Escribe el nombre de una criatura legendaria…",
   "chooser.refusal.not-legendary": "No es legendaria: no puede ser comandante",

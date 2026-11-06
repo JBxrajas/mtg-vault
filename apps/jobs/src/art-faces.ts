@@ -42,3 +42,15 @@ export function illustrationIdsOf(card: { illustration_id?: string; card_faces?:
   const unique = [...new Set(ids)];
   return unique.length > 0 ? unique : null;
 }
+
+/**
+ * The pictures of a printing: Scryfall's `image_uris` (the front face for a card that transforms or flips), plus
+ * `back` with the sizes of the other face when the card has one. Single-faced cards and split ones (one picture for
+ * the whole card) get no `back`.
+ */
+export function imageUrisOf(card: { image_uris?: Record<string, string>; card_faces?: { image_uris?: Record<string, string> }[] }): Record<string, unknown> | null {
+  const front = card.image_uris ?? card.card_faces?.[0]?.image_uris ?? null;
+  const back = card.image_uris ? undefined : card.card_faces?.[1]?.image_uris;
+  if (!front) return null;
+  return back?.small && back.normal ? { ...front, back: { small: back.small, normal: back.normal } } : front;
+}

@@ -72,4 +72,19 @@ describe("CardPreview", () => {
     render(<CardPreview name="Mystery" image={null} />);
     expect(screen.queryByRole("button")).not.toBeInTheDocument();
   });
+
+  it("turns a double-faced card over in the dialog, and offers no button for a single-faced one", async () => {
+    const two = { ...image!, back: { small: "back-small.jpg", normal: "back-normal.jpg" } };
+    const { unmount } = render(<CardPreview name="Delver of Secrets" image={two} />);
+    await userEvent.click(screen.getByRole("button", { name: "Enlarge Delver of Secrets" }));
+    await userEvent.click(screen.getByRole("button", { name: /Turn Delver of Secrets over/ }));
+    expect(screen.getByAltText("Delver of Secrets")).toHaveAttribute("src", "back-normal.jpg");
+    await userEvent.click(screen.getByRole("button", { name: /Show the front/ }));
+    expect(screen.getByAltText("Delver of Secrets")).toHaveAttribute("src", image!.normal);
+    unmount();
+
+    render(<CardPreview name="Lightning Bolt" image={image} />);
+    await userEvent.click(screen.getByRole("button", { name: "Enlarge Lightning Bolt" }));
+    expect(screen.queryByRole("button", { name: /over/ })).not.toBeInTheDocument();
+  });
 });

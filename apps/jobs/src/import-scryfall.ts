@@ -4,7 +4,7 @@ import { createInterface } from "node:readline";
 import { createGunzip } from "node:zlib";
 import { sql } from "drizzle-orm";
 import { cards, createDb, priceSnapshots, printings, sets } from "@mtg-vault/db";
-import { illustrationIdsOf } from "./art-faces.js";
+import { illustrationIdsOf, imageUrisOf } from "./art-faces.js";
 import { API, downloadBulk, getJson } from "./bulk.js";
 import { hasAnyPrice, parsePrices, priceKey, type PriceRow, type ScryfallPrices } from "./prices.js";
 const BATCH = 1000;
@@ -91,7 +91,7 @@ function toRows(card: ScryfallCard) {
       rarity: card.rarity,
       releasedAt: card.released_at ?? null,
       finishes: card.finishes ?? [],
-      imageUris: card.image_uris ?? face?.image_uris ?? null,
+      imageUris: imageUrisOf(card),
       flavorName: card.flavor_name ?? null,
       illustrationIds: illustrationIdsOf(card),
     },

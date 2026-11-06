@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { artSources, illustrationIdsOf } from "./art-faces.js";
+import { artSources, illustrationIdsOf, imageUrisOf } from "./art-faces.js";
 
 const ORACLE = "11111111-1111-4111-8111-111111111111";
 const ILL_A = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
@@ -56,5 +56,21 @@ describe("illustrationIdsOf", () => {
     expect(illustrationIdsOf({ card_faces: [{ illustration_id: ILL_A }, { illustration_id: ILL_B }, { illustration_id: ILL_A }] })).toEqual([ILL_A, ILL_B]);
     expect(illustrationIdsOf({ card_faces: [{}] })).toBeNull();
     expect(illustrationIdsOf({})).toBeNull();
+  });
+});
+
+describe("imageUrisOf", () => {
+  const front = { small: "f-s", normal: "f-n", art_crop: "f-a" };
+  const back = { small: "b-s", normal: "b-n", art_crop: "b-a" };
+  it("keeps the pictures of a single-faced card as they are", () => {
+    expect(imageUrisOf({ image_uris: front })).toEqual(front);
+  });
+  it("takes the front face of a card that transforms and adds the other side as `back`", () => {
+    expect(imageUrisOf({ card_faces: [{ image_uris: front }, { image_uris: back }] })).toEqual({ ...front, back: { small: "b-s", normal: "b-n" } });
+  });
+  it("adds no back to a card with one picture for all its faces (split, adventure) or without pictures", () => {
+    expect(imageUrisOf({ image_uris: front, card_faces: [{}, {}] })).toEqual(front);
+    expect(imageUrisOf({ card_faces: [{ image_uris: front }, {}] })).toEqual(front);
+    expect(imageUrisOf({})).toBeNull();
   });
 });

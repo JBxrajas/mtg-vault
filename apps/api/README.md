@@ -108,7 +108,7 @@ Fuzzy search of oracle cards by name, backed by the `pg_trgm` index on `cards.na
 
 Ordering: exact name, then names starting with `q`, then trigram similarity.
 
-Each result carries `oracleText` and `colorIdentity` (the web app checks with them whether a card can be a commander and shows its colors) and `image`: the `small`, `normal` and `artCrop` URLs of the **most recent printing that has an image** (or `null`). They are Scryfall URLs hotlinked by the clients, not files we store. The printing is picked with a `lateral` join that runs only for the rows kept by `limit`.
+Each result carries `oracleText` and `colorIdentity` (the web app checks with them whether a card can be a commander and shows its colors) and `image`: the `small`, `normal` and `artCrop` URLs of the **most recent printing that has an image** (or `null`). They are Scryfall URLs hotlinked by the clients, not files we store. A double-faced card also carries `image.back` (`small`, `normal`) with its other side; it appears after the next catalog import fills it in. The printing is picked with a `lateral` join that runs only for the rows kept by `limit`.
 
 ```json
 { "results": [

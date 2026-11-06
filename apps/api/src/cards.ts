@@ -12,12 +12,15 @@ import { getDb } from "./db.js";
 /** Escape LIKE wildcards so user input is matched literally. */
 export const likeEscape = (s: string) => s.replace(/[\\%_]/g, "\\$&");
 
-/** Picks the sizes the clients use out of a Scryfall `image_uris` object. */
+/** Picks the sizes the clients use out of a stored `image_uris` object (Scryfall's, plus our `back` for the other face). */
 export function toCardImage(uris: unknown): CardImage | null {
   if (!uris || typeof uris !== "object") return null;
-  const { small, normal, art_crop: artCrop } = uris as Record<string, unknown>;
+  const { small, normal, art_crop: artCrop, back } = uris as Record<string, unknown>;
   if (typeof small !== "string" || typeof normal !== "string" || typeof artCrop !== "string") return null;
-  return { small, normal, artCrop };
+  const other = back && typeof back === "object" ? (back as Record<string, unknown>) : null;
+  return typeof other?.small === "string" && typeof other.normal === "string"
+    ? { small, normal, artCrop, back: { small: other.small, normal: other.normal } }
+    : { small, normal, artCrop };
 }
 
 /**

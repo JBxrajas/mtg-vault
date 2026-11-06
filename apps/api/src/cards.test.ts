@@ -27,6 +27,11 @@ describe("toCardImage", () => {
     });
   });
 
+  it("carries the other face of a double-faced card, only when it has both sizes", () => {
+    expect(toCardImage({ ...uris, back: { small: "bs", normal: "bn", art_crop: "x" } })?.back).toEqual({ small: "bs", normal: "bn" });
+    expect(toCardImage({ ...uris, back: { small: "bs" } })).toEqual({ small: uris.small, normal: uris.normal, artCrop: uris.art_crop });
+  });
+
   it.each([null, undefined, "x", 3, {}, { small: "a", normal: "b" }])("returns null for %j", (input) => {
     expect(toCardImage(input)).toBeNull();
   });

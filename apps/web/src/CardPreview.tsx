@@ -55,8 +55,20 @@ export function CardPreview({ name, image, className = "thumb-wrap" }: { name: s
   );
 }
 
+/** The button that turns a double-faced card over; `back` is whether the other side is showing. */
+export function FlipButton({ name, back, onClick }: { name: string; back: boolean; onClick: () => void }) {
+  const { t } = useI18n();
+  const label = back ? t("preview.flipFront") : t("preview.flip", { name });
+  return (
+    <button type="button" className="flip" aria-pressed={back} onClick={onClick}>
+      <span aria-hidden="true">⟲</span> {label}
+    </button>
+  );
+}
+
 function PreviewDialog({ name, image, onClose }: { name: string; image: CardImage; onClose: () => void }) {
   const { t } = useI18n();
+  const [back, setBack] = useState(false);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     window.addEventListener("keydown", onKey);
@@ -68,7 +80,8 @@ function PreviewDialog({ name, image, onClose }: { name: string; image: CardImag
         <button type="button" className="close" autoFocus aria-label={t("detail.close")} onClick={onClose}>
           ×
         </button>
-        <img src={image.normal} alt={name} />
+        <img src={back && image.back ? image.back.normal : image.normal} alt={name} />
+        {image.back && <FlipButton name={name} back={back} onClick={() => setBack(!back)} />}
       </div>
     </div>
   );
