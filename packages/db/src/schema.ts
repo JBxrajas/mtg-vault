@@ -65,6 +65,10 @@ export const printings = pgTable(
     releasedAt: date("released_at"),
     finishes: text("finishes").array().notNull().default(sql`'{}'::text[]`),
     imageUris: jsonb("image_uris"),
+    /** The name printed instead of the card's own (Universes Beyond, Secret Lair): "Paradise Chocobo" for Birds of Paradise. */
+    flavorName: text("flavor_name"),
+    /** Scryfall illustration ids of the printing's faces: the scanner finds the printing that has the art it saw. */
+    illustrationIds: uuid("illustration_ids").array(),
   },
   (t) => [
     unique("printings_set_number_lang_uq").on(t.setId, t.collectorNumber, t.lang),

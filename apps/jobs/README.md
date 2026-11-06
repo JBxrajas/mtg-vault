@@ -26,6 +26,8 @@ DATABASE_URL_UNPOOLED=postgres://... pnpm --filter @mtg-vault/jobs import:scryfa
 |---|---|---|
 | `DATABASE_URL_UNPOOLED` | — (falls back to `DATABASE_URL`) | Direct connection to Neon |
 | `BULK_TYPE` | `default_cards` | Any Scryfall bulk type, for example `oracle_cards` |
+
+The import also stores, per printing, the **flavor name** (`flavor_name`: the name printed instead of the card's own, such as "Paradise Chocobo") and the **illustration ids** of its faces (`illustration_ids`). The first is how a deck list or a search finds those cards; the second is how the scanner suggests the printing that has the art it saw. They are filled on the next import after migration `0003` (existing rows stay empty until then).
 | `LIMIT` | unlimited | Stop after N printings (testing) |
 | `DATA_DIR` | `data` (relative to `apps/jobs` when run with `pnpm --filter`; the workflow passes an absolute path) | Where the bulk file is stored |
 | `SKIP_DOWNLOAD` | unset | Reuse the file already in `DATA_DIR` |
@@ -64,6 +66,8 @@ pnpm --filter @mtg-vault/jobs art-index
 | `CONCURRENCY` | `6` | Parallel image downloads |
 | `LIMIT` | unlimited | Fingerprint at most N new illustrations (testing) |
 | `SKIP_DOWNLOAD` | unset | Reuse the bulk file already in `DATA_DIR` |
+| `BULK_TYPE` | `default_cards` | `all_cards` also has the printings in other languages, so art that exists only in one (a Japanese showcase frame) is indexed; a much bigger download. Not run yet |
+| `INDEX_LANGS` | unset | With `all_cards`: keep only these languages and English, for example `ja,es` |
 
 `.github/workflows/art-index.yml` runs it every Monday at 06:43 UTC (after the catalog import) and on demand. It downloads the previous index from the `art-index` GitHub release, builds, and uploads the new file to that release. No secrets are needed. The first full run fingerprints about 56,000 images (the first run on GitHub took about 2 minutes 15 seconds with no failures); later runs only add new art.
 

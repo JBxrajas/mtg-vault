@@ -67,7 +67,7 @@ A user has many decks ([ADR 0008](../../docs/adr/0008-users-collection-binders-d
 | `PATCH /decks/:id` | any of `{ name, format, description, isPublic }` | `200 { deck }` |
 | `DELETE /decks/:id` | none | `204`; its cards go with it |
 | `POST /decks/:id/cards` | `{ oracleId, quantity, board? }` | `201` with the updated `{ deck, cards }`. **Adds** to an existing entry; `board` defaults to `main`; `400` above 999 copies, `404` for an unknown card |
-| `PUT /decks/:id/cards` | `{ oracleId, board?, quantity }` | `200` with the updated deck. **Sets** the copies; `0` removes the card; `404` if the card is not on that board |
+| `PUT /decks/:id/cards` | `{ oracleId, board?, quantity?, printingId? }` (at least one of `quantity`, `printingId`) | `200` with the updated deck. **Sets** the copies (`0` removes the card) and/or the printing whose art the card shows (`null` goes back to the newest); `400` if the printing is of another card; `404` if the card is not on that board or the printing does not exist |
 
 Formats: standard, pioneer, modern, legacy, vintage, commander, oathbreaker, brawl, pauper, historic, casual. Boards: `main`, `sideboard`, `maybeboard` and `commander`. Dividing the deck by card type (creature, sorcery, instant, …) is done by the client with `groupByCategory` from `packages/shared`, from each card's type line. **Format rules are not enforced** (deck size, copy limits, legality): the deck size and the target of the format (`deckTargetSize`: 60, Commander 100, none for casual) are shown, not required.
 

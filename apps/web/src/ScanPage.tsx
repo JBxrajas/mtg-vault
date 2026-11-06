@@ -124,7 +124,7 @@ export function ScanPage() {
       try {
         const [cards, printings] = await Promise.all([lookupCards(found.cards.map((c) => c.oracleId)), fetchPrintings(top.oracleId)]);
         const card = cards.find((c) => c.oracleId === top.oracleId) ?? null;
-        const printing = pickPrinting(printings, state.current.language);
+        const printing = pickPrinting(printings, state.current.language, top.illustrationId);
         patch(key, { card, alternatives: cards.filter((c) => c.oracleId !== top.oracleId), printings, printingId: printing?.id ?? null, finish: finishOf(printing), state: card && printing ? "ready" : "error", error: card && printing ? undefined : t("scan.error.unknown") });
         if (card) announce(card, printing, 1);
       } catch (e) {

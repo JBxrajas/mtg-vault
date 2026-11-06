@@ -128,4 +128,14 @@ describe("deckUpdateSchema / deckCardSetSchema", () => {
     expect(deckCardSetSchema.safeParse({ oracleId, quantity: 1000 }).success).toBe(false);
     expect(deckCardSetSchema.safeParse({ oracleId, quantity: -1 }).success).toBe(false);
   });
+
+  it("takes a printing instead of, or with, the copies, and needs one of the two", () => {
+    const oracleId = "4457ed35-7c10-48c8-9776-456485fdf070";
+    const printingId = "5089ec1a-f881-4d55-af14-5d996171203b";
+    expect(deckCardSetSchema.safeParse({ oracleId, printingId }).success).toBe(true);
+    expect(deckCardSetSchema.safeParse({ oracleId, printingId: null }).success).toBe(true);
+    expect(deckCardSetSchema.safeParse({ oracleId, quantity: 2, printingId }).success).toBe(true);
+    expect(deckCardSetSchema.safeParse({ oracleId }).success).toBe(false);
+    expect(deckCardSetSchema.safeParse({ oracleId, printingId: "nope" }).success).toBe(false);
+  });
 });

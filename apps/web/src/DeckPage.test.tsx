@@ -149,6 +149,21 @@ describe("DeckPage", () => {
     await waitFor(() => expect(screen.getByLabelText("Lightning Bolt quantity")).toHaveTextContent("5"));
   });
 
+  it("changes the art a card shows in the deck by picking another printing", async () => {
+    const card = aDeckCard({ oracleId: "o1", name: "Birds of Paradise", printingId: "p1" });
+    fetchDeck.mockResolvedValue(detail([card]));
+    fetchPrintings.mockResolvedValue([
+      aPrinting({ id: "p1", setCode: "m12", setName: "Magic 2012", collectorNumber: "165" }),
+      aPrinting({ id: "p2", setCode: "fin", setName: "Final Fantasy", collectorNumber: "180", flavorName: "Paradise Chocobo" }),
+    ]);
+    setDeckCard.mockResolvedValue(detail([{ ...card, printingId: "p2" }]));
+    render();
+    await userEvent.click(await screen.findByRole("button", { name: "Change the art of Birds of Paradise" }));
+    expect(await screen.findByRole("button", { name: "Magic 2012 (M12) #165" })).toHaveAttribute("aria-pressed", "true");
+    await userEvent.click(screen.getByRole("button", { name: "Final Fantasy (FIN) #180 — Paradise Chocobo" }));
+    expect(setDeckCard).toHaveBeenCalledWith("d1", { oracleId: "o1", board: card.board, printingId: "p2" });
+  });
+
   it("removes a card with − from one copy and with Remove", async () => {
     fetchDeck.mockResolvedValue(detail([aDeckCard({ quantity: 1 })]));
     setDeckCard.mockResolvedValue(detail([]));

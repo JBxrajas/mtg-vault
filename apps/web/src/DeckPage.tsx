@@ -28,6 +28,7 @@ import { FoldOnPhone } from "./FoldOnPhone";
 import { DeckListTools } from "./DeckListTools";
 import { formatLabel } from "./DecksPage";
 import { useI18n } from "./i18n";
+import { DeckArtPicker } from "./DeckArtPicker";
 import { ManaCost } from "./ManaCost";
 import { Tip } from "./Tip";
 import { useDebouncedValue } from "./useDebouncedValue";
@@ -63,7 +64,7 @@ export function DeckPage() {
     void queryClient.invalidateQueries({ queryKey: ["decks"] });
   };
   const setCard = useMutation({
-    mutationFn: (v: { oracleId: string; board: DeckBoard; quantity: number }) => setDeckCard(deckId, v),
+    mutationFn: (v: { oracleId: string; board: DeckBoard; quantity?: number; printingId?: string | null }) => setDeckCard(deckId, v),
     onSuccess: store,
   });
   const addCard = useMutation({
@@ -160,11 +161,11 @@ export function DeckPage() {
       </div>
 
       {tab === "main" ? (
-        <MainBoard cards={cards} busy={busy} problems={problems} onSet={(c, quantity) => setCard.mutate({ oracleId: c.oracleId, board: c.board, quantity })} />
+        <MainBoard cards={cards} busy={busy} problems={problems} onSet={(c, quantity) => setCard.mutate({ oracleId: c.oracleId, board: c.board, quantity })} onPrinting={(c, printingId) => setCard.mutate({ oracleId: c.oracleId, board: c.board, printingId })} />
       ) : (
         <ul className="deck-rows">
           {flat(tab).map((c) => (
-            <DeckRow key={`${c.oracleId}-${c.board}`} card={c} busy={busy} onSet={(quantity) => setCard.mutate({ oracleId: c.oracleId, board: c.board, quantity })} />
+            <DeckRow key={`${c.oracleId}-${c.board}`} card={c} busy={busy} onSet={(quantity) => setCard.mutate({ oracleId: c.oracleId, board: c.board, quantity })} onPrinting={(printingId) => setCard.mutate({ oracleId: c.oracleId, board: c.board, printingId })} />
           ))}
           {flat(tab).length === 0 && <p className="hint">{t("deck.nothing", { board: t(BOARD_KEY[tab]).toLowerCase() })}</p>}
         </ul>
@@ -180,6 +181,7 @@ function MainBoard(props: {
   busy: boolean;
   problems: Map<string, CardProblem[]>;
   onSet: (card: DeckCardEntry, quantity: number) => void;
+  onPrinting: (card: DeckCardEntry, printingId: string) => void;
 }) {
   const { t } = useI18n();
   const groups = groupByCategory(props.cards);
@@ -212,7 +214,7 @@ function MainBoard(props: {
             </h2>
             <ul className="deck-rows" hidden={!open}>
               {g.items.map((c) => (
-                <DeckRow key={`${c.oracleId}-${c.board}`} card={c} busy={props.busy} problems={props.problems.get(problemKey(c))} onSet={(quantity) => props.onSet(c, quantity)} />
+                <DeckRow key={`${c.oracleId}-${c.board}`} card={c} busy={props.busy} problems={props.problems.get(problemKey(c))} onSet={(quantity) => props.onSet(c, quantity)} onPrinting={(printingId) => props.onPrinting(c, printingId)} />
               ))}
             </ul>
           </section>
@@ -226,9 +228,10 @@ function MainBoard(props: {
 const readable = (p: CardProblem) =>
   typeof p.params.colors === "string" ? { ...p.params, colors: colorWords(p.params.colors.split(" ") as Color[]).join(", ") } : p.params;
 
-function DeckRow(props: { card: DeckCardEntry; busy: boolean; problems?: CardProblem[] | undefined; onSet: (quantity: number) => void }) {
+function DeckRow(props: { card: DeckCardEntry; busy: boolean; problems?: CardProblem[] | undefined; onSet: (quantity: number) => void; onPrinting: (printingId: string) => void }) {
   const { card } = props;
   const { t } = useI18n();
+  const [choosingArt, setChoosingArt] = useState(false);
   const owned = ownedBadge(card, t);
   return (
     <li className={props.problems?.length ? "deck-row has-problem" : "deck-row"}>
@@ -251,10 +254,14 @@ function DeckRow(props: { card: DeckCardEntry; busy: boolean; problems?: CardPro
         <button type="button" aria-label={t("deck.more", { name: card.name })} disabled={props.busy} onClick={() => props.onSet(card.quantity + 1)}>
           +
         </button>
+        <button type="button" className="link" aria-expanded={choosingArt} aria-label={t("deck.art", { name: card.name })} onClick={() => setChoosingArt(!choosingArt)}>
+          {t("deck.artButton")}
+        </button>
         <button type="button" className="link" disabled={props.busy} aria-label={t("deck.remove", { name: card.name })} onClick={() => props.onSet(0)}>
           {t("common.remove")}
         </button>
       </div>
+      {choosingArt && <DeckArtPicker oracleId={card.oracleId} current={card.printingId} busy={props.busy} onPick={props.onPrinting} />}
     </li>
   );
 }

@@ -1,7 +1,7 @@
 import { isBlankHash, matchConfidence, nearestArt, type ArtIndexEntry, type ArtMatch, type MatchConfidence, type PrintingSummary } from "@mtg-vault/shared";
 
 export interface Candidates {
-  cards: { oracleId: string; distance: number }[];
+  cards: { oracleId: string; distance: number; /** The art that matched, to find the printing that has it. */ illustrationId?: string }[];
   confidence: MatchConfidence;
 }
 
@@ -12,7 +12,7 @@ export function candidatesFromMatches(matches: ArtMatch[], limit = 3): Candidate
   for (const m of matches) {
     if (seen.has(m.entry.oracleId)) continue;
     seen.add(m.entry.oracleId);
-    cards.push({ oracleId: m.entry.oracleId, distance: m.distance });
+    cards.push({ oracleId: m.entry.oracleId, distance: m.distance, illustrationId: m.entry.illustrationId });
     if (cards.length === limit) break;
   }
   return { cards, confidence: matchConfidence(matches) };
@@ -25,10 +25,14 @@ export function candidateCards(index: ArtIndexEntry[], hash: Uint8Array, limit =
 }
 
 /**
- * The printing to suggest: the newest one in the chosen language, else the newest one in English, else
- * the newest of all. The photo identifies the art, not the printing, so the user can change it.
+ * The printing to suggest. When the art that was seen is known, only the printings that have that art are
+ * considered, so the picture matches the card in the hand; among them (or among all) the newest one in the
+ * chosen language, else the newest one in English, else the newest of all. The photo identifies the art, not
+ * the exact printing, so the user can change it.
  */
-export function pickPrinting(printings: PrintingSummary[], lang: string): PrintingSummary | undefined {
+export function pickPrinting(all: PrintingSummary[], lang: string, illustrationId?: string): PrintingSummary | undefined {
+  const sameArt = illustrationId ? all.filter((p) => p.illustrationIds?.includes(illustrationId)) : [];
+  const printings = sameArt.length > 0 ? sameArt : all;
   const newest = (list: PrintingSummary[]) => [...list].sort((a, b) => (b.releasedAt ?? "").localeCompare(a.releasedAt ?? ""))[0];
   return newest(printings.filter((p) => p.lang === lang)) ?? newest(printings.filter((p) => p.lang === "en")) ?? newest(printings);
 }

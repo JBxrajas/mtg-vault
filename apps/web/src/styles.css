@@ -2454,3 +2454,9 @@ button.art-tile.on {
   background: var(--danger);
   opacity: 1;
 }
+
+/* The strip of printings under a deck card, to change the art it shows. */
+.deck-art-picker {
+  grid-column: 1 / -1;
+  min-width: 0;
+}

@@ -186,14 +186,21 @@ export async function addDeckCard(userId: string, deckId: string, card: DeckCard
   await exec(sql`update decks set updated_at = now() where id = ${deckId}`);
 }
 
-/** Sets the copies of a card on a board; zero removes it. */
+/** Sets the copies of a card on a board (zero removes it) and/or the printing shown for it. */
 export async function setDeckCard(userId: string, deckId: string, card: DeckCardSet): Promise<void> {
   await requireOwnDeck(userId, deckId);
   if (card.quantity === 0) {
     await exec(sql`delete from deck_cards where deck_id = ${deckId} and oracle_id = ${card.oracleId} and board = ${card.board}`);
   } else {
+    if (card.printingId) {
+      const printing = await exec(sql`select oracle_id from printings where id = ${card.printingId}`);
+      if (!printing[0]) throw new HttpError(404, "Printing not found");
+      if (printing[0].oracle_id !== card.oracleId) throw new HttpError(400, "That printing is of another card");
+    }
     const updated = await exec(sql`
-      update deck_cards set quantity = ${card.quantity}
+      update deck_cards set
+        quantity = ${card.quantity ?? sql`quantity`},
+        printing_id = ${card.printingId !== undefined ? card.printingId : sql`printing_id`}
       where deck_id = ${deckId} and oracle_id = ${card.oracleId} and board = ${card.board}
       returning oracle_id
     `);
@@ -257,9 +264,17 @@ async function resolveCardNames(rows: DeckImportRow[]): Promise<Map<number, stri
     from input i
     join lateral (
       select oracle_id
-      from cards
-      where name ilike i.name or name ilike i.name || ' // %'
-      order by (name ilike i.name) desc
+      from (
+        select oracle_id, (name ilike i.name) as exact, 0 as rank
+        from cards
+        where name ilike i.name or name ilike i.name || ' // %'
+        union all
+        -- The name printed on a card (Paradise Chocobo for Birds of Paradise) when it is not the card's own.
+        select oracle_id, true, 1
+        from printings
+        where flavor_name ilike i.name or flavor_name ilike i.name || ' // %'
+      ) hit
+      order by rank, exact desc
       limit 1
     ) c on true
   `);

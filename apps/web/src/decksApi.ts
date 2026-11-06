@@ -39,8 +39,8 @@ export async function addDeckCard(id: string, card: Partial<Pick<DeckCard, "boar
   return (await (await authedFetch("POST", `/decks/${id}/cards`, card)).json()) as DeckDetail;
 }
 
-/** Sets the copies of a card on a board; 0 removes it. Answers with the updated deck. */
-export async function setDeckCard(id: string, card: Partial<Pick<DeckCardSet, "board">> & Pick<DeckCardSet, "oracleId" | "quantity">): Promise<DeckDetail> {
+/** Sets the copies of a card on a board (0 removes it) and/or the printing shown for it. Answers with the updated deck. */
+export async function setDeckCard(id: string, card: Partial<Pick<DeckCardSet, "board" | "quantity" | "printingId">> & Pick<DeckCardSet, "oracleId">): Promise<DeckDetail> {
   return (await (await authedFetch("PUT", `/decks/${id}/cards`, card)).json()) as DeckDetail;
 }
 

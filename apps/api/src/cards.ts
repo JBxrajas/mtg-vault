@@ -27,7 +27,8 @@ export function toCardImage(uris: unknown): CardImage | null {
 export async function searchCards({ q, limit, type, colors }: CardSearchQuery) {
   const contains = `%${likeEscape(q)}%`;
   const prefix = `${likeEscape(q)}%`;
-  const filters = [sql`(name % ${q} or name ilike ${contains})`];
+  // A printing's flavor name (Paradise Chocobo is Birds of Paradise) finds the card too.
+  const filters = [sql`(name % ${q} or name ilike ${contains} or oracle_id in (select oracle_id from printings where flavor_name ilike ${contains}))`];
   if (type) filters.push(sql`type_line ilike ${`%${likeEscape(type)}%`}`);
   if (colors?.length) filters.push(sql`color_identity @> array[${sql.join(colors, sql`, `)}]::text[]`);
 
@@ -120,7 +121,7 @@ export function toPrices(row: Record<string, unknown>): PrintingPrices | null {
 /** All printings of one oracle card, newest first, each with its latest recorded price. */
 export async function listPrintings(oracleId: string): Promise<PrintingSummary[]> {
   const rows = await getDb().execute<Record<string, unknown>>(sql`
-    select p.id, p.collector_number, p.lang, p.rarity, p.released_at, p.finishes, p.image_uris,
+    select p.id, p.collector_number, p.lang, p.rarity, p.released_at, p.finishes, p.image_uris, p.flavor_name, p.illustration_ids,
            s.code as set_code, s.name as set_name,
            ps.captured_on as priced_on, ps.usd, ps.usd_foil, ps.usd_etched, ps.eur, ps.eur_foil, ps.tix
     from printings p
@@ -147,5 +148,7 @@ export async function listPrintings(oracleId: string): Promise<PrintingSummary[]
     image: toCardImage(r.image_uris),
     prices: toPrices(r),
     pricesOn: r.priced_on == null ? null : String(r.priced_on).slice(0, 10),
+    flavorName: (r.flavor_name as string | null) ?? null,
+    illustrationIds: (r.illustration_ids as string[] | null) ?? null,
   }));
 }

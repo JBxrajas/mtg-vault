@@ -23,6 +23,8 @@ export const es = {
   "stack.edition": "Edición",
   "stack.language": "Idioma",
   "stack.mergeHint": "Si ya tienes esa edición con el mismo acabado, estado e idioma, las copias se suman a esa pila.",
+  "deck.artButton": "Arte",
+  "deck.art": "Cambiar el arte de {name}",
   "decks.delete": "Eliminar",
   "decks.deleteLabel": "Eliminar {name}",
   "tip.help": "Ayuda: {label}",
