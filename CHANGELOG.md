@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.5.0](https://github.com/JBxrajas/mtg-vault/compare/v0.4.0...v0.5.0) (2026-11-06)
+
+
+### Features
+
+* edit the edition of a collection stack and delete decks from the list ([#71](https://github.com/JBxrajas/mtg-vault/issues/71)) ([848259f](https://github.com/JBxrajas/mtg-vault/commit/848259f98bafec81b94676276849cda302c8e544))
+* find cards by printed name, pick the printing by art, change a deck card's art ([#73](https://github.com/JBxrajas/mtg-vault/issues/73)) ([2e7b2f9](https://github.com/JBxrajas/mtg-vault/commit/2e7b2f9593be45fe2c2b405c7e8ea6cca176a9f4))
+* turn double-faced cards over to see their other side ([#76](https://github.com/JBxrajas/mtg-vault/issues/76)) ([08dc5bd](https://github.com/JBxrajas/mtg-vault/commit/08dc5bdf3f01fda3c0ebb73417f804720a45b7db))
+* **web:** add a landing page for visitors ([#69](https://github.com/JBxrajas/mtg-vault/issues/69)) ([29a2404](https://github.com/JBxrajas/mtg-vault/commit/29a2404ca8456ed44c75c995c6cb367758aee0a6))
+* **web:** look for the card around the guide to recognise it ([#66](https://github.com/JBxrajas/mtg-vault/issues/66)) ([c79b269](https://github.com/JBxrajas/mtg-vault/commit/c79b269d4590404d9f920b14506a4c65d7d51898))
+* **web:** redesign the collection filters and the decks screens ([#67](https://github.com/JBxrajas/mtg-vault/issues/67)) ([156eecf](https://github.com/JBxrajas/mtg-vault/commit/156eecf296f1e887a23601375c5166d5cbdee7a8))
+* **web:** scan cards with the camera or photos into the collection or a deck ([#63](https://github.com/JBxrajas/mtg-vault/issues/63)) ([4a2551e](https://github.com/JBxrajas/mtg-vault/commit/4a2551e478be38303e50d1d5f8371cb02b74a624))
+
+
+### Bug Fixes
+
+* **api:** rank a card found by its printed name first in the search ([#75](https://github.com/JBxrajas/mtg-vault/issues/75)) ([4bb969a](https://github.com/JBxrajas/mtg-vault/commit/4bb969adef97a3eae307dd4254e7237eb0ca8926))
+* **jobs:** publish the art index, and shrink images with one shared function ([#61](https://github.com/JBxrajas/mtg-vault/issues/61)) ([08df267](https://github.com/JBxrajas/mtg-vault/commit/08df26701f611b04dd5aed9aff41d703b5c020b9))
+* **jobs:** skip printings whose set, number and language belong to another id ([#74](https://github.com/JBxrajas/mtg-vault/issues/74)) ([d5b47f6](https://github.com/JBxrajas/mtg-vault/commit/d5b47f6503022f9534b4593cdaf3863ae2f9b2e3))
+* **web:** a color filter needs every color picked ([#72](https://github.com/JBxrajas/mtg-vault/issues/72)) ([369fed0](https://github.com/JBxrajas/mtg-vault/commit/369fed0ced56ef63eaa3adaefb19f7429d41e0d4))
+* **web:** capture cards one after another by themselves ([#64](https://github.com/JBxrajas/mtg-vault/issues/64)) ([6f879b8](https://github.com/JBxrajas/mtg-vault/commit/6f879b8e1719f9b97cc8664bfb4d34a47ceeb4b5))
+* **web:** close the results after adding a card to a deck ([#68](https://github.com/JBxrajas/mtg-vault/issues/68)) ([323da45](https://github.com/JBxrajas/mtg-vault/commit/323da4534fc4cb7d2e3becff2d6b6d2718a8e926))
+* **web:** keep content readable over the art background ([#70](https://github.com/JBxrajas/mtg-vault/issues/70)) ([63f2678](https://github.com/JBxrajas/mtg-vault/commit/63f2678f1bd7e4ad14cf57a40f39d5004ff4bcb6))
+
 ## [0.4.0](https://github.com/JBxrajas/mtg-vault/compare/v0.3.0...v0.4.0) (2026-11-05)
 
 
