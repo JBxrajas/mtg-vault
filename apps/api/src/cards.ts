@@ -43,10 +43,13 @@ export async function searchCards({ q, limit, type, colors }: CardSearchQuery) {
     image_uris: unknown;
   }>(sql`
     with matches as (
-      select oracle_id, name, mana_cost, type_line, oracle_text, color_identity, similarity(name, ${q}) as similarity
+      select oracle_id, name, mana_cost, type_line, oracle_text, color_identity, similarity(name, ${q}) as similarity,
+             -- Typed the name a printing carries instead of the card's own (Paradise Chocobo): as good as an exact name.
+             oracle_id in (select oracle_id from printings where flavor_name ilike ${prefix}) as flavor_hit
       from cards
       where ${sql.join(filters, sql` and `)}
       order by lower(name) = lower(${q}) desc,
+               flavor_hit desc,
                name ilike ${prefix} desc,
                similarity(name, ${q}) desc,
                name
@@ -63,6 +66,7 @@ export async function searchCards({ q, limit, type, colors }: CardSearchQuery) {
       limit 1
     ) img on true
     order by lower(m.name) = lower(${q}) desc,
+             m.flavor_hit desc,
              m.name ilike ${prefix} desc,
              m.similarity desc,
              m.name
