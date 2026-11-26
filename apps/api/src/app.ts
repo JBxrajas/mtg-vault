@@ -1,5 +1,8 @@
 import { zValidator } from "@hono/zod-validator";
 import {
+  auctionIdParamSchema,
+  auctionInputSchema,
+  auctionUpdateSchema,
   cardLookupQuerySchema,
   cardSearchQuerySchema,
   collectionEntrySchema,
@@ -26,6 +29,7 @@ import { addDeckCard, createDeck, deleteDeck, getDeck, importDeckRows, listDecks
 import { HttpError, addItem, getCollectionId, listItems, removeItem, updateItem } from "./collection.js";
 import { importRows } from "./import.js";
 import { artIndexUrl } from "./art-index.js";
+import { createBid, deleteBid, listBids, updateBid } from "./auctions.js";
 import { allowedOrigins } from "./origins.js";
 
 type Env = { Variables: { userId: string } };
@@ -209,4 +213,24 @@ app.post("/decks/:id/cards", zValidator("param", deckIdParamSchema), zValidator(
 app.put("/decks/:id/cards", zValidator("param", deckIdParamSchema), zValidator("json", deckCardSetSchema), async (c) => {
   await setDeckCard(c.get("userId"), c.req.valid("param").id, c.req.valid("json"));
   return c.json((await getDeck(c.get("userId"), c.req.valid("param").id))!);
+});
+
+// Auction bids: bids the user placed in auctions outside the app (Facebook groups), in Mexican pesos.
+app.use("/auctions/*", requireUser);
+
+app.get("/auctions", async (c) => c.json({ bids: await listBids(c.get("userId")) }));
+
+app.post("/auctions", zValidator("json", auctionInputSchema), async (c) =>
+  c.json({ bid: await createBid(c.get("userId"), c.req.valid("json")) }, 201),
+);
+
+app.patch("/auctions/:id", zValidator("param", auctionIdParamSchema), zValidator("json", auctionUpdateSchema), async (c) => {
+  const bid = await updateBid(c.get("userId"), c.req.valid("param").id, c.req.valid("json"));
+  if (!bid) return c.json({ error: "Bid not found" }, 404);
+  return c.json({ bid });
+});
+
+app.delete("/auctions/:id", zValidator("param", auctionIdParamSchema), async (c) => {
+  if (!(await deleteBid(c.get("userId"), c.req.valid("param").id))) return c.json({ error: "Bid not found" }, 404);
+  return c.body(null, 204);
 });

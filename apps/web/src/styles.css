@@ -2475,3 +2475,210 @@ button.art-tile.on {
   grid-column: 1 / -1;
   min-width: 0;
 }
+
+/* Auctions: a table by closing time; under 720 px each row becomes a card with labelled cells. */
+.stats.auction-stats {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+@media (min-width: 720px) {
+  .stats.auction-stats {
+    max-width: none;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+.auction-form,
+.auction-collect {
+  display: grid;
+  gap: 0.75rem;
+  margin: 1rem 0;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+.auction-form h2 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+.auction-form .field {
+  display: grid;
+  gap: 0.25rem;
+  min-width: 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+.auction-form .field input,
+.auction-form .field select,
+.auction-form textarea {
+  min-width: 0;
+  color: var(--text);
+}
+.auction-form textarea {
+  padding: 0.55rem 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  font: inherit;
+  resize: vertical;
+}
+.auction-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 12rem), 1fr));
+  gap: 0.6rem;
+}
+.auction-suggest {
+  display: grid;
+  gap: 0.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.auction-suggest button {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+  text-align: left;
+}
+.auction-suggest img {
+  width: 2rem;
+  border-radius: 3px;
+}
+.auction-form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.auction-table {
+  width: 100%;
+  margin-top: 1rem;
+  border-collapse: collapse;
+}
+.auction-table th {
+  padding: 0.5rem;
+  color: var(--muted);
+  font-size: 0.8rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+.auction-table td {
+  padding: 0.55rem 0.5rem;
+  vertical-align: top;
+  border-bottom: 1px solid var(--border);
+}
+.auction-table small {
+  display: block;
+  color: var(--muted);
+  font-size: 0.78rem;
+  overflow-wrap: anywhere;
+}
+.auction-table .muted {
+  color: var(--muted);
+}
+.auction-card-body {
+  display: flex;
+  gap: 0.6rem;
+  min-width: 0;
+}
+.auction-card-body > div {
+  min-width: 0;
+}
+.auction-card img,
+.auction-noimg {
+  flex: none;
+  width: 2.75rem;
+  aspect-ratio: 488 / 680;
+  border-radius: 3px;
+  background: var(--surface-2);
+}
+.auction-alerts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin: 0.2rem 0;
+}
+.auction-alerts .badge.alert-losing,
+.auction-alerts .badge.alert-overMax,
+.auction-alerts .badge.alert-closed {
+  background: color-mix(in srgb, var(--danger) 16%, var(--surface));
+  color: var(--danger);
+}
+.auction-alerts .badge.alert-closingSoon {
+  background: color-mix(in srgb, var(--accent) 35%, var(--surface));
+  color: var(--text);
+}
+.countdown {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+.auction-table tr.is-losing {
+  background: color-mix(in srgb, var(--danger) 9%, transparent);
+}
+.auction-table tr.is-losing td:first-child {
+  box-shadow: inset 4px 0 0 var(--danger);
+}
+.auction-table tr.is-soon:not(.is-losing) td:first-child {
+  box-shadow: inset 4px 0 0 var(--accent);
+}
+.auction-table tr.status-lost,
+.auction-table tr.status-picked_up {
+  opacity: 0.7;
+}
+.auction-actions {
+  white-space: nowrap;
+}
+.auction-actions button + button {
+  margin-left: 0.4rem;
+}
+@media (max-width: 719px) {
+  .auction-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+  .auction-table,
+  .auction-table tbody,
+  .auction-table tr {
+    display: block;
+  }
+  .auction-table tr {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.4rem 0.75rem;
+    margin-bottom: 0.75rem;
+    padding: 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+  }
+  .auction-table tr.is-losing {
+    background: color-mix(in srgb, var(--danger) 9%, var(--surface));
+    border-color: var(--danger);
+  }
+  .auction-table tr.is-soon:not(.is-losing) {
+    border-color: var(--accent);
+  }
+  .auction-table td {
+    display: block;
+    min-width: 0;
+    padding: 0;
+    border: 0;
+  }
+  .auction-table td.auction-card,
+  .auction-table td.auction-actions {
+    grid-column: 1 / -1;
+    box-shadow: none !important;
+  }
+  .auction-table td[data-label]:not(.auction-card)::before {
+    content: attr(data-label);
+    display: block;
+    color: var(--muted);
+    font-size: 0.75rem;
+  }
+  .auction-table td select {
+    width: 100%;
+  }
+}

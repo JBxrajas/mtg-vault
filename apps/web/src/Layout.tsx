@@ -7,6 +7,7 @@ const NAV = [
   { to: "/search", label: "nav.search", hint: "nav.search.hint" },
   { to: "/collection", label: "nav.collection", hint: "nav.collection.hint" },
   { to: "/decks", label: "nav.decks", hint: "nav.decks.hint" },
+  { to: "/auctions", label: "nav.auctions", hint: "nav.auctions.hint" },
   { to: "/scan", label: "nav.scan", hint: "nav.scan.hint" },
 ] as const;
 

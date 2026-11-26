@@ -12,6 +12,7 @@ Phases 1 to 3 are largely done: the monorepo, CI, the catalog imported from Scry
 - **One collection per user**: an inventory that tells printings apart (set, collector number), finish (nonfoil, foil, etched), condition and language, with market value. Add, change and remove stacks; **CSV import** of a Moxfield export and **CSV export** in the same layout.
 - **Decks**: many per user, each with a format (Standard, Modern, Commander, …), boards (main, sideboard, maybeboard, commander), cards divided by type, deck size, and a badge that says how many copies you own. **Import and export** as a text list. Format rules (copy limits, legality) are not enforced yet.
 - **Card search** over the whole Scryfall catalog, tolerant of typos, with every printing and its price.
+- **Auctions**: track the bids you place in Magic auctions outside the app (Facebook groups): closing countdown, what is losing or closing soon, totals committed, to pay and to pick up, and a picked-up card goes to the collection in one step ([ADR 0017](docs/adr/0017-auction-bid-tracking.md)).
 - **Appearance**: light or dark mode, a background color, or the art of any card (and any of its printings), saved on the device.
 - **English and Spanish** interface ([ADR 0010](docs/adr/0010-interface-languages.md)).
 - Planned: card scanning with the camera, price history and a desktop app. Binders were dropped.

@@ -62,6 +62,16 @@ for (const language of LANGUAGES) {
         expect(await fits(page)).toEqual({ scrolls: false, wide: [] });
       });
 
+      test("auctions with the add form open", async ({ page }) => {
+        await mockApi(page, commanderDeck());
+        await page.goto("/#/auctions");
+        await expect(page.locator(".auction-table tbody tr")).toHaveCount(6);
+        expect(await fits(page)).toEqual({ scrolls: false, wide: [] });
+        await page.locator(".auctions-page > button.btn-primary").click();
+        await expect(page.locator(".auction-form")).toBeVisible();
+        expect(await fits(page)).toEqual({ scrolls: false, wide: [] });
+      });
+
       test("the landing page", async ({ page }) => {
         await page.goto("/#/welcome");
         await expect(page.locator(".l-hero h1")).toBeVisible();

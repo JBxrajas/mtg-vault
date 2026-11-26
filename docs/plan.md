@@ -90,6 +90,12 @@ Order matters: free space first, then add providers. Designs: [ADR 0015](adr/001
 - ☐ Sample data for trying the app
 - ☐ API tests that run SQL against a real database
 
+## Phase 4c — Purchases and auctions ◐
+- ☑ Auction bid tracker ([ADR 0017](adr/0017-auction-bid-tracking.md)): table `auction_bids` (migration `0004`, **not yet applied to production**), `/auctions` API, `#/auctions` page with totals, a table by closing time with a countdown, losing and closing-soon highlights, quick status changes and an offer to add a picked-up card to the collection
+- ☐ Apply migration `0004` to production before the API is deployed
+- ☐ Reminders before an auction closes (needs a server-side schedule or notifications)
+- ☐ Other purchases (stores, trades) in the same tracker
+
 ## Phase 6 — Electron and extras ☐
 - `apps/desktop` with Electron loading the `apps/web` build
 - Wishlist and public deck lists

@@ -105,6 +105,7 @@ export * from "./collection-filter.js";
 export * from "./commander.js";
 export * from "./csv.js";
 export * from "./decklist.js";
+export * from "./auctions.js";
 export * from "./decks.js";
 export * from "./export.js";
 export * from "./import.js";

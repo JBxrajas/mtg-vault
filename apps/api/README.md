@@ -71,6 +71,17 @@ A user has many decks ([ADR 0008](../../docs/adr/0008-users-collection-binders-d
 
 Formats: standard, pioneer, modern, legacy, vintage, commander, oathbreaker, brawl, pauper, historic, casual. Boards: `main`, `sideboard`, `maybeboard` and `commander`. Dividing the deck by card type (creature, sorcery, instant, …) is done by the client with `groupByCategory` from `packages/shared`, from each card's type line. **Format rules are not enforced** (deck size, copy limits, legality): the deck size and the target of the format (`deckTargetSize`: 60, Commander 100, none for casual) are shown, not required.
 
+### Auction bids (requires `Authorization: Bearer <token>`, `401` otherwise)
+
+Bids the user placed in auctions outside the app, such as Facebook groups ([ADR 0017](../../docs/adr/0017-auction-bid-tracking.md)). Amounts are Mexican pesos. Another user's bid answers `404`.
+
+| Endpoint | Body | Result |
+|---|---|---|
+| `GET /auctions` | none | `{ bids: AuctionBid[] }` by closing time (none last); each with `deckName` and the picture of the linked printing (else the card's newest), or `null` |
+| `POST /auctions` | `{ cardName, oracleId?, printingId?, groupName?, seller?, postUrl?, myBid?, highBid?, highBidder?, maxBid?, closesAt?, status?, pickupPlace?, pickupAt?, deckId?, notes? }` | `201 { bid }`. Only `cardName` is required; `status` defaults to `winning` (`winning`, `losing`, `won`, `lost`, `paid`, `picked_up`). Times are ISO instants; `postUrl` must be http(s). A printing sets the card; `400` if it is of another card or the card or printing does not exist; `404` if the deck is not yours |
+| `PATCH /auctions/:id` | any of the fields above (`null` clears one) | `200 { bid }`; changing the card without a printing clears the printing; same errors, and `404` if the bid is not yours |
+| `DELETE /auctions/:id` | none | `204`; `404` if not yours |
+
 ### Importing a deck list
 
 `POST /decks/:id/import` (Bearer token) takes `{ rows }`, 1 to 1000 rows already read from a text list by `parseDeckList` in `packages/shared` (the web app reads it and sends it in chunks of 500). A row has `line`, `name`, `quantity` (1 to 999) and `board`. It answers `{ created, updated, unchanged, problems }`; `404` when the deck is not the user's.

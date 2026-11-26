@@ -29,6 +29,13 @@
       "when": 1793921343425,
       "tag": "0003_printing_flavor_name_illustrations",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1795652867497,
+      "tag": "0004_auction_bids",
+      "breakpoints": true
     }
   ]
 }
