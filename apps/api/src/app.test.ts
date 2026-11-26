@@ -22,6 +22,9 @@ const deckFns = {
 };
 vi.mock("./decks.js", () => deckFns);
 
+const auctionFns = { listBids: vi.fn(), createBid: vi.fn(), updateBid: vi.fn(), deleteBid: vi.fn() };
+vi.mock("./auctions.js", () => auctionFns);
+
 const importRows = vi.fn();
 vi.mock("./import.js", () => ({ importRows }));
 
@@ -54,7 +57,7 @@ beforeEach(() => {
   getSession.mockReset();
   signUpEmail.mockReset();
   handler.mockReset();
-  for (const f of [addItem, updateItem, removeItem, listItems, getCollectionId, importRows, ...Object.values(deckFns)]) f.mockReset();
+  for (const f of [addItem, updateItem, removeItem, listItems, getCollectionId, importRows, ...Object.values(deckFns), ...Object.values(auctionFns)]) f.mockReset();
   getCollectionId.mockResolvedValue("col-1");
 });
 
@@ -257,13 +260,20 @@ describe("GET /me", () => {
     getSession.mockResolvedValue({ user: { id: "u1", username: "alice", displayUsername: "Alice" } });
     const res = await app.request("/me", { headers: { Authorization: "Bearer tok" } });
     expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({ user: { id: "u1", username: "alice", displayUsername: "Alice" } });
+    expect(await res.json()).toEqual({ user: { id: "u1", username: "alice", displayUsername: "Alice", features: [] } });
+  });
+
+  it("lists the features open to the account", async () => {
+    vi.stubEnv("AUCTIONS_USERS", "alice");
+    getSession.mockResolvedValue({ user: { id: "u1", username: "alice" } });
+    expect(((await (await app.request("/me")).json()) as { user: { features: string[] } }).user.features).toEqual(["auctions"]);
+    vi.unstubAllEnvs();
   });
 
   it("falls back to the username when there is no display name", async () => {
     getSession.mockResolvedValue({ user: { id: "u1", username: "alice" } });
     const res = await app.request("/me");
-    expect((await res.json()) as unknown).toEqual({ user: { id: "u1", username: "alice", displayUsername: "alice" } });
+    expect((await res.json()) as unknown).toEqual({ user: { id: "u1", username: "alice", displayUsername: "alice", features: [] } });
   });
 });
 
@@ -579,5 +589,102 @@ describe("/decks", () => {
     deckFns.importDeckRows.mockRejectedValue(new HttpError(404, "Deck not found"));
     const res = await send("POST", `/decks/${deckId}/import`, { rows: [{ line: 1, name: "Bolt", quantity: 1, board: "main" }] });
     expect(res.status).toBe(404);
+  });
+});
+
+describe("/auctions", () => {
+  const bidId = "2b93787d-47ea-4b8b-912d-ffc5d5440171";
+  const asUser = () => getSession.mockResolvedValue({ user: { id: "u1", username: "alice" } });
+  const send = (method: string, path: string, body?: unknown) =>
+    app.request(path, {
+      method,
+      headers: { "Content-Type": "application/json", Authorization: "Bearer tok" },
+      body: body === undefined ? undefined : JSON.stringify(body),
+    });
+  beforeEach(() => vi.stubEnv("AUCTIONS_USERS", "u1"));
+  afterEach(() => vi.unstubAllEnvs());
+
+  it.each([
+    ["GET", "/auctions"],
+    ["POST", "/auctions"],
+    ["PATCH", `/auctions/${bidId}`],
+    ["DELETE", `/auctions/${bidId}`],
+  ])("%s %s answers 404 to an account without the feature", async (method, path) => {
+    getSession.mockResolvedValue({ user: { id: "u2", username: "bob" } });
+    expect((await send(method, path, method === "GET" ? undefined : { cardName: "x", status: "lost" })).status).toBe(404);
+    vi.stubEnv("AUCTIONS_USERS", "");
+    asUser();
+    expect((await send(method, path, method === "GET" ? undefined : { cardName: "x", status: "lost" })).status).toBe(404);
+    for (const f of Object.values(auctionFns)) expect(f).not.toHaveBeenCalled();
+  });
+
+  it("lets an account listed by username in", async () => {
+    vi.stubEnv("AUCTIONS_USERS", "Alice");
+    asUser();
+    auctionFns.listBids.mockResolvedValue([]);
+    expect((await send("GET", "/auctions")).status).toBe(200);
+  });
+
+  it.each([
+    ["GET", "/auctions"],
+    ["POST", "/auctions"],
+    ["PATCH", `/auctions/${bidId}`],
+    ["DELETE", `/auctions/${bidId}`],
+  ])("%s %s requires a session", async (method, path) => {
+    getSession.mockResolvedValue(null);
+    expect((await app.request(path, { method })).status).toBe(401);
+    for (const f of Object.values(auctionFns)) expect(f).not.toHaveBeenCalled();
+  });
+
+  it("lists the signed-in user's own bids", async () => {
+    asUser();
+    auctionFns.listBids.mockResolvedValue([{ id: bidId }]);
+    const res = await send("GET", "/auctions");
+    expect(await res.json()).toEqual({ bids: [{ id: bidId }] });
+    expect(auctionFns.listBids).toHaveBeenCalledWith("u1");
+  });
+
+  it("creates a bid with only a card name, as winning, and answers 201", async () => {
+    asUser();
+    auctionFns.createBid.mockResolvedValue({ id: bidId });
+    const res = await send("POST", "/auctions", { cardName: " Mirror Gallery ", maxBid: 190 });
+    expect(res.status).toBe(201);
+    expect(auctionFns.createBid).toHaveBeenCalledWith("u1", { cardName: "Mirror Gallery", maxBid: 190, status: "winning" });
+  });
+
+  it.each([{}, { cardName: "" }, { cardName: "x", myBid: -5 }, { cardName: "x", status: "sold" }, { cardName: "x", postUrl: "ftp://x" }])(
+    "rejects an invalid bid %j",
+    async (body) => {
+      asUser();
+      expect((await send("POST", "/auctions", body)).status).toBe(400);
+      expect(auctionFns.createBid).not.toHaveBeenCalled();
+    },
+  );
+
+  it("passes on the API's own errors, such as a deck that is not the user's", async () => {
+    asUser();
+    auctionFns.createBid.mockRejectedValue(new HttpError(404, "Deck not found"));
+    const res = await send("POST", "/auctions", { cardName: "x", deckId: bidId });
+    expect(res.status).toBe(404);
+    expect(await res.json()).toEqual({ error: "Deck not found" });
+  });
+
+  it("updates a bid, and answers 404 for one that is not the user's", async () => {
+    asUser();
+    auctionFns.updateBid.mockResolvedValueOnce({ id: bidId, status: "picked_up" }).mockResolvedValueOnce(null);
+    const ok = await send("PATCH", `/auctions/${bidId}`, { status: "picked_up" });
+    expect(ok.status).toBe(200);
+    expect(auctionFns.updateBid).toHaveBeenCalledWith("u1", bidId, { status: "picked_up" });
+    expect((await send("PATCH", `/auctions/${bidId}`, { status: "lost" })).status).toBe(404);
+    expect((await send("PATCH", `/auctions/${bidId}`, {})).status).toBe(400);
+    expect((await send("PATCH", "/auctions/42", { status: "lost" })).status).toBe(400);
+  });
+
+  it("deletes a bid, and answers 404 for one that is not the user's", async () => {
+    asUser();
+    auctionFns.deleteBid.mockResolvedValueOnce(true).mockResolvedValueOnce(false);
+    expect((await send("DELETE", `/auctions/${bidId}`)).status).toBe(204);
+    expect(auctionFns.deleteBid).toHaveBeenCalledWith("u1", bidId);
+    expect((await send("DELETE", `/auctions/${bidId}`)).status).toBe(404);
   });
 });

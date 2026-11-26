@@ -92,6 +92,32 @@ export const printing = (id: string, setCode: string) => ({
   pricesOn: null,
 });
 
+/** Bids in every state, with long names and amounts, for the auctions page. */
+const soon = () => new Date(Date.now() + 20 * 60_000).toISOString();
+export const auctionBids = () =>
+  (["losing", "winning", "won", "paid", "picked_up", "lost"] as const).map((status, i) => ({
+    id: `b${i}`,
+    cardName: i === 0 ? "Longshot, Rebel Bowman of the Very Long Name" : `Card ${i}`,
+    oracleId: null,
+    printingId: null,
+    groupName: "Compra Venta Magic The Gathering CDMX y Área Metropolitana",
+    seller: "Vendedor con un nombre largo",
+    postUrl: "https://www.facebook.com/groups/1871489009797115/posts/4684509871828334",
+    myBid: 1250.5,
+    highBid: 1300,
+    highBidder: "Alguien Con Nombre Largo",
+    maxBid: 1400,
+    closesAt: i < 2 ? soon() : "2026-11-20T04:59:00.000Z",
+    status,
+    pickupPlace: "Teatro Blanquita, Eje Central",
+    pickupAt: "2026-11-28T18:00:00.000Z",
+    deckId: null,
+    deckName: i === 1 ? "Iroh, Grand Lotus budget" : null,
+    image: i === 0 ? picture : null,
+    notes: null,
+    updatedAt: "2026-11-25T20:00:00.000Z",
+  }));
+
 export async function mockApi(page: Page, deck: DeckDetail) {
   // On the context, not the page: a window the page opens (target=_blank) shares the sign-in and the mocked network.
   await page.context().addInitScript(() => localStorage.setItem("mtg-vault.token", "test"));
@@ -101,11 +127,13 @@ export async function mockApi(page: Page, deck: DeckDetail) {
     const path = new URL(request.url()).pathname;
     const body =
       path === "/me"
-        ? { user: { id: "u1", username: "alice", displayUsername: "Alice" } }
+        ? { user: { id: "u1", username: "alice", displayUsername: "Alice", features: ["auctions"] } }
         : path === "/decks/d1"
           ? deck
           : path === "/decks"
             ? { decks: [] }
+            : path === "/auctions"
+              ? { bids: auctionBids() }
             : path === "/collection/items"
               ? { items: stacks }
               : path === "/cards/search"

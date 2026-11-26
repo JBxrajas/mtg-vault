@@ -218,3 +218,45 @@ export const deckCards = pgTable(
     check("deck_cards_quantity_pos", sql`${t.quantity} > 0`),
   ],
 );
+
+/**
+ * A bid the user placed in an auction run outside the app (Magic auctions in Facebook groups).
+ * Amounts are in Mexican pesos, the currency those groups use. The card is linked to the catalog
+ * when it can be (`oracle_id`, optionally the exact `printing_id`); `card_name` is always kept,
+ * so an unlinked or mistyped card still shows. `status` is
+ * winning | losing | won | lost | paid | picked_up (see auctionStatusSchema in packages/shared).
+ */
+export const auctionBids = pgTable(
+  "auction_bids",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    cardName: text("card_name").notNull(),
+    oracleId: uuid("oracle_id").references(() => cards.oracleId),
+    printingId: uuid("printing_id").references(() => printings.id),
+    groupName: text("group_name"),
+    seller: text("seller"),
+    postUrl: text("post_url"),
+    myBid: numeric("my_bid", { precision: 10, scale: 2 }),
+    highBid: numeric("high_bid", { precision: 10, scale: 2 }),
+    highBidder: text("high_bidder"),
+    maxBid: numeric("max_bid", { precision: 10, scale: 2 }),
+    closesAt: timestamp("closes_at", { withTimezone: true }),
+    status: text("status").notNull().default("winning"),
+    pickupPlace: text("pickup_place"),
+    pickupAt: timestamp("pickup_at", { withTimezone: true }),
+    deckId: uuid("deck_id").references(() => decks.id, { onDelete: "set null" }),
+    notes: text("notes"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("auction_bids_user_closes_idx").on(t.userId, t.closesAt),
+    check(
+      "auction_bids_status_ck",
+      sql`${t.status} in ('winning', 'losing', 'won', 'lost', 'paid', 'picked_up')`,
+    ),
+  ],
+);

@@ -13,6 +13,7 @@ pnpm --filter @mtg-vault/api dev   # http://localhost:3001; loads ../../.env.loc
 | `DATABASE_URL` | yes (search) | Pooled Neon connection, see [docs/neon.md](../../docs/neon.md) |
 | `CORS_ORIGINS` | in production | Comma-separated browser origins allowed to call the API (also Better Auth's trusted origins). Defaults to `http://localhost:5173` |
 | `BETTER_AUTH_SECRET` | yes (auth) | Signing secret, `openssl rand -base64 32`. Never commit it |
+| `AUCTIONS_USERS` | no | Accounts that can use `/auctions`, comma-separated user ids or usernames (case-insensitive). Empty or unset: nobody. See `src/features.ts` |
 | `BETTER_AUTH_URL` | yes (auth) | Public URL of the API: `http://localhost:3001` locally, `https://mtg-vault-api.vercel.app` in production |
 
 `.env.example` at the repository root lists them. `pnpm dev:api` loads `.env.local`.
@@ -38,7 +39,7 @@ Username and password, with Better Auth; sessions are Bearer tokens ([ADR 0009](
 | `POST /auth/register` | `{ "username", "password" }` | `200` with the user and a `set-auth-token` header; `400` for invalid input or a taken username. Also creates the user's collection |
 | `POST /api/auth/sign-in/username` | `{ "username", "password" }` | `200` with `set-auth-token`; `401` for wrong credentials |
 | `POST /api/auth/sign-out` | none, `Authorization: Bearer <token>` | `200`; the token stops working |
-| `GET /me` | `Authorization: Bearer <token>` | `{ "user": { "id", "username", "displayUsername" } }`, or `401` |
+| `GET /me` | `Authorization: Bearer <token>` | `{ "user": { "id", "username", "displayUsername", "features" } }`, or `401`. `features` lists the features open only to some accounts that this account has (today only `"auctions"`) |
 
 `POST /api/auth/sign-up/email` is closed (`404`) so every account has a username. Send the token on later requests as `Authorization: Bearer <token>`. Other Better Auth routes under `/api/auth/*` are available but not used by the web app yet.
 
@@ -70,6 +71,17 @@ A user has many decks ([ADR 0008](../../docs/adr/0008-users-collection-binders-d
 | `PUT /decks/:id/cards` | `{ oracleId, board?, quantity?, printingId? }` (at least one of `quantity`, `printingId`) | `200` with the updated deck. **Sets** the copies (`0` removes the card) and/or the printing whose art the card shows (`null` goes back to the newest); `400` if the printing is of another card; `404` if the card is not on that board or the printing does not exist |
 
 Formats: standard, pioneer, modern, legacy, vintage, commander, oathbreaker, brawl, pauper, historic, casual. Boards: `main`, `sideboard`, `maybeboard` and `commander`. Dividing the deck by card type (creature, sorcery, instant, …) is done by the client with `groupByCategory` from `packages/shared`, from each card's type line. **Format rules are not enforced** (deck size, copy limits, legality): the deck size and the target of the format (`deckTargetSize`: 60, Commander 100, none for casual) are shown, not required.
+
+### Auction bids (requires `Authorization: Bearer <token>`, `401` otherwise)
+
+Bids the user placed in auctions outside the app, such as Facebook groups ([ADR 0017](../../docs/adr/0017-auction-bid-tracking.md)). Amounts are Mexican pesos. Another user's bid answers `404`. **Only the accounts listed in `AUCTIONS_USERS`** can use these routes; any other signed-in account gets `404` on all of them, as if they did not exist.
+
+| Endpoint | Body | Result |
+|---|---|---|
+| `GET /auctions` | none | `{ bids: AuctionBid[] }` by closing time (none last); each with `deckName` and the picture of the linked printing (else the card's newest), or `null` |
+| `POST /auctions` | `{ cardName, oracleId?, printingId?, groupName?, seller?, postUrl?, myBid?, highBid?, highBidder?, maxBid?, closesAt?, status?, pickupPlace?, pickupAt?, deckId?, notes? }` | `201 { bid }`. Only `cardName` is required; `status` defaults to `winning` (`winning`, `losing`, `won`, `lost`, `paid`, `picked_up`). Times are ISO instants; `postUrl` must be http(s). A printing sets the card; `400` if it is of another card or the card or printing does not exist; `404` if the deck is not yours |
+| `PATCH /auctions/:id` | any of the fields above (`null` clears one) | `200 { bid }`; changing the card without a printing clears the printing; same errors, and `404` if the bid is not yours |
+| `DELETE /auctions/:id` | none | `204`; `404` if not yours |
 
 ### Importing a deck list
 

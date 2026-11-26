@@ -5,6 +5,7 @@ import {
   createRouter,
 } from "@tanstack/react-router";
 import { AppearancePage } from "./AppearancePage";
+import { AuctionsPage } from "./AuctionsPage";
 import { ArtPage } from "./ArtPage";
 import { CollectionPage } from "./CollectionPage";
 import { DeckPage } from "./DeckPage";
@@ -80,9 +81,15 @@ const deckRoute = createRoute({
   component: DeckPage,
 });
 
+const auctionsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/auctions",
+  component: AuctionsPage,
+});
+
 // Hash history works both on the web and when loaded from file:// in Electron.
 export const router = createRouter({
-  routeTree: rootRoute.addChildren([indexRoute, searchRoute, welcomeRoute, loginRoute, appearanceRoute, collectionRoute, artRoute, scanRoute, decksRoute, deckRoute]),
+  routeTree: rootRoute.addChildren([indexRoute, searchRoute, welcomeRoute, loginRoute, appearanceRoute, collectionRoute, artRoute, scanRoute, decksRoute, deckRoute, auctionsRoute]),
   history: createHashHistory(),
 });
 

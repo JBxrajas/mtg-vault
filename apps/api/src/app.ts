@@ -1,5 +1,8 @@
 import { zValidator } from "@hono/zod-validator";
 import {
+  auctionIdParamSchema,
+  auctionInputSchema,
+  auctionUpdateSchema,
   cardLookupQuerySchema,
   cardSearchQuerySchema,
   collectionEntrySchema,
@@ -26,6 +29,8 @@ import { addDeckCard, createDeck, deleteDeck, getDeck, importDeckRows, listDecks
 import { HttpError, addItem, getCollectionId, listItems, removeItem, updateItem } from "./collection.js";
 import { importRows } from "./import.js";
 import { artIndexUrl } from "./art-index.js";
+import { createBid, deleteBid, listBids, updateBid } from "./auctions.js";
+import { hasFeature, userFeatures, type Feature } from "./features.js";
 import { allowedOrigins } from "./origins.js";
 
 type Env = { Variables: { userId: string } };
@@ -115,6 +120,7 @@ app.get("/me", async (c) => {
     id: u.id,
     username: u.username ?? "",
     displayUsername: u.displayUsername ?? u.username ?? "",
+    features: userFeatures(u),
   };
   return c.json({ user: me });
 });
@@ -209,4 +215,39 @@ app.post("/decks/:id/cards", zValidator("param", deckIdParamSchema), zValidator(
 app.put("/decks/:id/cards", zValidator("param", deckIdParamSchema), zValidator("json", deckCardSetSchema), async (c) => {
   await setDeckCard(c.get("userId"), c.req.valid("param").id, c.req.valid("json"));
   return c.json((await getDeck(c.get("userId"), c.req.valid("param").id))!);
+});
+
+/**
+ * Requires a session whose account has the feature (see features.ts). Other accounts get 404, as if the
+ * route did not exist.
+ */
+const requireFeature = (feature: Feature) =>
+  createMiddleware<Env>(async (c, next) => {
+    const session = await getAuth().api.getSession({ headers: c.req.raw.headers });
+    if (!session) return c.json({ error: "Not signed in" }, 401);
+    const u = session.user as { id: string; username?: string | null };
+    if (!hasFeature(feature, u)) return c.json({ error: "Not found" }, 404);
+    c.set("userId", u.id);
+    await next();
+  });
+
+// Auction bids: bids the user placed in auctions outside the app (Facebook groups), in Mexican pesos.
+// Only for the accounts listed in AUCTIONS_USERS.
+app.use("/auctions/*", requireFeature("auctions"));
+
+app.get("/auctions", async (c) => c.json({ bids: await listBids(c.get("userId")) }));
+
+app.post("/auctions", zValidator("json", auctionInputSchema), async (c) =>
+  c.json({ bid: await createBid(c.get("userId"), c.req.valid("json")) }, 201),
+);
+
+app.patch("/auctions/:id", zValidator("param", auctionIdParamSchema), zValidator("json", auctionUpdateSchema), async (c) => {
+  const bid = await updateBid(c.get("userId"), c.req.valid("param").id, c.req.valid("json"));
+  if (!bid) return c.json({ error: "Bid not found" }, 404);
+  return c.json({ bid });
+});
+
+app.delete("/auctions/:id", zValidator("param", auctionIdParamSchema), async (c) => {
+  if (!(await deleteBid(c.get("userId"), c.req.valid("param").id))) return c.json({ error: "Bid not found" }, 404);
+  return c.body(null, 204);
 });

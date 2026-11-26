@@ -1,12 +1,16 @@
+import { useQuery } from "@tanstack/react-query";
 import { Link, Outlet } from "@tanstack/react-router";
 import { useLayoutEffect, useRef } from "react";
+import { fetchMe } from "./auth";
 import { AuthBar } from "./AuthBar";
 import { LOCALE_NAME, LOCALES, setLocale, useI18n } from "./i18n";
 
+// `feature`: shown only to accounts the API lists that feature for (`features` on GET /me).
 const NAV = [
   { to: "/search", label: "nav.search", hint: "nav.search.hint" },
   { to: "/collection", label: "nav.collection", hint: "nav.collection.hint" },
   { to: "/decks", label: "nav.decks", hint: "nav.decks.hint" },
+  { to: "/auctions", label: "nav.auctions", hint: "nav.auctions.hint", feature: "auctions" },
   { to: "/scan", label: "nav.scan", hint: "nav.scan.hint" },
 ] as const;
 
@@ -14,6 +18,8 @@ const NAV = [
 export function Layout() {
   const { t, locale } = useI18n();
   const bar = useRef<HTMLElement>(null);
+  const { data: me } = useQuery({ queryKey: ["me"], queryFn: ({ signal }) => fetchMe(signal), staleTime: 60_000 });
+  const nav = NAV.filter((item) => !("feature" in item) || me?.features?.includes(item.feature));
   // Sticky things under the top bar (the commander bar) need its real height, which changes with the language,
   // the font and the screen. Publish it as `--topbar-h`.
   useLayoutEffect(() => {
@@ -35,7 +41,7 @@ export function Layout() {
             mtg<span>·</span>vault
           </Link>
           <nav className="nav" aria-label={t("nav.aria")}>
-            {NAV.map((item) => (
+            {nav.map((item) => (
               <Link key={item.to} to={item.to} title={t(item.hint)} activeOptions={{ exact: true }}>
                 {t(item.label)}
               </Link>

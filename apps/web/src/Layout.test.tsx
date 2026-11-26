@@ -26,6 +26,19 @@ describe("Layout", () => {
     expect(within(nav).getByRole("link", { name: "Search" })).not.toHaveAttribute("aria-current");
   });
 
+  it("shows the auctions link only to accounts with that feature", async () => {
+    fetchMe.mockResolvedValue(aUser);
+    const first = renderPage(<Layout />);
+    const nav = await screen.findByRole("navigation", { name: "Main" });
+    await screen.findByText("Alice");
+    expect(within(nav).queryByRole("link", { name: "Auctions" })).not.toBeInTheDocument();
+    first.unmount();
+
+    fetchMe.mockResolvedValue({ ...aUser, features: ["auctions"] });
+    renderPage(<Layout />);
+    expect(await screen.findByRole("link", { name: "Auctions" })).toHaveAttribute("href", "/auctions");
+  });
+
   it("shows the account area", async () => {
     fetchMe.mockResolvedValue(aUser);
     renderPage(<Layout />);
