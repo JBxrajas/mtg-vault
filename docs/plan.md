@@ -92,7 +92,8 @@ Order matters: free space first, then add providers. Designs: [ADR 0015](adr/001
 
 ## Phase 4c — Purchases and auctions ◐
 - ☑ Auction bid tracker ([ADR 0017](adr/0017-auction-bid-tracking.md)): table `auction_bids` (migration `0004`, **not yet applied to production**), `/auctions` API, `#/auctions` page with totals, a table by closing time with a countdown, losing and closing-soon highlights, quick status changes and an offer to add a picked-up card to the collection
-- ☐ Apply migration `0004` to production before the API is deployed
+- ☑ Open only to the accounts in `AUCTIONS_USERS` (hidden link, `404` from the API for anyone else)
+- ☐ Apply migration `0004` to production before the API is deployed, and set `AUCTIONS_USERS` in the API's Vercel environment
 - ☐ Reminders before an auction closes (needs a server-side schedule or notifications)
 - ☐ Other purchases (stores, trades) in the same tracker
 

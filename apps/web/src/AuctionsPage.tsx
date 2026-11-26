@@ -44,9 +44,11 @@ export function AuctionsPage() {
   const queryClient = useQueryClient();
   const now = useNow();
   const { data: me, isLoading: loadingMe } = useQuery({ queryKey: ["me"], queryFn: ({ signal }) => fetchMe(signal) });
-  const { data: cached, isLoading, error } = useQuery({ queryKey: ["auctions"], queryFn: fetchAuctions, enabled: !!me });
-  const { data: decks } = useQuery({ queryKey: ["decks"], queryFn: fetchDecks, enabled: !!me });
-  const bids = me ? cached : undefined;
+  // Only for accounts the API opens this feature to; for anyone else the page says it is not there.
+  const allowed = !!me?.features?.includes("auctions");
+  const { data: cached, isLoading, error } = useQuery({ queryKey: ["auctions"], queryFn: fetchAuctions, enabled: allowed });
+  const { data: decks } = useQuery({ queryKey: ["decks"], queryFn: fetchDecks, enabled: allowed });
+  const bids = allowed ? cached : undefined;
   // "new" for the add form, a bid for the edit form.
   const [editing, setEditing] = useState<AuctionBid | "new" | null>(null);
   // A bid just marked as picked up: offer to add it to the collection.
@@ -77,176 +79,187 @@ export function AuctionsPage() {
 
   return (
     <main className="page wide auctions-page">
-      <h1>{t("auctions.title")}</h1>
-      {!loadingMe && !me && (
-        <section className="welcome">
-          <h2>{t("auctions.pitch.title")}</h2>
-          <p>
-            {t("auctions.pitch.text")} <Link to="/login">{t("auth.signIn")}</Link>
-            {t("auctions.pitch.signIn")}
-          </p>
-          <div className="welcome-actions">
-            <Link to="/login" search={{ mode: "register" }} className="button">
-              {t("welcome.create")}
-            </Link>
-          </div>
-        </section>
-      )}
-
-      {me && (
+      {me && !allowed ? (
         <>
-          <p className="hint">{t("auctions.intro")}</p>
-          <div className="stats auction-stats">
-            <div className="stat">
-              <b>{mxn(totals.committed)}</b>
-              <span>{t("auctions.totals.committed")}</span>
-            </div>
-            <div className="stat">
-              <b>{mxn(totals.toPay.amount)}</b>
-              <span>{t("auctions.totals.toPay", { count: totals.toPay.count })}</span>
-            </div>
-            <div className="stat">
-              <b>{mxn(totals.toPickUp.amount)}</b>
-              <span>{t("auctions.totals.toPickUp", { count: totals.toPickUp.count })}</span>
-            </div>
-            <div className="stat">
-              <b>
-                {totals.winning} · {totals.losing}
-              </b>
-              <span>{t("auctions.totals.open")}</span>
-            </div>
-          </div>
-          {editing === null && (
-            <button type="button" className="btn-primary" onClick={() => setEditing("new")}>
-              {t("auctions.add")}
-            </button>
-          )}
-          {editing !== null && (
-            <AuctionForm
-              key={editing === "new" ? "new" : editing.id}
-              bid={editing === "new" ? undefined : editing}
-              last={last}
-              decks={decks ?? []}
-              onDone={saved}
-            />
-          )}
-          {collecting && <CollectWonCard bid={collecting} onClose={() => setCollecting(null)} />}
+          <h1>{t("auctions.unavailable.title")}</h1>
+          <p className="hint">
+            {t("auctions.unavailable.text")} <Link to="/search">{t("nav.search")}</Link>
+          </p>
         </>
-      )}
+      ) : (
+        <>
+          <h1>{t("auctions.title")}</h1>
+          {!loadingMe && !me && (
+            <section className="welcome">
+              <h2>{t("auctions.pitch.title")}</h2>
+              <p>
+                {t("auctions.pitch.text")} <Link to="/login">{t("auth.signIn")}</Link>
+                {t("auctions.pitch.signIn")}
+              </p>
+              <div className="welcome-actions">
+                <Link to="/login" search={{ mode: "register" }} className="button">
+                  {t("welcome.create")}
+                </Link>
+              </div>
+            </section>
+          )}
 
-      {(setStatus.error ?? remove.error) && <p className="error">{(setStatus.error ?? remove.error)!.message}</p>}
-      {me && isLoading && <p className="hint">{t("common.loading")}</p>}
-      {me && error && <p className="error">{error.message}</p>}
-      {bids && bids.length === 0 && <p className="hint">{t("auctions.empty")}</p>}
+          {allowed && (
+            <>
+              <p className="hint">{t("auctions.intro")}</p>
+              <div className="stats auction-stats">
+                <div className="stat">
+                  <b>{mxn(totals.committed)}</b>
+                  <span>{t("auctions.totals.committed")}</span>
+                </div>
+                <div className="stat">
+                  <b>{mxn(totals.toPay.amount)}</b>
+                  <span>{t("auctions.totals.toPay", { count: totals.toPay.count })}</span>
+                </div>
+                <div className="stat">
+                  <b>{mxn(totals.toPickUp.amount)}</b>
+                  <span>{t("auctions.totals.toPickUp", { count: totals.toPickUp.count })}</span>
+                </div>
+                <div className="stat">
+                  <b>
+                    {totals.winning} · {totals.losing}
+                  </b>
+                  <span>{t("auctions.totals.open")}</span>
+                </div>
+              </div>
+              {editing === null && (
+                <button type="button" className="btn-primary" onClick={() => setEditing("new")}>
+                  {t("auctions.add")}
+                </button>
+              )}
+              {editing !== null && (
+                <AuctionForm
+                  key={editing === "new" ? "new" : editing.id}
+                  bid={editing === "new" ? undefined : editing}
+                  last={last}
+                  decks={decks ?? []}
+                  onDone={saved}
+                />
+              )}
+              {collecting && <CollectWonCard bid={collecting} onClose={() => setCollecting(null)} />}
+            </>
+          )}
 
-      {sorted.length > 0 && (
-        <table className="auction-table">
-          <thead>
-            <tr>
-              <th scope="col">{t("auctions.col.card")}</th>
-              <th scope="col">{t("auctions.col.closes")}</th>
-              <th scope="col">{t("auctions.col.myBid")}</th>
-              <th scope="col">{t("auctions.col.highBid")}</th>
-              <th scope="col">{t("auctions.col.max")}</th>
-              <th scope="col">{t("auctions.col.status")}</th>
-              <th scope="col">{t("auctions.col.pickup")}</th>
-              <th scope="col">
-                <span className="sr-only">{t("auctions.col.actions")}</span>
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {sorted.map((b) => {
-              const alerts = auctionAlerts(b, now);
-              const rowClass = alerts.map((a) => ROW_CLASS[a]).filter(Boolean).join(" ");
-              const left = countdown(b.closesAt, now);
-              const open = isOpenAuction(b.status);
-              return (
-                <tr key={b.id} className={`${rowClass} status-${b.status}`.trim()}>
-                  <td className="auction-card" data-label={t("auctions.col.card")}>
-                    <div className="auction-card-body">
-                      {b.image ? <img src={b.image.small} alt="" loading="lazy" /> : <span className="auction-noimg" aria-hidden="true" />}
-                      <div>
-                        <strong>{b.cardName}</strong>
-                        {alerts.length > 0 && (
-                          <span className="auction-alerts">
-                            {alerts.map((a) => (
-                              <span key={a} className={`badge alert-${a}`}>
-                                {t(`auctions.alert.${a}`)}
-                              </span>
-                            ))}
-                          </span>
-                        )}
-                        <small>
-                          {[b.groupName, b.seller && t("auctions.by", { who: b.seller })].filter(Boolean).join(" · ")}
-                          {b.postUrl && (
-                            <>
-                              {(b.groupName || b.seller) && " · "}
-                              <a href={b.postUrl} target="_blank" rel="noopener noreferrer">
-                                {t("auctions.post")}
-                              </a>
-                            </>
-                          )}
-                        </small>
-                        {b.deckName && <small className="auction-deck">{t("auctions.forDeck", { deck: b.deckName })}</small>}
-                      </div>
-                    </div>
-                  </td>
-                  <td data-label={t("auctions.col.closes")}>
-                    {b.closesAt ? (
-                      <>
-                        {open && left ? <span className="countdown" role="timer">{left}</span> : <span className="muted">{t("auctions.closed")}</span>}
-                        <small>{shortDateTime(b.closesAt)}</small>
-                      </>
-                    ) : (
-                      <span className="muted">{t("auctions.noTime")}</span>
-                    )}
-                  </td>
-                  <td data-label={t("auctions.col.myBid")}>{mxn(b.myBid)}</td>
-                  <td data-label={t("auctions.col.highBid")}>
-                    {mxn(b.highBid)}
-                    {b.highBidder && <small>{b.highBidder}</small>}
-                  </td>
-                  <td data-label={t("auctions.col.max")}>{mxn(b.maxBid)}</td>
-                  <td data-label={t("auctions.col.status")}>
-                    <select
-                      aria-label={t("auctions.statusLabel", { name: b.cardName })}
-                      value={b.status}
-                      disabled={setStatus.isPending}
-                      onChange={(e) => setStatus.mutate({ id: b.id, status: e.target.value as AuctionStatus })}
-                    >
-                      {auctionStatusSchema.options.map((s) => (
-                        <option key={s} value={s}>
-                          {t(`auctions.status.${s}`)}
-                        </option>
-                      ))}
-                    </select>
-                  </td>
-                  <td data-label={t("auctions.col.pickup")}>
-                    {b.pickupPlace ?? (b.pickupAt ? "" : "—")}
-                    {b.pickupAt && <small>{shortDateTime(b.pickupAt)}</small>}
-                  </td>
-                  <td className="auction-actions">
-                    <button type="button" aria-label={t("auctions.editLabel", { name: b.cardName })} onClick={() => setEditing(b)}>
-                      {t("auctions.edit")}
-                    </button>
-                    <button
-                      type="button"
-                      className="danger"
-                      disabled={remove.isPending}
-                      aria-label={t("auctions.deleteLabel", { name: b.cardName })}
-                      onClick={() => {
-                        if (window.confirm(t("auctions.confirmDelete", { name: b.cardName }))) remove.mutate(b.id);
-                      }}
-                    >
-                      {t("auctions.delete")}
-                    </button>
-                  </td>
+          {(setStatus.error ?? remove.error) && <p className="error">{(setStatus.error ?? remove.error)!.message}</p>}
+          {allowed && isLoading && <p className="hint">{t("common.loading")}</p>}
+          {allowed && error && <p className="error">{error.message}</p>}
+          {bids && bids.length === 0 && <p className="hint">{t("auctions.empty")}</p>}
+
+          {sorted.length > 0 && (
+            <table className="auction-table">
+              <thead>
+                <tr>
+                  <th scope="col">{t("auctions.col.card")}</th>
+                  <th scope="col">{t("auctions.col.closes")}</th>
+                  <th scope="col">{t("auctions.col.myBid")}</th>
+                  <th scope="col">{t("auctions.col.highBid")}</th>
+                  <th scope="col">{t("auctions.col.max")}</th>
+                  <th scope="col">{t("auctions.col.status")}</th>
+                  <th scope="col">{t("auctions.col.pickup")}</th>
+                  <th scope="col">
+                    <span className="sr-only">{t("auctions.col.actions")}</span>
+                  </th>
                 </tr>
-              );
-            })}
-          </tbody>
-        </table>
+              </thead>
+              <tbody>
+                {sorted.map((b) => {
+                  const alerts = auctionAlerts(b, now);
+                  const rowClass = alerts.map((a) => ROW_CLASS[a]).filter(Boolean).join(" ");
+                  const left = countdown(b.closesAt, now);
+                  const open = isOpenAuction(b.status);
+                  return (
+                    <tr key={b.id} className={`${rowClass} status-${b.status}`.trim()}>
+                      <td className="auction-card" data-label={t("auctions.col.card")}>
+                        <div className="auction-card-body">
+                          {b.image ? <img src={b.image.small} alt="" loading="lazy" /> : <span className="auction-noimg" aria-hidden="true" />}
+                          <div>
+                            <strong>{b.cardName}</strong>
+                            {alerts.length > 0 && (
+                              <span className="auction-alerts">
+                                {alerts.map((a) => (
+                                  <span key={a} className={`badge alert-${a}`}>
+                                    {t(`auctions.alert.${a}`)}
+                                  </span>
+                                ))}
+                              </span>
+                            )}
+                            <small>
+                              {[b.groupName, b.seller && t("auctions.by", { who: b.seller })].filter(Boolean).join(" · ")}
+                              {b.postUrl && (
+                                <>
+                                  {(b.groupName || b.seller) && " · "}
+                                  <a href={b.postUrl} target="_blank" rel="noopener noreferrer">
+                                    {t("auctions.post")}
+                                  </a>
+                                </>
+                              )}
+                            </small>
+                            {b.deckName && <small className="auction-deck">{t("auctions.forDeck", { deck: b.deckName })}</small>}
+                          </div>
+                        </div>
+                      </td>
+                      <td data-label={t("auctions.col.closes")}>
+                        {b.closesAt ? (
+                          <>
+                            {open && left ? <span className="countdown" role="timer">{left}</span> : <span className="muted">{t("auctions.closed")}</span>}
+                            <small>{shortDateTime(b.closesAt)}</small>
+                          </>
+                        ) : (
+                          <span className="muted">{t("auctions.noTime")}</span>
+                        )}
+                      </td>
+                      <td data-label={t("auctions.col.myBid")}>{mxn(b.myBid)}</td>
+                      <td data-label={t("auctions.col.highBid")}>
+                        {mxn(b.highBid)}
+                        {b.highBidder && <small>{b.highBidder}</small>}
+                      </td>
+                      <td data-label={t("auctions.col.max")}>{mxn(b.maxBid)}</td>
+                      <td data-label={t("auctions.col.status")}>
+                        <select
+                          aria-label={t("auctions.statusLabel", { name: b.cardName })}
+                          value={b.status}
+                          disabled={setStatus.isPending}
+                          onChange={(e) => setStatus.mutate({ id: b.id, status: e.target.value as AuctionStatus })}
+                        >
+                          {auctionStatusSchema.options.map((s) => (
+                            <option key={s} value={s}>
+                              {t(`auctions.status.${s}`)}
+                            </option>
+                          ))}
+                        </select>
+                      </td>
+                      <td data-label={t("auctions.col.pickup")}>
+                        {b.pickupPlace ?? (b.pickupAt ? "" : "—")}
+                        {b.pickupAt && <small>{shortDateTime(b.pickupAt)}</small>}
+                      </td>
+                      <td className="auction-actions">
+                        <button type="button" aria-label={t("auctions.editLabel", { name: b.cardName })} onClick={() => setEditing(b)}>
+                          {t("auctions.edit")}
+                        </button>
+                        <button
+                          type="button"
+                          className="danger"
+                          disabled={remove.isPending}
+                          aria-label={t("auctions.deleteLabel", { name: b.cardName })}
+                          onClick={() => {
+                            if (window.confirm(t("auctions.confirmDelete", { name: b.cardName }))) remove.mutate(b.id);
+                          }}
+                        >
+                          {t("auctions.delete")}
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
+        </>
       )}
     </main>
   );

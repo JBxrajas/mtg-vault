@@ -30,6 +30,7 @@ import { HttpError, addItem, getCollectionId, listItems, removeItem, updateItem 
 import { importRows } from "./import.js";
 import { artIndexUrl } from "./art-index.js";
 import { createBid, deleteBid, listBids, updateBid } from "./auctions.js";
+import { hasFeature, userFeatures, type Feature } from "./features.js";
 import { allowedOrigins } from "./origins.js";
 
 type Env = { Variables: { userId: string } };
@@ -119,6 +120,7 @@ app.get("/me", async (c) => {
     id: u.id,
     username: u.username ?? "",
     displayUsername: u.displayUsername ?? u.username ?? "",
+    features: userFeatures(u),
   };
   return c.json({ user: me });
 });
@@ -215,8 +217,23 @@ app.put("/decks/:id/cards", zValidator("param", deckIdParamSchema), zValidator("
   return c.json((await getDeck(c.get("userId"), c.req.valid("param").id))!);
 });
 
+/**
+ * Requires a session whose account has the feature (see features.ts). Other accounts get 404, as if the
+ * route did not exist.
+ */
+const requireFeature = (feature: Feature) =>
+  createMiddleware<Env>(async (c, next) => {
+    const session = await getAuth().api.getSession({ headers: c.req.raw.headers });
+    if (!session) return c.json({ error: "Not signed in" }, 401);
+    const u = session.user as { id: string; username?: string | null };
+    if (!hasFeature(feature, u)) return c.json({ error: "Not found" }, 404);
+    c.set("userId", u.id);
+    await next();
+  });
+
 // Auction bids: bids the user placed in auctions outside the app (Facebook groups), in Mexican pesos.
-app.use("/auctions/*", requireUser);
+// Only for the accounts listed in AUCTIONS_USERS.
+app.use("/auctions/*", requireFeature("auctions"));
 
 app.get("/auctions", async (c) => c.json({ bids: await listBids(c.get("userId")) }));
 

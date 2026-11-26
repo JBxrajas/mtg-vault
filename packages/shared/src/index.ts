@@ -169,6 +169,8 @@ export interface CurrentUser {
   id: string;
   username: string;
   displayUsername: string;
+  /** Features open only to some accounts (for example "auctions"); absent while an older API answers. */
+  features?: string[];
 }
 
 /**

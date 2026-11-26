@@ -260,13 +260,20 @@ describe("GET /me", () => {
     getSession.mockResolvedValue({ user: { id: "u1", username: "alice", displayUsername: "Alice" } });
     const res = await app.request("/me", { headers: { Authorization: "Bearer tok" } });
     expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({ user: { id: "u1", username: "alice", displayUsername: "Alice" } });
+    expect(await res.json()).toEqual({ user: { id: "u1", username: "alice", displayUsername: "Alice", features: [] } });
+  });
+
+  it("lists the features open to the account", async () => {
+    vi.stubEnv("AUCTIONS_USERS", "alice");
+    getSession.mockResolvedValue({ user: { id: "u1", username: "alice" } });
+    expect(((await (await app.request("/me")).json()) as { user: { features: string[] } }).user.features).toEqual(["auctions"]);
+    vi.unstubAllEnvs();
   });
 
   it("falls back to the username when there is no display name", async () => {
     getSession.mockResolvedValue({ user: { id: "u1", username: "alice" } });
     const res = await app.request("/me");
-    expect((await res.json()) as unknown).toEqual({ user: { id: "u1", username: "alice", displayUsername: "alice" } });
+    expect((await res.json()) as unknown).toEqual({ user: { id: "u1", username: "alice", displayUsername: "alice", features: [] } });
   });
 });
 
@@ -587,13 +594,36 @@ describe("/decks", () => {
 
 describe("/auctions", () => {
   const bidId = "2b93787d-47ea-4b8b-912d-ffc5d5440171";
-  const asUser = () => getSession.mockResolvedValue({ user: { id: "u1" } });
+  const asUser = () => getSession.mockResolvedValue({ user: { id: "u1", username: "alice" } });
   const send = (method: string, path: string, body?: unknown) =>
     app.request(path, {
       method,
       headers: { "Content-Type": "application/json", Authorization: "Bearer tok" },
       body: body === undefined ? undefined : JSON.stringify(body),
     });
+  beforeEach(() => vi.stubEnv("AUCTIONS_USERS", "u1"));
+  afterEach(() => vi.unstubAllEnvs());
+
+  it.each([
+    ["GET", "/auctions"],
+    ["POST", "/auctions"],
+    ["PATCH", `/auctions/${bidId}`],
+    ["DELETE", `/auctions/${bidId}`],
+  ])("%s %s answers 404 to an account without the feature", async (method, path) => {
+    getSession.mockResolvedValue({ user: { id: "u2", username: "bob" } });
+    expect((await send(method, path, method === "GET" ? undefined : { cardName: "x", status: "lost" })).status).toBe(404);
+    vi.stubEnv("AUCTIONS_USERS", "");
+    asUser();
+    expect((await send(method, path, method === "GET" ? undefined : { cardName: "x", status: "lost" })).status).toBe(404);
+    for (const f of Object.values(auctionFns)) expect(f).not.toHaveBeenCalled();
+  });
+
+  it("lets an account listed by username in", async () => {
+    vi.stubEnv("AUCTIONS_USERS", "Alice");
+    asUser();
+    auctionFns.listBids.mockResolvedValue([]);
+    expect((await send("GET", "/auctions")).status).toBe(200);
+  });
 
   it.each([
     ["GET", "/auctions"],

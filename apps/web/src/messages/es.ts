@@ -564,6 +564,8 @@ export const es = {
   "landing.footer": "mtg·vault es un proyecto de aficionados, sin afiliación con Wizards of the Coast. Datos e imágenes de Scryfall; los nombres y el arte de las cartas pertenecen a sus dueños.",
   "nav.auctions": "Subastas",
   "nav.auctions.hint": "Lleva el control de tus pujas en subastas fuera de la app",
+  "auctions.unavailable.title": "Página no encontrada",
+  "auctions.unavailable.text": "Esta página no existe o no está abierta para tu cuenta.",
   "auctions.title": "Subastas",
   "auctions.intro": "Lleva el control de tus pujas en subastas de Magic (por ejemplo en grupos de Facebook). Los montos van en pesos mexicanos.",
   "auctions.pitch.title": "Controla tus pujas",

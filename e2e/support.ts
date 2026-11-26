@@ -127,7 +127,7 @@ export async function mockApi(page: Page, deck: DeckDetail) {
     const path = new URL(request.url()).pathname;
     const body =
       path === "/me"
-        ? { user: { id: "u1", username: "alice", displayUsername: "Alice" } }
+        ? { user: { id: "u1", username: "alice", displayUsername: "Alice", features: ["auctions"] } }
         : path === "/decks/d1"
           ? deck
           : path === "/decks"

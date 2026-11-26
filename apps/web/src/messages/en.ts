@@ -562,6 +562,8 @@ export const en = {
   "landing.footer": "mtg·vault is an unofficial fan project, not affiliated with Wizards of the Coast. Card data and images from Scryfall; card names and art belong to their owners.",
   "nav.auctions": "Auctions",
   "nav.auctions.hint": "Track the bids you place in auctions outside the app",
+  "auctions.unavailable.title": "Page not found",
+  "auctions.unavailable.text": "This page does not exist or is not open to your account.",
   "auctions.title": "Auctions",
   "auctions.intro": "Keep track of the bids you place in Magic auctions (for example in Facebook groups). Amounts are in Mexican pesos.",
   "auctions.pitch.title": "Track your auction bids",

@@ -24,7 +24,9 @@ vi.mock("./collectionApi", () => ({ addToCollection }));
 import { AuctionsPage } from "./AuctionsPage";
 import { setCurrency } from "./currency";
 import { setLocale } from "./i18n";
-import { aCard, aDeck, aPrinting, aUser, renderPage } from "./test-utils";
+import { aCard, aDeck, aPrinting, aUser as plainUser, renderPage } from "./test-utils";
+
+const aUser = { ...plainUser, features: ["auctions"] };
 
 const ORACLE = "4457ed35-7c10-48c8-9776-456485fdf070";
 const inMinutes = (m: number) => new Date(Date.now() + m * 60_000).toISOString();
@@ -70,6 +72,15 @@ describe("AuctionsPage", () => {
     renderPage(<AuctionsPage />, { path: "/auctions" });
     expect(await screen.findByText("Track your auction bids")).toBeInTheDocument();
     expect(fetchAuctions).not.toHaveBeenCalled();
+  });
+
+  it("tells an account without the feature that the page is not there, and loads nothing", async () => {
+    fetchMe.mockResolvedValue(plainUser);
+    renderPage(<AuctionsPage />, { path: "/auctions" });
+    expect(await screen.findByRole("heading", { name: "Page not found" })).toBeInTheDocument();
+    expect(fetchAuctions).not.toHaveBeenCalled();
+    expect(fetchDecks).not.toHaveBeenCalled();
+    expect(screen.queryByRole("button", { name: "Add bid" })).not.toBeInTheDocument();
   });
 
   it("lists bids by closing time with a countdown, and flags what is losing and what closes soon", async () => {
